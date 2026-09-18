@@ -599,14 +599,16 @@ s = input.str("", "def_name")
 n = input.int("", 99)
 f = input.float("", 1.5)
 b = input.bool("", false)
+h = input.hidden("", "def_pass")
 
 print(s)
 print(n)
 print(f)
 print(b)
+print(h)
 `
 	i := New()
-	i.In(strings.NewReader("\n\n\n\n"))
+	i.In(strings.NewReader("\n\n\n\n\n"))
 	var buf bytes.Buffer
 	i.Out(&buf)
 	err := i.Run(src, "<test>")
@@ -615,10 +617,10 @@ print(b)
 	}
 
 	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
-	if len(lines) != 4 {
-		t.Fatalf("expected 4 lines output, got: %v", lines)
+	if len(lines) != 5 {
+		t.Fatalf("expected 5 lines output, got: %v", lines)
 	}
-	if lines[0] != "def_name" || lines[1] != "99" || lines[2] != "1.5" || lines[3] != "false" {
+	if lines[0] != "def_name" || lines[1] != "99" || lines[2] != "1.5" || lines[3] != "false" || lines[4] != "def_pass" {
 		t.Fatalf("unexpected input module default outputs: %v", lines)
 	}
 }

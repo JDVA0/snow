@@ -2,8 +2,11 @@ package snow
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
+
+	"golang.org/x/term"
 )
 
 func readLineStdin(i *Interp, prompt string) (string, error) {
@@ -168,15 +171,52 @@ func inputBool(i *Interp, args []Val) ([]Val, error) {
 	return []Val{Bool(defaultVal)}, nil
 }
 
-// input.hidden([prompt]) -> str (masked or simple line read)
+// input.hidden([prompt], [default]) -> str (masked terminal input or line read)
 func inputHidden(i *Interp, args []Val) ([]Val, error) {
 	prompt := ""
+	defaultVal := ""
 	if len(args) >= 1 {
 		prompt = SnowStr(args[0])
 	}
-	line, err := readLineStdin(i, prompt)
+	if len(args) >= 2 {
+		defaultVal = SnowStr(args[1])
+	}
+
+	if prompt != "" {
+		fmt.Fprint(i.out, prompt)
+	}
+
+	// Check if reading from an actual interactive terminal to mask characters
+	if f, ok := i.in.(*os.File); (ok && term.IsTerminal(int(f.Fd()))) || (i.in == nil && term.IsTerminal(int(os.Stdin.Fd()))) {
+		fd := int(os.Stdin.Fd())
+		if ok {
+			fd = int(f.Fd())
+		}
+		passBytes, err := term.ReadPassword(fd)
+		fmt.Fprintln(i.out)
+		if err != nil && len(passBytes) == 0 {
+			if defaultVal != "" {
+				return []Val{Str(defaultVal)}, nil
+			}
+			return []Val{Nil}, nil
+		}
+		line := string(passBytes)
+		if strings.TrimSpace(line) == "" && defaultVal != "" {
+			return []Val{Str(defaultVal)}, nil
+		}
+		return []Val{Str(line)}, nil
+	}
+
+	// Fallback for piped stdin or test mocks
+	line, err := readLineStdin(i, "")
 	if err != nil && line == "" {
+		if defaultVal != "" {
+			return []Val{Str(defaultVal)}, nil
+		}
 		return []Val{Nil}, nil
+	}
+	if strings.TrimSpace(line) == "" && defaultVal != "" {
+		return []Val{Str(defaultVal)}, nil
 	}
 	return []Val{Str(line)}, nil
 }
