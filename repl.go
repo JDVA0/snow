@@ -2,6 +2,7 @@ package snow
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +12,31 @@ import (
 
 	"golang.org/x/term"
 )
+
+// crnlWriter wraps an io.Writer and converts bare '\n' to '\r\n'.
+// This is required when the terminal is in raw mode (used by golang.org/x/term)
+// because raw mode disables the OS-level ONLCR translation, so without \r the
+// cursor only moves down, causing every subsequent prompt to drift rightward.
+type crnlWriter struct{ w io.Writer }
+
+func (c crnlWriter) Write(p []byte) (int, error) {
+	// Fast path: no bare newlines.
+	if !bytes.Contains(p, []byte{'\n'}) {
+		return c.w.Write(p)
+	}
+	// Replace each \n that is not already preceded by \r.
+	var buf []byte
+	for i := 0; i < len(p); i++ {
+		if p[i] == '\n' && (i == 0 || p[i-1] != '\r') {
+			buf = append(buf, '\r', '\n')
+		} else {
+			buf = append(buf, p[i])
+		}
+	}
+	_, err := c.w.Write(buf)
+	// Return the original length so callers don't think a short-write occurred.
+	return len(p), err
+}
 
 const Version = "0.1"
 
@@ -118,6 +144,17 @@ func replTerminal(i *Interp, fd int) {
 		return
 	}
 	defer term.Restore(fd, oldState)
+
+	// In raw mode the OS ONLCR flag is disabled, so we must translate \n→\r\n
+	// ourselves for any output that Snow scripts produce (print, cli.info, etc.).
+	rawOut := crnlWriter{os.Stdout}
+	rawErr := crnlWriter{os.Stderr}
+
+	// Save and restore the interpreter's output writers.
+	prevOut, prevErr := i.out, i.errOut
+	i.out = rawOut
+	i.errOut = rawErr
+	defer func() { i.out = prevOut; i.errOut = prevErr }()
 
 	t := term.NewTerminal(struct {
 		io.Reader
