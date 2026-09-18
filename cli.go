@@ -251,40 +251,45 @@ func cliBox(i *Interp, args []Val) ([]Val, error) {
 		}
 	}
 
-	// Calculate inner box width
-	innerWidth := contentWidth
-	if title != "" && titleWidth+2 > innerWidth {
-		innerWidth = titleWidth + 2
+	// Calculate inner box width with comfortable breathing room (+4 extra)
+	innerWidth := contentWidth + 4
+	if title != "" && titleWidth+6 > innerWidth {
+		innerWidth = titleWidth + 6
 	}
-	if innerWidth < 20 {
-		innerWidth = 20
+	if innerWidth < 26 {
+		innerWidth = 26
 	}
+
+	const padH = 2
+	padStr := strings.Repeat(" ", padH)
+	totalInner := innerWidth + 2*padH
 
 	var sb strings.Builder
 
-	// Top border
+	// Top border (square: ┌ ┐)
 	if title != "" {
-		fill := innerWidth - titleWidth - 1
-		if fill < 0 {
-			fill = 0
+		// "┌── " (3 chars after ┌) + title + " " (1 char) -> 4 chars + titleWidth inside borders
+		fill := totalInner - titleWidth - 4
+		if fill < 2 {
+			fill = 2
 		}
-		sb.WriteString("╭─ " + "\033[1m" + title + "\033[0m" + " " + strings.Repeat("─", fill) + "╮\n")
+		sb.WriteString("┌── " + "\033[1m" + title + "\033[0m" + " " + strings.Repeat("─", fill) + "┐\n")
 	} else {
-		sb.WriteString("╭" + strings.Repeat("─", innerWidth+2) + "╮\n")
+		sb.WriteString("┌" + strings.Repeat("─", totalInner) + "┐\n")
 	}
 
 	// Content lines
 	for _, l := range lines {
 		lWidth := stringWidth(l)
-		pad := innerWidth - lWidth
-		if pad < 0 {
-			pad = 0
+		rem := innerWidth - lWidth
+		if rem < 0 {
+			rem = 0
 		}
-		sb.WriteString("│ " + l + strings.Repeat(" ", pad) + " │\n")
+		sb.WriteString("│" + padStr + l + strings.Repeat(" ", rem) + padStr + "│\n")
 	}
 
-	// Bottom border
-	sb.WriteString("╰" + strings.Repeat("─", innerWidth+2) + "╯")
+	// Bottom border (square: └ ┘)
+	sb.WriteString("└" + strings.Repeat("─", totalInner) + "┘")
 
 	boxStr := sb.String()
 	fmt.Fprintln(i.out, boxStr)

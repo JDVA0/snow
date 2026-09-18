@@ -3,108 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snow — Un lenguaje sencillo y amigable por JDVA0</title>
+  <title>Snow — Un lenguaje sencillo para APIs. Hecho por JDVA0.</title>
+  <meta name="description" content="Snow es un pequeño lenguaje de programación para crear APIs web y scripts de sistema, hecho por diversión por JDVA0.">
   <link rel="icon" type="image/svg+xml" href="snowflake.svg">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Barra superior amigable -->
-  <header class="top-nav">
-    <div class="container d-flex justify-content-between align-items-center">
-      <a href="#" class="brand-wrapper">
-        <img src="snowflake.svg" class="brand-icon" alt="Snowflake">
-        <span class="brand-title">Snow</span>
-        <span class="badge-version">0.1</span>
+  <!-- Nav -->
+  <nav class="topbar">
+    <div class="wrap nav-inner">
+      <a href="index.html" class="brand">
+        <img src="snowflake.svg" alt="Snow">
+        Snow
+        <span class="brand-ver">0.1</span>
       </a>
-      <div class="d-flex align-items-center gap-2 gap-md-3">
-        <a href="#descripcion" class="nav-link-top d-none d-sm-inline" data-i18n="nav_top_guide">Guía</a>
-        <a href="#sintaxis" class="nav-link-top d-none d-md-inline" data-i18n="nav_top_lang">Lenguaje</a>
-        <a href="#mod-api" class="nav-link-top d-none d-sm-inline" data-i18n="nav_top_mods">Módulos</a>
-        <a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener" class="nav-link-top">
-          GitHub
-        </a>
-        <div class="d-flex gap-1 ms-2" role="group">
-          <button type="button" class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
-          <button type="button" class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Hero amigable estilo Gleam con paleta Nord Pastel -->
-  <section class="hero-section">
-    <div class="container">
-      <div class="row align-items-center g-4 g-lg-5">
-        <div class="col-lg-5 col-md-5 order-md-1 order-2 mascot-container">
-          <div class="mascot-card">
-            <img src="snowflake.svg" class="mascot-img" alt="Copo de nieve Snow">
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">Inicio</a></li>
+        <li><a href="docs.html" data-i18n="nav_top_guide">Documentación</a></li>
+        <li><a href="docs.html#sintaxis" data-i18n="nav_top_lang">Lenguaje</a></li>
+        <li><a href="docs.html#mod-api" data-i18n="nav_top_mods">Módulos</a></li>
+        <li><a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener">GitHub</a></li>
+        <li>
+          <div class="lang-group">
+            <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
+            <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
           </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-row">
+        <div class="hero-mascot">
+          <img src="snowflake.svg" alt="Copo de nieve Snow" class="mascot-img">
         </div>
-        <div class="col-lg-7 col-md-7 order-md-2 order-1">
+        <div class="hero-text">
           <h1 class="hero-title" data-i18n="hero_title">
-            <strong>Snow</strong> es un lenguaje <span class="hero-highlight">sencillo y amigable</span> para crear <span class="hero-highlight-pastel">APIs web</span> sin complicaciones.
+            <strong>Snow</strong> — un lenguaje <span class="acc">pequeño y tranquilo</span> para crear APIs web.
           </h1>
-          <p class="hero-desc" data-i18n="hero_desc">
-            Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Sin pretensiones de ser revolucionario: solo para experimentar con APIs y hacer más fáciles las cosas.
+          <p class="hero-subtitle" data-i18n="hero_desc">
+            Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Nada revolucionario, solo para experimentar con APIs y hacer las cosas un poco más fáciles.
           </p>
-          <div class="hero-actions">
-            <a href="#instalacion" class="btn-pill-primary" data-i18n="btn_install">❄️ Comenzar</a>
-            <a href="#descripcion" class="btn-pill-secondary" data-i18n="btn_docs">Explorar Guía</a>
-            <a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener" class="btn-pill-ghost">Ver en GitHub →</a>
+          <div class="hero-btns">
+            <a href="docs.html#instalacion" class="btn-dark" data-i18n="btn_install">❄️ Comenzar</a>
+            <a href="docs.html" class="btn-outline" data-i18n="btn_docs">Ver la documentación</a>
+            <a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener" class="btn-link">github.com/JDVA0/snow →</a>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Divisor orgánico de onda hacia sección oscura Nord -->
-  <div class="wave-container">
-    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" class="wave-svg">
-      <path d="M0,28 C360,75 720,5 1080,55 C1240,78 1380,45 1440,38 L1440,80 L0,80 Z" fill="#242933"></path>
-    </svg>
-  </div>
-
-  <!-- Franja de Contraste Oscuro Nord -->
+  <!-- Dark strip -->
   <section class="dark-strip">
-    <div class="container">
-      <div class="row align-items-center g-4 g-lg-5">
-        <div class="col-lg-6">
-          <h2 class="dark-title" data-i18n="h_dark_title">Un lenguaje pequeño, plano y relajado</h2>
-          <p class="dark-desc" data-i18n="p_dark_text_1">
-            Snow nació del entusiasmo por experimentar y crear un intérprete funcional en Go. No busca ser revolucionario ni competir con otros: su meta es que levantar un microservicio o consultar una API sea tan simple como escribir 5 líneas limpias.
-          </p>
-          <p class="dark-desc" data-i18n="p_dark_text_2">
-            Sin llaves <code>{}</code>, sin puntos y coma <code>;</code>, con cliente y servidor HTTP integrados, almacenamiento en disco y herramientas de terminal.
-          </p>
-          <div class="badge-humble" data-i18n="badge_humble_text">
-            ❄️ Hecho por <strong>JDVA0</strong> · Diversión y experimentación libre
-          </div>
+    <div class="wrap">
+      <div class="strip-row">
+        <div class="strip-text">
+          <h2 data-i18n="h_dark_title">Un lenguaje pequeño, plano y relajado</h2>
+          <p data-i18n="p_dark_text_1">Snow nació del entusiasmo por experimentar y crear un intérprete funcional en Go. No busca ser revolucionario ni competir con otros: su meta es que levantar un microservicio o consultar una API sea tan simple como escribir 5 líneas limpias.</p>
+          <p data-i18n="p_dark_text_2">Sin llaves <code>{}</code>, sin puntos y coma <code>;</code>, con cliente y servidor HTTP integrados, almacenamiento en disco y herramientas de terminal.</p>
+          <p class="credit-line" data-i18n="badge_humble_text">❄️ Hecho por <strong>JDVA0</strong> · Diversión y experimentación libre</p>
         </div>
-        <div class="col-lg-6">
-          <div class="terminal-card">
-            <div class="terminal-header">
-              <div class="terminal-dots">
-                <span class="t-dot t-red"></span>
-                <span class="t-dot t-yellow"></span>
-                <span class="t-dot t-green"></span>
-              </div>
-              <span class="terminal-title">servidor.snow</span>
-            </div>
+        <div class="strip-code">
+          <div class="code-plain-box">
             <pre><code>using api
 
-# Servidor web en 5 lineas
+# Servidor web en 5 líneas
 api.cors()
 
 api.get("/", fn(req):
     api.json({
         mensaje: "Hola desde Snow! ❄️",
         autor: "JDVA0",
-        modo: "experimentacion"
+        modo: "experimentación"
     })
 )
 
@@ -115,1038 +93,54 @@ api.serve(8080)</code></pre>
     </div>
   </section>
 
-  <!-- Cinta Pastel -->
-  <div class="pastel-ribbon text-center">
-    <div class="container">
-      <span data-i18n="ribbon_text">❄️ Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación · 100% libre y abierto para todo el mundo</span>
-    </div>
+  <!-- Ribbon -->
+  <div class="ribbon">
+    <span data-i18n="ribbon_text">❄️ Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación · Libre y abierto para todo el mundo</span>
   </div>
 
-  <!-- Contenedor de Documentación -->
-  <div class="docs-wrapper">
-    <div class="container-fluid">
-      <div class="row">
-        <!-- Navegacion lateral -->
-        <nav class="col-md-3 col-lg-2 d-md-block p-3">
-          <div class="sidebar-sticky">
-            <div class="sidebar-heading" data-i18n="nav_start">Guía de Inicio</div>
-            <ul class="nav flex-column mb-2">
-            <li class="nav-item"><a class="nav-link" href="#descripcion" data-i18n="nav_desc">Descripción</a></li>
-            <li class="nav-item"><a class="nav-link" href="#instalacion" data-i18n="nav_inst">Instalación</a></li>
-            <li class="nav-item"><a class="nav-link" href="#ejecucion" data-i18n="nav_run">Ejecución y CLI</a></li>
-          </ul>
-
-          <div class="sidebar-heading" data-i18n="nav_lang">El Lenguaje</div>
-          <ul class="nav flex-column mb-2">
-            <li class="nav-item"><a class="nav-link" href="#sintaxis" data-i18n="nav_syntax">Sintaxis e Indentación</a></li>
-            <li class="nav-item"><a class="nav-link" href="#tipos" data-i18n="nav_types">Tipos y Operadores</a></li>
-            <li class="nav-item"><a class="nav-link" href="#control" data-i18n="nav_control">Control de Flujo</a></li>
-            <li class="nav-item"><a class="nav-link" href="#funciones" data-i18n="nav_funcs">Funciones y Lambdas</a></li>
-            <li class="nav-item"><a class="nav-link" href="#nativas" data-i18n="nav_builtins">Funciones Nativas</a></li>
-          </ul>
-
-          <div class="sidebar-heading" data-i18n="nav_mods">Módulos en Detalle</div>
-          <ul class="nav flex-column mb-2">
-            <li class="nav-item"><a class="nav-link" href="#mod-api">api (Servidor HTTP)</a></li>
-            <li class="nav-item"><a class="nav-link" href="#mod-http">http (Cliente HTTP)</a></li>
-            <li class="nav-item"><a class="nav-link" href="#mod-db">db (Base de Datos KV)</a></li>
-            <li class="nav-item"><a class="nav-link" href="#mod-sys">sys (Sistema Operativo)</a></li>
-            <li class="nav-item"><a class="nav-link" href="#mod-fs">fs (Archivos en Disco)</a></li>
-            <li class="nav-item"><a class="nav-link" href="#mod-cli">cli (Terminal y Argumentos)</a></li>
-          </ul>
-
-          <div class="sidebar-heading" data-i18n="nav_ex">Ejemplos Completos</div>
-          <ul class="nav flex-column mb-2">
-            <li class="nav-item"><a class="nav-link" href="#ej-crud" data-i18n="nav_ex_crud">API REST CRUD Completa</a></li>
-            <li class="nav-item"><a class="nav-link" href="#ej-cli" data-i18n="nav_ex_cli">Herramienta CLI Completa</a></li>
-            <li class="nav-item"><a class="nav-link" href="#ej-archivos" data-i18n="nav_ex_fs">Procesador de Archivos</a></li>
-          </ul>
+  <!-- Features Grid -->
+  <section style="padding: 3.5rem 0; background: var(--bg);">
+    <div class="wrap">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        <div class="doc-section" style="margin-bottom: 0;">
+          <h3 style="margin-top: 0; color: #fff;">⚡ Servidor HTTP Nativo</h3>
+          <p style="color: var(--soft); font-size: .92rem;">El módulo <code>api</code> permite definir rutas GET, POST, PUT, DELETE, habilitar CORS y responder JSON en milisegundos sin frameworks pesados.</p>
+          <a href="docs.html#mod-api" style="font-size: .85rem;">Ver módulo api →</a>
         </div>
-      </nav>
-
-      <!-- Contenido principal -->
-      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-3">
-
-        <!-- Descripcion -->
-        <section id="descripcion" class="doc-section">
-          <h1>Snow</h1>
-          <p data-i18n="p_intro">
-            Snow es un lenguaje de programación simple y plano, diseñado específicamente para facilitar la creación de APIs web y scripts de sistema sin dependencias externas complejas.
-          </p>
-
-          <div class="notice-box">
-            <span data-i18n="notice_credit">
-              Proyecto creado por <strong>JDVA0</strong> con asistencia de inteligencia artificial. Hecho por diversión y para experimentar, totalmente libre y abierto para que cualquier persona en el mundo lo use, aprenda y cree APIs sin complicaciones.
-            </span>
-          </div>
-
-          <h2 data-i18n="h_features">Puntos clave</h2>
-          <ul>
-            <li data-i18n="f_1"><strong>Indentación por espacios:</strong> se usan 4 espacios para definir bloques. No hay llaves <code>{}</code> para delimitar código ni puntos y comas <code>;</code> al final de línea.</li>
-            <li data-i18n="f_2"><strong>Servidor HTTP nativo:</strong> el módulo <code>api</code> permite levantar servidores web, definir rutas (GET, POST, PUT, DELETE, PATCH), habilitar CORS y retornar JSON con funciones sencillas.</li>
-            <li data-i18n="f_3"><strong>Acceso al sistema y archivos:</strong> los módulos <code>sys</code> y <code>fs</code> permiten ejecutar comandos del sistema, leer variables de entorno, gestionar procesos y manipular archivos en disco.</li>
-            <li data-i18n="f_4"><strong>Herramientas de terminal:</strong> el módulo <code>cli</code> incluye analizador de argumentos, formateo de tablas y cajas de texto.</li>
-          </ul>
-        </section>
-
-        <!-- Instalacion -->
-        <section id="instalacion" class="doc-section">
-          <h2 data-i18n="h_inst">Instalación</h2>
-          <p data-i18n="p_mod">El módulo oficial en Go es <code>github.com/JDVA0/snow</code>.</p>
-
-          <h3 data-i18n="h_go_get">1. Descargar el módulo como paquete en Go</h3>
-          <p class="text-muted" data-i18n="p_go_embed">Si deseas incrustar el intérprete de Snow dentro de una aplicación en Go:</p>
-          <pre><code>go get github.com/JDVA0/snow</code></pre>
-
-          <h3 data-i18n="h_build">2. Compilar e instalar el ejecutable snowman</h3>
-          <p class="text-muted" data-i18n="p_cli_compile">Para ejecutar programas Snow directamente en tu máquina:</p>
-          <pre><code>git clone https://github.com/JDVA0/snow.git
-cd snow
-go build -o snowman ./cmd/snowman
-sudo mv snowman /usr/local/bin/</code></pre>
-        </section>
-
-        <!-- Ejecucion -->
-        <section id="ejecucion" class="doc-section">
-          <h2 data-i18n="h_run">Ejecución y CLI</h2>
-          <p data-i18n="p_run_desc">El ejecutable <code>snowman</code> corre programas Snow y ofrece un modo interactivo:</p>
-
-          <table class="table-nord">
-            <thead>
-              <tr>
-                <th style="width: 35%;" data-i18n="th_cmd">Comando</th>
-                <th data-i18n="th_desc">Descripción y Ejemplo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>snowman archivo.snow</code></td>
-                <td data-i18n="c_run_1">Ejecuta el archivo directamente: <code>snowman servidor.snow</code></td>
-              </tr>
-              <tr>
-                <td><code>snowman run archivo.snow [args...]</code></td>
-                <td data-i18n="c_run_2">Ejecuta pasando argumentos al programa: <code>snowman run script.snow --puerto 8080</code></td>
-              </tr>
-              <tr>
-                <td><code>snowman repl</code></td>
-                <td data-i18n="c_run_3">Inicia la consola interactiva línea a línea.</td>
-              </tr>
-              <tr>
-                <td><code>snowman --help</code></td>
-                <td data-i18n="c_run_4">Muestra la ayuda con los módulos disponibles.</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3 data-i18n="h_repl_ex">Ejemplo de uso del REPL</h3>
-          <pre><code>$ snowman repl
-Snow 0.1 REPL
-Type ".exit" to quit, ".clear" to reset, or empty line to run.
-
-snow&gt; a = [1, 2, 3]
-snow&gt; a = append(a, 4)
-snow&gt; print(len(a))
-4
-snow&gt; .exit</code></pre>
-        </section>
-
-        <!-- Sintaxis -->
-        <section id="sintaxis" class="doc-section">
-          <h2 data-i18n="h_syntax">Sintaxis e Indentación</h2>
-          <p data-i18n="p_syntax_intro">
-            Snow es un lenguaje limpio. Las líneas se ejecutan secuencialmente de arriba hacia abajo.
-          </p>
-
-          <h3 data-i18n="h_comments">Comentarios</h3>
-          <p data-i18n="p_comments">Todo lo que sigue a una almohadilla <code>#</code> hasta el final de la línea se ignora:</p>
-          <pre><code># Esto es un comentario
-x = 10 # También se puede comentar al final de una línea</code></pre>
-
-          <h3 data-i18n="h_indent_rule">Regla de Indentación (Bloques)</h3>
-          <p data-i18n="p_indent_desc">
-            Cuando abres un bloque de código (con <code>if</code>, <code>elif</code>, <code>else</code>, <code>for</code>, <code>while</code> o <code>fn</code>), la línea debe terminar con dos puntos <code>:</code>. Todas las líneas que formen parte de ese bloque deben comenzar con <strong>4 espacios</strong> de indentación:
-          </p>
-          <pre><code>valor = 15
-
-if valor &gt; 10:
-    print("El valor es mayor que 10")
-    print("Esta línea también pertenece al bloque if")
-
-print("Esta línea ya está fuera del bloque porque no tiene espacios")</code></pre>
-
-          <h3 data-i18n="h_vars">Variables y Asignaciones</h3>
-          <pre><code># Variables simples
-nombre = "Snow"
-año = 2026
-activo = true
-
-# Asignaciones compuestas
-total = 10
-total += 5    # suma 5 (total = 15)
-total -= 3    # resta 3 (total = 12)
-total *= 2    # multiplica por 2 (total = 24)
-total /= 4    # divide (total = 6.0)</code></pre>
-        </section>
-
-        <!-- Tipos y Operadores -->
-        <section id="tipos" class="doc-section">
-          <h2 data-i18n="h_types">Tipos y Operadores</h2>
-
-          <h3 data-i18n="h_types_table">Tipos de datos</h3>
-          <table class="table-nord">
-            <thead>
-              <tr>
-                <th style="width: 15%;" data-i18n="th_type">Tipo</th>
-                <th style="width: 30%;" data-i18n="th_ex">Ejemplo</th>
-                <th data-i18n="th_desc">Descripción y Operaciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>int</code></td>
-                <td><code>x = 42</code>, <code>hex = 0xFF</code></td>
-                <td data-i18n="td_int">Enteros. Soporta suma (<code>+</code>), resta (<code>-</code>), producto (<code>*</code>), división decimal (<code>/</code>), división entera (<code>//</code>) y módulo (<code>%</code>).</td>
-              </tr>
-              <tr>
-                <td><code>float</code></td>
-                <td><code>precio = 19.95</code></td>
-                <td data-i18n="td_float">Decimales con coma flotante de 64 bits.</td>
-              </tr>
-              <tr>
-                <td><code>str</code></td>
-                <td><code>s = "texto\ncon salto"</code></td>
-                <td data-i18n="td_str">Cadenas de texto. Concatenación con <code>+</code>. Multiplicación: <code>"ab" * 3</code> produce <code>"ababab"</code>. Soporta índices: <code>s[0]</code>, <code>s[-1]</code>.</td>
-              </tr>
-              <tr>
-                <td><code>bool</code></td>
-                <td><code>true</code>, <code>false</code></td>
-                <td data-i18n="td_bool">Valores booleanos. Operadores lógicos: <code>and</code>, <code>or</code>, <code>not</code>.</td>
-              </tr>
-              <tr>
-                <td><code>nil</code></td>
-                <td><code>v = nil</code></td>
-                <td data-i18n="td_nil">Representa ausencia de valor.</td>
-              </tr>
-              <tr>
-                <td><code>list</code></td>
-                <td><code>l = [10, 20, 30]</code></td>
-                <td data-i18n="td_list">Lista ordenada indexada por enteros desde 0. Soporta concatenación con <code>+</code> e índices negativos (<code>l[-1]</code> devuelve el último).</td>
-              </tr>
-              <tr>
-                <td><code>dict</code></td>
-                <td><code>d = {nombre: "Ana", rol: "admin"}</code></td>
-                <td data-i18n="td_dict">Diccionario de claves y valores. Acceso por punto (<code>d.nombre</code>) o por corchetes (<code>d["nombre"]</code>).</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3 data-i18n="h_ops_ex">Ejemplo con listas y diccionarios</h3>
-          <pre><code># Trabajo con listas
-items = ["servidor", "base_datos", "cliente"]
-print(items[0])       # servidor
-print(items[-1])      # cliente
-items = append(items, "balanceador")
-print(len(items))     # 4
-
-# Trabajo con diccionarios
-config = {
-    puerto: 8080,
-    modo: "produccion",
-    cors: true
-}
-print(config.puerto)          # 8080
-print(config.host)            # 0.0.0.0
-print(keys(config))           # ["puerto", "modo", "cors", "host"]</code></pre>
-
-          <h3 data-i18n="h_fstr_elvis">F-Strings, Operador Elvis (??) y Cadenas Multilínea</h3>
-          <p data-i18n="p_fstr_desc">Snow soporta interpolación directa de expresiones, valor por defecto para nulos y literales de texto multilínea:</p>
-          <pre><code># 1. F-Strings (interpolacion de expresiones)
-usuario = "Julian"
-edad = 25
-print(f"Hola {usuario}, tienes {edad} años. En 5 años tendrás {edad + 5}.")
-
-# 2. Operador Elvis / Nullish coalescing (??)
-nombre_param = nil
-nombre_final = nombre_param ?? "invitado"
-print(f"Bienvenido, {nombre_final}")
-
-# 3. Cadenas multilínea con triples comillas
-sql = """SELECT id, nombre, email
-FROM usuarios
-WHERE activo = true
-ORDER BY id DESC"""
-print(sql)</code></pre>
-        </section>
-
-        <!-- Control de Flujo -->
-        <section id="control" class="doc-section">
-          <h2 data-i18n="h_control">Control de Flujo</h2>
-
-          <h3 data-i18n="h_if">1. Condicional if / elif / else</h3>
-          <pre><code>estado = 200
-
-if estado == 200:
-    print("Respuesta correcta (OK)")
-elif estado == 404:
-    print("Recurso no encontrado")
-elif estado &gt;= 500:
-    print("Error interno del servidor")
-else:
-    print("Otro estado:", estado)</code></pre>
-
-          <h3 data-i18n="h_for">2. Bucle for</h3>
-          <p data-i18n="p_for_desc">Recorre los elementos de una lista:</p>
-          <pre><code>rutas = ["/inicio", "/usuarios", "/contacto"]
-
-for r in rutas:
-    print("Registrando ruta:", r)</code></pre>
-
-          <h3 data-i18n="h_while">3. Bucle while con break y continue</h3>
-          <pre><code>cuenta = 0
-while cuenta &lt; 10:
-    cuenta += 1
-    if cuenta == 3:
-        # Salta la iteracion cuando cuenta es 3
-        continue
-    if cuenta == 6:
-        # Termina el bucle cuando cuenta llega a 6
-        break
-    print("Numero:", cuenta)</code></pre>
-        </section>
-
-        <!-- Funciones -->
-        <section id="funciones" class="doc-section">
-          <h2 data-i18n="h_funcs">Funciones y Lambdas</h2>
-
-          <h3 data-i18n="h_fn_std">1. Funciones estándar con bloques (<code>fn</code>)</h3>
-          <p data-i18n="p_fn_std_desc">Se definen con la palabra clave <code>fn</code>, nombre, paréntesis con argumentos separados por coma, dos puntos y bloque indentado:</p>
-          <pre><code>fn calcular_iva(precio, tasa):
-    iva = precio * tasa
-    total = precio + iva
-    return total
-
-factura = calcular_iva(100, 0.16)
-print("Total con IVA:", factura)  # 116.0</code></pre>
-
-          <h3 data-i18n="h_fn_lambda">2. Funciones lambda en una línea</h3>
-          <p data-i18n="p_fn_lambda_desc">Para expresiones cortas y pasar como argumento a otras funciones:</p>
-          <pre><code># Asignada a variable
-cuadrado = fn(x): x * x
-print(cuadrado(6))   # 36
-
-# Usada como argumento de transformacion
-numeros = [1, 2, 3, 4]
-dobles = map(fn(n): n * 2, numeros)
-print(dobles)        # [2, 4, 6, 8]
-
-mayores = filter(fn(n): n &gt; 2, numeros)
-print(mayores)       # [3, 4]</code></pre>
-        </section>
-
-        <!-- Funciones Nativas -->
-        <section id="nativas" class="doc-section">
-          <h2 data-i18n="h_builtins">Funciones Nativas</h2>
-          <p data-i18n="p_builtins_intro">Están siempre disponibles en el intérprete sin necesidad de importar ningún módulo:</p>
-
-          <table class="table-nord">
-            <thead>
-              <tr>
-                <th style="width: 25%;" data-i18n="th_fn">Función</th>
-                <th style="width: 35%;" data-i18n="th_desc">Descripción</th>
-                <th data-i18n="th_ex">Ejemplo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>print(...)</code></td>
-                <td data-i18n="b_print">Escribe argumentos en stdout separados por espacio y agrega salto de línea.</td>
-                <td><code>print("Hola", 42)</code></td>
-              </tr>
-              <tr>
-                <td><code>len(x)</code></td>
-                <td data-i18n="b_len">Devuelve la cantidad de elementos en cadena, lista o diccionario.</td>
-                <td><code>len("Snow")  # 4</code></td>
-              </tr>
-              <tr>
-                <td><code>str(x), int(x), float(x)</code></td>
-                <td data-i18n="b_conv">Conversión de tipo explícita.</td>
-                <td><code>n = int("123")</code></td>
-              </tr>
-              <tr>
-                <td><code>type(x)</code></td>
-                <td data-i18n="b_type">Devuelve el nombre del tipo: "int", "float", "str", "bool", "list", "dict", "nil".</td>
-                <td><code>type(10)  # "int"</code></td>
-              </tr>
-              <tr>
-                <td><code>append(lista, v)</code></td>
-                <td data-i18n="b_append">Agrega un valor al final de la lista y devuelve la lista.</td>
-                <td><code>l = append(l, "nuevo")</code></td>
-              </tr>
-              <tr>
-                <td><code>split(s, sep)</code></td>
-                <td data-i18n="b_split">Divide una cadena en una lista de subcadenas según el separador.</td>
-                <td><code>split("a,b,c", ",")</code></td>
-              </tr>
-              <tr>
-                <td><code>join(lista, sep)</code></td>
-                <td data-i18n="b_join">Une los elementos de una lista de cadenas usando el separador dado.</td>
-                <td><code>join(["a", "b"], "-")</code></td>
-              </tr>
-              <tr>
-                <td><code>trim(s)</code></td>
-                <td data-i18n="b_trim">Elimina espacios en blanco al inicio y al final de la cadena.</td>
-                <td><code>trim("  hola  ")</code></td>
-              </tr>
-              <tr>
-                <td><code>upper(s) / lower(s)</code></td>
-                <td data-i18n="b_case">Convierte caracteres a mayúsculas o minúsculas.</td>
-                <td><code>upper("snow")  # "SNOW"</code></td>
-              </tr>
-              <tr>
-                <td><code>contains(a, b)</code></td>
-                <td data-i18n="b_contains">Comprueba si una cadena contiene a otra o si un elemento está en una lista.</td>
-                <td><code>contains("lenguaje", "guaje")</code></td>
-              </tr>
-              <tr>
-                <td><code>keys(d) / values(d)</code></td>
-                <td data-i18n="b_kv">Devuelve las claves o los valores de un diccionario en una lista.</td>
-                <td><code>keys({a: 1, b: 2})</code></td>
-              </tr>
-              <tr>
-                <td><code>sort(lista)</code></td>
-                <td data-i18n="b_sort">Ordena una lista de números o cadenas de menor a mayor.</td>
-                <td><code>sort([3, 1, 2])  # [1, 2, 3]</code></td>
-              </tr>
-              <tr>
-                <td><code>map(fn, lista)</code></td>
-                <td data-i18n="b_map">Aplica una función a cada elemento de una lista.</td>
-                <td><code>map(fn(x): x+1, [1, 2])</code></td>
-              </tr>
-              <tr>
-                <td><code>filter(fn, lista)</code></td>
-                <td data-i18n="b_filter">Filtra una lista conservando los elementos donde la función devuelve true.</td>
-                <td><code>filter(fn(x): x&gt;0, [-1, 2])</code></td>
-              </tr>
-              <tr>
-                <td><code>exit([codigo])</code></td>
-                <td data-i18n="b_exit">Termina la ejecución del programa inmediatamente con el código dado (0 por defecto).</td>
-                <td><code>exit(1)</code></td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <!-- Modulo: API -->
-        <section id="mod-api" class="doc-section">
-          <h2>using api</h2>
-          <p data-i18n="p_mod_api_desc">
-            El módulo <code>api</code> permite crear servidores HTTP, definir rutas y responder peticiones web sin ninguna librería externa.
-          </p>
-
-          <h3 data-i18n="h_api_methods">Métodos disponibles</h3>
-          <table class="table-nord">
-            <thead>
-              <tr>
-                <th style="width: 30%;" data-i18n="th_method">Método</th>
-                <th data-i18n="th_desc">Descripción y Ejemplo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>api.cors([origen])</code></td>
-                <td data-i18n="api_m_cors">Habilita CORS para permitir peticiones desde navegadores. Por defecto permite <code>"*"</code>. Responde automáticamente las peticiones OPTIONS preflight con código 204.</td>
-              </tr>
-              <tr>
-                <td><code>api.get(ruta, handler)</code></td>
-                <td data-i18n="api_m_get">Registra una ruta GET. Admite parámetros dinámicos con dos puntos: <code>api.get("/usuarios/:id", handler)</code>.</td>
-              </tr>
-              <tr>
-                <td><code>api.post(ruta, handler)</code></td>
-                <td data-i18n="api_m_post">Registra una ruta POST para recepción de datos: <code>api.post("/crear", handler)</code>.</td>
-              </tr>
-              <tr>
-                <td><code>api.put(ruta, handler)</code></td>
-                <td data-i18n="api_m_put">Registra una ruta PUT (actualización total).</td>
-              </tr>
-              <tr>
-                <td><code>api.patch(ruta, handler)</code></td>
-                <td data-i18n="api_m_patch">Registra una ruta PATCH (actualización parcial).</td>
-              </tr>
-              <tr>
-                <td><code>api.delete(ruta, handler)</code></td>
-                <td data-i18n="api_m_delete">Registra una ruta DELETE.</td>
-              </tr>
-              <tr>
-                <td><code>api.all(ruta, handler)</code></td>
-                <td data-i18n="api_m_all">Registra una ruta para cualquier método HTTP.</td>
-              </tr>
-              <tr>
-                <td><code>api.use(middleware_fn)</code></td>
-                <td data-i18n="api_m_use">Registra un middleware que se ejecuta en cada petición antes de las rutas. Si devuelve una respuesta, corta el flujo. Si devuelve nil, continúa al handler.</td>
-              </tr>
-              <tr>
-                <td><code>api.static(prefijo, carpeta)</code></td>
-                <td data-i18n="api_m_static">Sirve archivos estáticos: <code>api.static("/archivos", "./public")</code>.</td>
-              </tr>
-              <tr>
-                <td><code>api.serve(puerto)</code></td>
-                <td data-i18n="api_m_serve">Bloquea el proceso y pone a escuchar el servidor HTTP en el puerto indicado: <code>api.serve(8080)</code>.</td>
-              </tr>
-              <tr>
-                <td><code>api.json(datos, [codigo])</code></td>
-                <td data-i18n="api_m_json">Genera una respuesta con cabecera <code>Content-Type: application/json</code> y código de estado opcional (200 por defecto).</td>
-              </tr>
-              <tr>
-                <td><code>api.text(texto, [codigo])</code></td>
-                <td data-i18n="api_m_text">Genera una respuesta en texto plano (<code>text/plain</code>).</td>
-              </tr>
-              <tr>
-                <td><code>api.html(html, [codigo])</code></td>
-                <td data-i18n="api_m_html">Genera una respuesta en HTML (<code>text/html</code>).</td>
-              </tr>
-              <tr>
-                <td><code>api.redirect(url, [codigo])</code></td>
-                <td data-i18n="api_m_redirect">Redirige a otra URL (código 302 por defecto).</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3 data-i18n="h_req_detail">Estructura del objeto <code>req</code></h3>
-          <p data-i18n="p_req_desc">Cada función de ruta recibe un único argumento con la información de la solicitud:</p>
-          <table class="table-nord">
-            <thead>
-              <tr>
-                <th style="width: 25%;" data-i18n="th_prop">Propiedad</th>
-                <th style="width: 20%;" data-i18n="th_type">Tipo</th>
-                <th data-i18n="th_desc">Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>req.method</code></td>
-                <td><code>str</code></td>
-                <td data-i18n="req_m">Método de la solicitud: "GET", "POST", "PUT", etc.</td>
-              </tr>
-              <tr>
-                <td><code>req.path</code></td>
-                <td><code>str</code></td>
-                <td data-i18n="req_p">Ruta solicitada: "/usuarios/42".</td>
-              </tr>
-              <tr>
-                <td><code>req.query</code></td>
-                <td><code>dict</code></td>
-                <td data-i18n="req_q">Parámetros de la URL: <code>?orden=precio&amp;limite=5</code> produce <code>req.query.orden</code> ("precio") y <code>req.query.limite</code> ("5").</td>
-              </tr>
-              <tr>
-                <td><code>req.params</code></td>
-                <td><code>dict</code></td>
-                <td data-i18n="req_param">Variables capturadas en la ruta: en <code>/usuarios/:id</code>, <code>req.params.id</code> contiene el valor enviado.</td>
-              </tr>
-              <tr>
-                <td><code>req.headers</code></td>
-                <td><code>dict</code></td>
-                <td data-i18n="req_h">Cabeceras HTTP enviadas por el cliente en minúsculas: <code>req.headers["authorization"]</code>.</td>
-              </tr>
-              <tr>
-                <td><code>req.body</code></td>
-                <td><code>str</code></td>
-                <td data-i18n="req_b">Cuerpo crudo de la petición como texto.</td>
-              </tr>
-              <tr>
-                <td><code>req.json</code></td>
-                <td><code>dict</code> o <code>list</code></td>
-                <td data-i18n="req_j">Cuerpo decodificado automáticamente si el cliente envió JSON válido.</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3 data-i18n="h_api_mini_ex">Ejemplo completo de servidor API</h3>
-          <pre><code>using api
-
-# 1. Habilitar CORS
-api.cors()
-
-# 2. Middleware de registro
-fn registrar(req):
-    print("[" + req.method + "] " + req.path)
-    return nil
-
-api.use(registrar)
-
-# 3. Ruta GET con query string (?buscar=algo)
-fn buscar(req):
-    termino = req.query.buscar
-    if termino == nil:
-        termino = "todos"
-    return api.json({resultado: termino, total: 1})
-
-api.get("/buscar", buscar)
-
-# 4. Ruta GET con parametro dinámico (:id)
-fn ver_item(req):
-    id = req.params.id
-    return api.json({id: id, activo: true})
-
-api.get("/items/:id", ver_item)
-
-# 5. Ruta POST con recepcion de JSON
-fn guardar(req):
-    datos = req.json
-    return api.json({guardado: true, datos: datos}, 201)
-
-api.post("/items", guardar)
-
-# 6. Iniciar servidor en el puerto 8080
-api.serve(8080)</code></pre>
-        </section>
-
-        <!-- Modulo: Sys -->
-        <section id="mod-sys" class="doc-section">
-          <h2>using sys</h2>
-          <p data-i18n="p_mod_sys_desc">Permite consultar el entorno de ejecución, ejecutar comandos externos y controlar el proceso.</p>
-
-          <table class="table-nord">
-            <thead>
-              <tr>
-                <th style="width: 30%;" data-i18n="th_prop">Propiedad / Función</th>
-                <th data-i18n="th_desc">Descripción y Ejemplo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>sys.platform</code></td>
-                <td data-i18n="sys_plat">Sistema operativo: "linux", "darwin" (macOS) o "windows".</td>
-              </tr>
-              <tr>
-                <td><code>sys.arch</code></td>
-                <td data-i18n="sys_arch">Arquitectura de la máquina: "amd64" o "arm64".</td>
-              </tr>
-              <tr>
-                <td><code>sys.pid</code></td>
-                <td data-i18n="sys_pid">ID numérico del proceso actual en el sistema.</td>
-              </tr>
-              <tr>
-                <td><code>sys.cwd()</code></td>
-                <td data-i18n="sys_cwd">Ruta absoluta del directorio de trabajo actual.</td>
-              </tr>
-              <tr>
-                <td><code>sys.env(nombre)</code></td>
-                <td data-i18n="sys_env">Lee una variable de entorno: <code>puerto = sys.env("PORT")</code>. Retorna nil si no existe.</td>
-              </tr>
-              <tr>
-                <td><code>sys.set_env(k, v)</code></td>
-                <td data-i18n="sys_setenv">Asigna una variable de entorno: <code>sys.set_env("MODO", "debug")</code>.</td>
-              </tr>
-              <tr>
-                <td><code>sys.sh(cmd)</code></td>
-                <td data-i18n="sys_sh">Ejecuta un comando en la shell del sistema y devuelve <code>{ok: bool, code: int, stdout: str, stderr: str}</code>.</td>
-              </tr>
-              <tr>
-                <td><code>sys.now()</code></td>
-                <td data-i18n="sys_now">Devuelve la fecha y hora actual en formato RFC3339 ("2026-09-18T16:00:00Z").</td>
-              </tr>
-              <tr>
-                <td><code>sys.sleep(segundos)</code></td>
-                <td data-i18n="sys_sleep">Pausa el programa durante los segundos indicados: <code>sys.sleep(1.5)</code>.</td>
-              </tr>
-              <tr>
-                <td><code>sys.exit(codigo)</code></td>
-                <td data-i18n="sys_exit">Termina la ejecución del programa con el código dado.</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3 data-i18n="h_sys_ex">Ejemplo de uso de sys</h3>
-          <pre><code>using sys
-
-print("Sistema:", sys.platform)
-print("Arquitectura:", sys.arch)
-print("PID:", sys.pid)
-print("Directorio actual:", sys.cwd())
-
-# Ejecutar un comando externo
-resultado = sys.sh("uptime")
-if resultado.ok:
-    print("Salida de uptime:", trim(resultado.stdout))
-else:
-    print("Error al ejecutar:", resultado.stderr)</code></pre>
-        </section>
-
-        <!-- Modulo: FS -->
-        <section id="mod-fs" class="doc-section">
-          <h2>using fs</h2>
-          <p data-i18n="p_mod_fs_desc">Operaciones seguras de lectura, escritura y consulta del sistema de archivos.</p>
-
-          <table class="table-nord">
-            <thead>
-              <tr>
-                <th style="width: 30%;" data-i18n="th_fn">Función</th>
-                <th data-i18n="th_desc">Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>fs.read(ruta)</code></td>
-                <td data-i18n="fs_read">Lee el contenido completo de un archivo de texto.</td>
-              </tr>
-              <tr>
-                <td><code>fs.write(ruta, texto)</code></td>
-                <td data-i18n="fs_write">Crea o sobreescribe un archivo con el texto dado.</td>
-              </tr>
-              <tr>
-                <td><code>fs.append(ruta, texto)</code></td>
-                <td data-i18n="fs_append">Agrega texto al final de un archivo sin borrar el contenido previo.</td>
-              </tr>
-              <tr>
-                <td><code>fs.exists(ruta)</code></td>
-                <td data-i18n="fs_exists">Comprueba si un archivo o directorio existe (devuelve true o false).</td>
-              </tr>
-              <tr>
-                <td><code>fs.list(ruta)</code></td>
-                <td data-i18n="fs_list">Devuelve una lista con los nombres de todos los elementos dentro de la carpeta.</td>
-              </tr>
-              <tr>
-                <td><code>fs.is_dir(ruta)</code></td>
-                <td data-i18n="fs_isdir">Devuelve true si la ruta corresponde a un directorio.</td>
-              </tr>
-              <tr>
-                <td><code>fs.remove(ruta)</code></td>
-                <td data-i18n="fs_remove">Elimina un archivo o directorio.</td>
-              </tr>
-              <tr>
-                <td><code>fs.mkdir(ruta)</code></td>
-                <td data-i18n="fs_mkdir">Crea un directorio (incluyendo directorios padres si no existen).</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3 data-i18n="h_fs_ex">Ejemplo de uso de fs</h3>
-          <pre><code>using fs
-
-archivo = "datos_prueba.txt"
-
-# 1. Escribir datos
-fs.write(archivo, "primera linea\n")
-
-# 2. Agregar mas datos
-fs.append(archivo, "segunda linea\n")
-
-# 3. Leer contenido
-contenido = fs.read(archivo)
-print("Contenido leido:\n" + contenido)
-
-# 4. Comprobar existencia y eliminar
-if fs.exists(archivo):
-    fs.remove(archivo)
-    print("Archivo eliminado correctamente.")</code></pre>
-        </section>
-
-        <!-- Modulo: CLI -->
-        <section id="mod-cli" class="doc-section">
-          <h2>using cli</h2>
-          <p data-i18n="p_mod_cli_desc">Herramientas para escribir aplicaciones de terminal, analizar argumentos y mostrar datos en tablas.</p>
-
-          <table class="table-nord">
-            <thead>
-              <tr>
-                <th style="width: 30%;" data-i18n="th_fn">Función</th>
-                <th data-i18n="th_desc">Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>cli.parse([args])</code></td>
-                <td data-i18n="cli_parse">Analiza los argumentos pasados en la terminal. Devuelve un diccionario <code>{flags: {...}, args: [...]}</code>. Ejemplo: <code>--puerto 8080 --activo run</code> genera <code>flags.puerto = "8080"</code>, <code>flags.activo = true</code> y <code>args = ["run"]</code>.</td>
-              </tr>
-              <tr>
-                <td><code>cli.info(s)</code>, <code>cli.success(s)</code><br><code>cli.warn(s)</code>, <code>cli.error(s)</code></td>
-                <td data-i18n="cli_logs">Muestra mensajes en consola con etiquetas limpias: <code>[INFO]</code>, <code>[OK]</code>, <code>[WARN]</code>, <code>[ERR]</code>.</td>
-              </tr>
-              <tr>
-                <td><code>cli.table(cabeceras, filas)</code></td>
-                <td data-i18n="cli_table">Dibuja una tabla con columnas alineadas automáticamente según el ancho de los datos.</td>
-              </tr>
-              <tr>
-                <td><code>cli.box(titulo, contenido)</code></td>
-                <td data-i18n="cli_box">Dibuja un cuadro delimitador con bordes de línea para resaltar títulos o resúmenes.</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3 data-i18n="h_cli_ex">Ejemplo de uso de cli</h3>
-          <pre><code>using cli
-
-cli.box("MONITOR", "Estado del sistema")
-
-cli.info("Verificando servicios...")
-cli.success("Base de datos conectada")
-cli.warn("Memoria al 75%")
-
-cabeceras = ["SERVICIO", "ESTADO", "PUERTO"]
-filas = [
-    ["API Web", "Activo", "8080"],
-    ["Cache", "Activo", "6379"],
-    ["Auth", "Activo", "9000"]
-]
-cli.table(cabeceras, filas)</code></pre>
-        </section>
-
-        <!-- Modulo: HTTP -->
-        <section id="mod-http" class="doc-section">
-          <h2>using http</h2>
-          <p data-i18n="p_mod_http_desc">Cliente HTTP integrado para consumir APIs REST externas sin depender de herramientas externas como curl ni librerías adicionales.</p>
-
-          <table class="table-nord">
-            <thead>
-              <tr>
-                <th style="width: 30%;" data-i18n="th_fn">Función</th>
-                <th data-i18n="th_desc">Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>http.get(url, [headers])</code></td>
-                <td data-i18n="http_get">Realiza una petición HTTP GET. Devuelve un objeto con <code>status</code>, <code>ok</code>, <code>body</code>, <code>headers</code>, <code>json()</code> y <code>text()</code>.</td>
-              </tr>
-              <tr>
-                <td><code>http.post(url, [body], [headers])</code></td>
-                <td data-i18n="http_post">Realiza una petición POST. Si <code>body</code> es un diccionario o lista, se serializa automáticamente a JSON y se envía el encabezado <code>application/json</code>.</td>
-              </tr>
-              <tr>
-                <td><code>http.put(url, [body], [headers])</code><br><code>http.patch(...)</code>, <code>http.delete(...)</code></td>
-                <td data-i18n="http_others">Métodos PUT, PATCH y DELETE con las mismas facilidades de serialización de cuerpo y encabezados personalizados.</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3 data-i18n="h_http_ex">Ejemplo de consumo de API</h3>
-          <pre><code>using http
-
-# Consumir un servicio externo
-resp = http.get("https://httpbin.org/get")
-if resp.ok:
-    datos = resp.json()
-    print(f"IP de origen: {datos['origin']}")
-    print(f"Estado HTTP: {resp.status}")
-else:
-    print(f"Error en peticion: {resp.status}")
-
-# Enviar datos con POST en formato JSON
-nuevo_usuario = {nombre: "Julian", rol: "desarrollador"}
-res_post = http.post("https://httpbin.org/post", nuevo_usuario)
-if res_post.ok:
-    print("Respuesta del servidor:", res_post.json())</code></pre>
-        </section>
-
-        <!-- Modulo: DB -->
-        <section id="mod-db" class="doc-section">
-          <h2>using db</h2>
-          <p data-i18n="p_mod_db_desc">Almacén clave-valor embebido persistente en disco (JSON estructurado) con escritura atómica segura, ideal para APIs y microservicios ligeros.</p>
-
-          <table class="table-nord">
-            <thead>
-              <tr>
-                <th style="width: 30%;" data-i18n="th_fn">Método</th>
-                <th data-i18n="th_desc">Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>db.open(archivo)</code></td>
-                <td data-i18n="db_open">Abre o crea un almacén de datos en la ruta indicada. Devuelve un objeto <code>store</code>.</td>
-              </tr>
-              <tr>
-                <td><code>store.set(clave, valor)</code></td>
-                <td data-i18n="db_set">Guarda un valor (número, cadena, booleano, lista o diccionario) asociado a la clave.</td>
-              </tr>
-              <tr>
-                <td><code>store.get(clave, [por_defecto])</code></td>
-                <td data-i18n="db_get">Obtiene el valor de una clave. Si no existe, retorna <code>por_defecto</code> o <code>nil</code>.</td>
-              </tr>
-              <tr>
-                <td><code>store.has(clave)</code></td>
-                <td data-i18n="db_has">Devuelve <code>true</code> si la clave existe en el almacén.</td>
-              </tr>
-              <tr>
-                <td><code>store.keys()</code></td>
-                <td data-i18n="db_keys">Devuelve una lista con todas las claves registradas.</td>
-              </tr>
-              <tr>
-                <td><code>store.delete(clave)</code></td>
-                <td data-i18n="db_delete">Elimina una clave del almacén.</td>
-              </tr>
-              <tr>
-                <td><code>store.all()</code></td>
-                <td data-i18n="db_all">Devuelve una copia del diccionario completo de datos.</td>
-              </tr>
-              <tr>
-                <td><code>store.save()</code></td>
-                <td data-i18n="db_save">Persiste todos los datos en disco de forma atómica en formato JSON.</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3 data-i18n="h_db_ex">Ejemplo de uso de db</h3>
-          <pre><code>using db
-
-almacen = db.open("usuarios.json")
-
-# Guardar registros
-almacen.set("u_101", {nombre: "Julian", activo: true, nivel: 5})
-almacen.save()
-
-# Consultar
-usuario = almacen.get("u_101")
-print(f"Usuario cargado: {usuario.nombre}")
-
-# Clave no encontrada con valor por defecto
-rol = almacen.get("rol_invalido", "visitante")
-print(f"Rol asignado: {rol}")</code></pre>
-        </section>
-
-        <!-- Ejemplos Completos -->
-        <section id="ej-crud" class="doc-section">
-          <h2 data-i18n="h_ex_crud">Ejemplo Completo 1: API REST CRUD en Memoria</h2>
-          <p data-i18n="p_ex_crud_desc">Un servicio web completo con listado, consulta por ID y creación con persistencia en lista:</p>
-
-          <pre><code>using api
-using cli
-
-# Habilitar CORS para clientes web
-api.cors()
-
-# Base de datos simulada en memoria
-usuarios = [
-    {id: 1, nombre: "Ana", rol: "admin"},
-    {id: 2, nombre: "Carlos", rol: "editor"}
-]
-
-# Middleware para registrar cada llamada
-fn log_peticion(req):
-    cli.info(req.method + " " + req.path)
-    return nil
-
-api.use(log_peticion)
-
-# 1. Listar todos los usuarios
-fn listar_usuarios(req):
-    return api.json(usuarios)
-
-api.get("/usuarios", listar_usuarios)
-
-# 2. Obtener un usuario por su ID
-fn obtener_usuario(req):
-    id_buscado = int(req.params.id)
-    for u in usuarios:
-        if u.id == id_buscado:
-            return api.json(u)
-    return api.json({error: "Usuario no encontrado"}, 404)
-
-api.get("/usuarios/:id", obtener_usuario)
-
-# 3. Crear un nuevo usuario (POST)
-fn crear_usuario(req):
-    nuevo = req.json
-    if nuevo == nil or nuevo.nombre == nil:
-        return api.json({error: "Datos invalidos: se requiere 'nombre'"}, 400)
-    
-    nuevo.id = len(usuarios) + 1
-    usuarios = append(usuarios, nuevo)
-    return api.json(nuevo, 201)
-
-api.post("/usuarios", crear_usuario)
-
-# Iniciar servidor
-cli.info("Servidor escuchando en http://localhost:8080")
-api.serve(8080)</code></pre>
-        </section>
-
-        <section id="ej-cli" class="doc-section">
-          <h2 data-i18n="h_ex_cli">Ejemplo Completo 2: Herramienta de Diagnóstico de Sistema</h2>
-          <p data-i18n="p_ex_cli_desc">Un programa de línea de comandos que acepta flags y analiza el estado de la computadora:</p>
-
-          <pre><code>using cli
-using sys
-using fs
-
-cli.box("SNOW DIAGNOSTICO", "Herramienta de diagnostico y estado")
-
-parsed = cli.parse()
-flags = parsed.flags
-args = parsed.args
-
-# Mostrar tabla de sistema
-cabeceras = ["PROPIEDAD", "VALOR"]
-filas = [
-    ["Sistema Operativo", sys.platform],
-    ["Arquitectura", sys.arch],
-    ["ID de Proceso (PID)", str(sys.pid)],
-    ["Directorio de Trabajo", sys.cwd()],
-    ["Fecha y Hora", sys.now()]
-]
-cli.table(cabeceras, filas)
-
-# Si el usuario pasa la bandera --archivos, listar directorio
-if flags.archivos == true:
-    elementos = fs.list(".")
-    cli.info("Archivos en el directorio (" + str(len(elementos)) + "):")
-    filas_archivos = []
-    for elem in elementos:
-        tipo = "archivo"
-        if fs.is_dir(elem):
-            tipo = "directorio"
-        filas_archivos = append(filas_archivos, [elem, tipo])
-    cli.table(["NOMBRE", "TIPO"], filas_archivos)
-
-cli.success("Diagnostico finalizado con exito.")</code></pre>
-        </section>
-
-        <section id="ej-archivos" class="doc-section">
-          <h2 data-i18n="h_ex_fs">Ejemplo Completo 3: Lector y Procesador de Archivos</h2>
-          <p data-i18n="p_ex_fs_desc">Script que procesa líneas de texto, cuenta registros y exporta resultados limpios:</p>
-
-          <pre><code>using fs
-using cli
-
-archivo_origen = "registro.txt"
-
-# Crear archivo de prueba si no existe
-if not fs.exists(archivo_origen):
-    fs.write(archivo_origen, "servidor_1,activo\nservidor_2,inactivo\nservidor_3,activo\n")
-
-contenido = fs.read(archivo_origen)
-lineas = split(trim(contenido), "\n")
-
-cli.info("Total de lineas encontradas: " + str(len(lineas)))
-
-filas = []
-activos = 0
-
-for l in lineas:
-    partes = split(l, ",")
-    if len(partes) == 2:
-        srv = partes[0]
-        estado = partes[1]
-        if estado == "activo":
-            activos += 1
-        filas = append(filas, [srv, estado])
-
-cli.table(["SERVIDOR", "ESTADO"], filas)
-cli.info("Servidores activos: " + str(activos))</code></pre>
-        </section>
-
-      </main>
+        <div class="doc-section" style="margin-bottom: 0;">
+          <h3 style="margin-top: 0; color: #fff;">🌐 Cliente HTTP (using http)</h3>
+          <p style="color: var(--soft); font-size: .92rem;">Consume APIs externas directamente: <code>http.get()</code>, <code>http.post()</code> con serialización automática de JSON y cabeceras sin dependencias.</p>
+          <a href="docs.html#mod-http" style="font-size: .85rem;">Ver módulo http →</a>
+        </div>
+        <div class="doc-section" style="margin-bottom: 0;">
+          <h3 style="margin-top: 0; color: #fff;">💾 Persistencia KV (using db)</h3>
+          <p style="color: var(--soft); font-size: .92rem;">Almacén clave-valor embebido persistido a disco en formato JSON atómico para que tus servicios guarden estado con cero configuración.</p>
+          <a href="docs.html#mod-db" style="font-size: .85rem;">Ver módulo db →</a>
+        </div>
+        <div class="doc-section" style="margin-bottom: 0;">
+          <h3 style="margin-top: 0; color: #fff;">✨ F-Strings y Elvis (??)</h3>
+          <p style="color: var(--soft); font-size: .92rem;">Interpolación moderna <code>f"Hola {nombre}"</code>, operador <code>nombre = req.query.nombre ?? "invitado"</code> y cadenas multilínea con triple comillas.</p>
+          <a href="docs.html#fstr-elvis" style="font-size: .85rem;">Ver sintaxis moderna →</a>
+        </div>
+        <div class="doc-section" style="margin-bottom: 0;">
+          <h3 style="margin-top: 0; color: #fff;">🖥️ Snow CLI Toolkit</h3>
+          <p style="color: var(--soft); font-size: .92rem;">Crea aplicaciones de terminal con cajas cuadradas limpias <code>cli.box</code>, tablas auto-alineadas <code>cli.table</code> y analizador de argumentos.</p>
+          <a href="docs.html#mod-cli" style="font-size: .85rem;">Ver módulo cli →</a>
+        </div>
+        <div class="doc-section" style="margin-bottom: 0;">
+          <h3 style="margin-top: 0; color: #fff;">📦 Todo en un binario</h3>
+          <p style="color: var(--soft); font-size: .92rem;">Compilado en Go a un solo binario <code>snowman</code> con REPL interactivo con autocompletado y soporte multiplataforma.</p>
+          <a href="docs.html#instalacion" style="font-size: .85rem;">Instalación y uso →</a>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+  </section>
 
-  <!-- Pie -->
-  <footer class="text-center">
-    <div class="container">
-      <p class="mb-1" data-i18n="f_author">
-        Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Libre y gratuito para todo el mundo.
-      </p>
-      <p class="mb-0 text-muted small">
+  <!-- Footer -->
+  <footer>
+    <div class="wrap">
+      <p data-i18n="f_author">Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Libre y gratuito para todo el mundo.</p>
+      <p style="margin-top:.4rem; color: var(--muted);">
         <a href="https://github.com/JDVA0/snow">github.com/JDVA0/snow</a> · Licencia MIT ❄️
       </p>
     </div>
@@ -1155,391 +149,34 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
   <script>
     const i18n = {
       es: {
-        nav_top_guide: "Guía",
+        nav_top_guide: "Documentación",
         nav_top_lang: "Lenguaje",
         nav_top_mods: "Módulos",
-        hero_title: "<strong>Snow</strong> es un lenguaje <span class=\"hero-highlight\">sencillo y amigable</span> para crear <span class=\"hero-highlight-pastel\">APIs web</span> sin complicaciones.",
-        hero_desc: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Sin pretensiones de ser revolucionario: solo para experimentar con APIs y hacer más fáciles las cosas.",
+        hero_title: "<strong>Snow</strong> — un lenguaje <span class="acc">pequeño y tranquilo</span> para crear APIs web.",
+        hero_desc: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Nada revolucionario, solo para experimentar con APIs y hacer las cosas un poco más fáciles.",
         btn_install: "❄️ Comenzar",
-        btn_docs: "Explorar Guía",
+        btn_docs: "Ver la documentación",
         h_dark_title: "Un lenguaje pequeño, plano y relajado",
         p_dark_text_1: "Snow nació del entusiasmo por experimentar y crear un intérprete funcional en Go. No busca ser revolucionario ni competir con otros: su meta es que levantar un microservicio o consultar una API sea tan simple como escribir 5 líneas limpias.",
         p_dark_text_2: "Sin llaves <code>{}</code>, sin puntos y coma <code>;</code>, con cliente y servidor HTTP integrados, almacenamiento en disco y herramientas de terminal.",
         badge_humble_text: "❄️ Hecho por <strong>JDVA0</strong> · Diversión y experimentación libre",
-        ribbon_text: "❄️ Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación · 100% libre y abierto para todo el mundo",
-
-        nav_start: "Guía de Inicio",
-        nav_desc: "Descripción",
-        nav_inst: "Instalación",
-        nav_run: "Ejecución y CLI",
-        nav_lang: "El Lenguaje",
-        nav_syntax: "Sintaxis e Indentación",
-        nav_types: "Tipos y Operadores",
-        nav_control: "Control de Flujo",
-        nav_funcs: "Funciones y Lambdas",
-        nav_builtins: "Funciones Nativas",
-        nav_mods: "Módulos en Detalle",
-        nav_ex: "Ejemplos Completos",
-        nav_ex_crud: "API REST CRUD Completa",
-        nav_ex_cli: "Herramienta CLI Completa",
-        nav_ex_fs: "Procesador de Archivos",
-
-        p_intro: "Snow es un lenguaje de programación simple y plano, diseñado específicamente para facilitar la creación de APIs web y scripts de sistema sin dependencias externas complejas.",
-        notice_credit: "Proyecto creado por <strong>JDVA0</strong> con asistencia de inteligencia artificial. Hecho por diversión y para experimentar, totalmente libre y abierto para que cualquier persona en el mundo lo use, aprenda y cree APIs sin complicaciones.",
-
-        h_features: "Puntos clave",
-        f_1: "<strong>Indentación por espacios:</strong> se usan 4 espacios para definir bloques. No hay llaves <code>{}</code> para delimitar código ni puntos y comas <code>;</code> al final de línea.",
-        f_2: "<strong>Servidor HTTP nativo:</strong> el módulo <code>api</code> permite levantar servidores web, definir rutas (GET, POST, PUT, DELETE, PATCH), habilitar CORS y retornar JSON con funciones sencillas.",
-        f_3: "<strong>Acceso al sistema y archivos:</strong> los módulos <code>sys</code> y <code>fs</code> permiten ejecutar comandos del sistema, leer variables de entorno, gestionar procesos y manipular archivos en disco.",
-        f_4: "<strong>Herramientas de terminal:</strong> el módulo <code>cli</code> incluye analizador de argumentos, formateo de tablas y cajas de texto.",
-
-        h_inst: "Instalación",
-        p_mod: "El módulo oficial en Go es <code>github.com/JDVA0/snow</code>.",
-        h_go_get: "1. Descargar el módulo como paquete en Go",
-        p_go_embed: "Si deseas incrustar el intérprete de Snow dentro de una aplicación en Go:",
-        h_build: "2. Compilar e instalar el ejecutable snowman",
-        p_cli_compile: "Para ejecutar programas Snow directamente en tu máquina:",
-
-        h_run: "Ejecución y CLI",
-        p_run_desc: "El ejecutable <code>snowman</code> corre programas Snow y ofrece un modo interactivo:",
-        th_cmd: "Comando",
-        th_desc: "Descripción y Ejemplo",
-        c_run_1: "Ejecuta el archivo directamente: <code>snowman servidor.snow</code>",
-        c_run_2: "Ejecuta pasando argumentos al programa: <code>snowman run script.snow --puerto 8080</code>",
-        c_run_3: "Inicia la consola interactiva línea a línea.",
-        c_run_4: "Muestra la ayuda con los módulos disponibles.",
-        h_repl_ex: "Ejemplo de uso del REPL",
-
-        h_syntax: "Sintaxis e Indentación",
-        p_syntax_intro: "Snow es un lenguaje limpio. Las líneas se ejecutan secuencialmente de arriba hacia abajo.",
-        h_comments: "Comentarios",
-        p_comments: "Todo lo que sigue a una almohadilla # hasta el final de la línea se ignora:",
-        h_indent_rule: "Regla de Indentación (Bloques)",
-        p_indent_desc: "Cuando abres un bloque de código (con if, elif, else, for, while o fn), la línea debe terminar con dos puntos :. Todas las líneas que formen parte de ese bloque deben comenzar con 4 espacios de indentación:",
-        h_vars: "Variables y Asignaciones",
-
-        h_types: "Tipos y Operadores",
-        h_types_table: "Tipos de datos",
-        th_type: "Tipo",
-        th_ex: "Ejemplo",
-        td_int: "Enteros. Soporta suma (+), resta (-), producto (*), división decimal (/), división entera (//) y módulo (%).",
-        td_float: "Decimales con coma flotante de 64 bits.",
-        td_str: "Cadenas de texto. Concatenación con +. Multiplicación: \"ab\" * 3 produce \"ababab\". Soporta índices: s[0], s[-1].",
-        td_bool: "Valores booleanos. Operadores lógicos: and, or, not.",
-        td_nil: "Representa ausencia de valor.",
-        td_list: "Lista ordenada indexada por enteros desde 0. Soporta concatenación con + e índices negativos (l[-1] devuelve el último).",
-        td_dict: "Diccionario de claves y valores. Acceso por punto (d.nombre) o por corchetes (d[\"nombre\"]).",
-        h_ops_ex: "Ejemplo con listas y diccionarios",
-
-        h_control: "Control de Flujo",
-        h_if: "1. Condicional if / elif / else",
-        h_for: "2. Bucle for",
-        p_for_desc: "Recorre los elementos de una lista:",
-        h_while: "3. Bucle while con break y continue",
-
-        h_funcs: "Funciones y Lambdas",
-        h_fn_std: "1. Funciones estándar con bloques (fn)",
-        p_fn_std_desc: "Se definen con la palabra clave fn, nombre, paréntesis con argumentos separados por coma, dos puntos y bloque indentado:",
-        h_fn_lambda: "2. Funciones lambda en una línea",
-        p_fn_lambda_desc: "Para expresiones cortas y pasar como argumento a otras funciones:",
-
-        h_builtins: "Funciones Nativas",
-        p_builtins_intro: "Están siempre disponibles en el intérprete sin necesidad de importar ningún módulo:",
-        th_fn: "Función",
-        b_print: "Escribe argumentos en stdout separados por espacio y agrega salto de línea.",
-        b_len: "Devuelve la cantidad de elementos en cadena, lista o diccionario.",
-        b_conv: "Conversión de tipo explícita.",
-        b_type: "Devuelve el nombre del tipo: \"int\", \"float\", \"str\", \"bool\", \"list\", \"dict\", \"nil\".",
-        b_append: "Agrega un valor al final de la lista y devuelve la lista.",
-        b_split: "Divide una cadena en una lista de subcadenas según el separador.",
-        b_join: "Une los elementos de una lista de cadenas usando el separador dado.",
-        b_trim: "Elimina espacios en blanco al inicio y al final de la cadena.",
-        b_case: "Convierte caracteres a mayúsculas o minúsculas.",
-        b_contains: "Comprueba si una cadena contiene a otra o si un elemento está en una lista.",
-        b_kv: "Devuelve las claves o los valores de un diccionario en una lista.",
-        b_sort: "Ordena una lista de números o cadenas de menor a mayor.",
-        b_map: "Aplica una función a cada elemento de una lista.",
-        b_filter: "Filtra una lista conservando los elementos donde la función devuelve true.",
-        b_exit: "Termina la ejecución del programa inmediatamente con el código dado (0 por defecto).",
-
-        p_mod_api_desc: "El módulo api permite crear servidores HTTP, definir rutas y responder peticiones web sin ninguna librería externa.",
-        h_api_methods: "Métodos disponibles",
-        th_method: "Método",
-        api_m_cors: "Habilita CORS para permitir peticiones desde navegadores. Por defecto permite \"*\". Responde automáticamente las peticiones OPTIONS preflight con código 204.",
-        api_m_get: "Registra una ruta GET. Admite parámetros dinámicos con dos puntos: api.get(\"/usuarios/:id\", handler).",
-        api_m_post: "Registra una ruta POST para recepción de datos: api.post(\"/crear\", handler).",
-        api_m_put: "Registra una ruta PUT (actualización total).",
-        api_m_patch: "Registra una ruta PATCH (actualización parcial).",
-        api_m_delete: "Registra una ruta DELETE.",
-        api_m_all: "Registra una ruta para cualquier método HTTP.",
-        api_m_use: "Registra un middleware que se ejecuta en cada petición antes de las rutas. Si devuelve una respuesta, corta el flujo. Si devuelve nil, continúa al handler.",
-        api_m_static: "Sirve archivos estáticos: api.static(\"/archivos\", \"./public\").",
-        api_m_serve: "Bloquea el proceso y pone a escuchar el servidor HTTP en el puerto indicado: api.serve(8080).",
-        api_m_json: "Genera una respuesta con cabecera Content-Type: application/json y código de estado opcional (200 por defecto).",
-        api_m_text: "Genera una respuesta en texto plano (text/plain).",
-        api_m_html: "Genera una respuesta en HTML (text/html).",
-        api_m_redirect: "Redirige a otra URL (código 302 por defecto).",
-
-        h_req_detail: "Estructura del objeto req",
-        p_req_desc: "Cada función de ruta recibe un único argumento con la información de la solicitud:",
-        th_prop: "Propiedad",
-        req_m: "Método de la solicitud: \"GET\", \"POST\", \"PUT\", etc.",
-        req_p: "Ruta solicitada: \"/usuarios/42\".",
-        req_q: "Parámetros de la URL: ?orden=precio&limite=5 produce req.query.orden (\"precio\") y req.query.limite (\"5\").",
-        req_param: "Variables capturadas en la ruta: en /usuarios/:id, req.params.id contiene el valor enviado.",
-        req_h: "Cabeceras HTTP enviadas por el cliente en minúsculas: req.headers[\"authorization\"].",
-        req_b: "Cuerpo crudo de la petición como texto.",
-        req_j: "Cuerpo decodificado automáticamente si el cliente envió JSON válido.",
-        h_api_mini_ex: "Ejemplo completo de servidor API",
-
-        p_mod_sys_desc: "Permite consultar el entorno de ejecución, ejecutar comandos externos y controlar el proceso.",
-        sys_plat: "Sistema operativo: \"linux\", \"darwin\" (macOS) o \"windows\".",
-        sys_arch: "Arquitectura de la máquina: \"amd64\" o \"arm64\".",
-        sys_pid: "ID numérico del proceso actual en el sistema.",
-        sys_cwd: "Ruta absoluta del directorio de trabajo actual.",
-        sys_env: "Lee una variable de entorno: puerto = sys.env(\"PORT\"). Retorna nil si no existe.",
-        sys_setenv: "Asigna una variable de entorno: sys.set_env(\"MODO\", \"debug\").",
-        sys_sh: "Ejecuta un comando en la shell del sistema y devuelve {ok: bool, code: int, stdout: str, stderr: str}.",
-        sys_now: "Devuelve la fecha y hora actual en formato RFC3339 (\"2026-09-18T16:00:00Z\").",
-        sys_sleep: "Pausa el programa durante los segundos indicados: sys.sleep(1.5).",
-        sys_exit: "Termina la ejecución del programa con el código dado.",
-        h_sys_ex: "Ejemplo de uso de sys",
-
-        p_mod_fs_desc: "Operaciones seguras de lectura, escritura y consulta del sistema de archivos.",
-        fs_read: "Lee el contenido completo de un archivo de texto.",
-        fs_write: "Crea o sobreescribe un archivo con el texto dado.",
-        fs_append: "Agrega texto al final de un archivo sin borrar el contenido previo.",
-        fs_exists: "Comprueba si un archivo o directorio existe (devuelve true o false).",
-        fs_list: "Devuelve una lista con los nombres de todos los elementos dentro de la carpeta.",
-        fs_isdir: "Devuelve true si la ruta corresponde a un directorio.",
-        fs_remove: "Elimina un archivo o directorio.",
-        fs_mkdir: "Crea un directorio (incluyendo directorios padres si no existen).",
-        h_fs_ex: "Ejemplo de uso de fs",
-
-        p_mod_cli_desc: "Herramientas para escribir aplicaciones de terminal, analizar argumentos y mostrar datos en tablas.",
-        cli_parse: "Analiza los argumentos pasados en la terminal. Devuelve un diccionario {flags: {...}, args: [...]}. Ejemplo: --puerto 8080 --activo run genera flags.puerto = \"8080\", flags.activo = true y args = [\"run\"].",
-        cli_logs: "Muestra mensajes en consola con etiquetas limpias: [INFO], [OK], [WARN], [ERR].",
-        cli_table: "Dibuja una tabla con columnas alineadas automáticamente según el ancho de los datos.",
-        cli_box: "Dibuja un cuadro delimitador con bordes de línea para resaltar títulos o resúmenes.",
-        h_cli_ex: "Ejemplo de uso de cli",
-
-        h_fstr_elvis: "F-Strings, Operador Elvis (??) y Cadenas Multilínea",
-        p_fstr_desc: "Snow soporta interpolación directa de expresiones, valor por defecto para nulos y literales de texto multilínea:",
-
-        p_mod_http_desc: "Cliente HTTP integrado para consumir APIs REST externas sin depender de herramientas externas como curl ni librerías adicionales.",
-        http_get: "Realiza una petición HTTP GET. Devuelve un objeto con <code>status</code>, <code>ok</code>, <code>body</code>, <code>headers</code>, <code>json()</code> y <code>text()</code>.",
-        http_post: "Realiza una petición POST. Si <code>body</code> es un diccionario o lista, se serializa automáticamente a JSON y se envía el encabezado <code>application/json</code>.",
-        http_others: "Métodos PUT, PATCH y DELETE con las mismas facilidades de serialización de cuerpo y encabezados personalizados.",
-        h_http_ex: "Ejemplo de consumo de API",
-
-        p_mod_db_desc: "Almacén clave-valor embebido persistente en disco (JSON estructurado) con escritura atómica segura, ideal para APIs y microservicios ligeros.",
-        db_open: "Abre o crea un almacén de datos en la ruta indicada. Devuelve un objeto <code>store</code>.",
-        db_set: "Guarda un valor (número, cadena, booleano, lista o diccionario) asociado a la clave.",
-        db_get: "Obtiene el valor de una clave. Si no existe, retorna <code>por_defecto</code> o <code>nil</code>.",
-        db_has: "Devuelve <code>true</code> si la clave existe en el almacén.",
-        db_keys: "Devuelve una lista con todas las claves registradas.",
-        db_delete: "Elimina una clave del almacén.",
-        db_all: "Devuelve una copia del diccionario completo de datos.",
-        db_save: "Persiste todos los datos en disco de forma atómica en formato JSON.",
-        h_db_ex: "Ejemplo de uso de db",
-
-        h_ex_crud: "Ejemplo Completo 1: API REST CRUD en Memoria",
-        p_ex_crud_desc: "Un servicio web completo con listado, consulta por ID y creación con persistencia en lista:",
-
-        h_ex_cli: "Ejemplo Completo 2: Herramienta de Diagnóstico de Sistema",
-        p_ex_cli_desc: "Un programa de línea de comandos que acepta flags y analiza el estado de la computadora:",
-
-        h_ex_fs: "Ejemplo Completo 3: Lector y Procesador de Archivos",
-        p_ex_fs_desc: "Script que procesa líneas de texto, cuenta registros y exporta resultados limpios:",
-
-        f_author: "Hecho por <strong>JDVA0</strong> · Creado por diversión y para experimentar con ayuda de IA. Libre y gratuito para todo el mundo."
+        ribbon_text: "❄️ Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación · Libre y abierto para todo el mundo",
+        f_author: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Libre y gratuito para todo el mundo."
       },
       en: {
-        nav_start: "Getting Started",
-        nav_desc: "Overview",
-        nav_inst: "Installation",
-        nav_run: "Execution and CLI",
-        nav_lang: "The Language",
-        nav_syntax: "Syntax and Indentation",
-        nav_types: "Types and Operators",
-        nav_control: "Control Flow",
-        nav_funcs: "Functions and Lambdas",
-        nav_builtins: "Built-in Functions",
-        nav_mods: "Modules in Detail",
-        nav_ex: "Full Examples",
-        nav_ex_crud: "Full REST CRUD API",
-        nav_ex_cli: "Full CLI Tool",
-        nav_ex_fs: "File Processor",
-
-        p_intro: "Snow is a simple, flat programming language specifically designed to facilitate building web APIs and system scripts without complex external dependencies.",
-        notice_credit: "Project created by <strong>JDVA0</strong> with artificial intelligence assistance. Made for fun and experimentation, completely free and open for everyone in the world to use, learn, and build APIs without friction.",
-
-        h_features: "Key Points",
-        f_1: "<strong>Indentation by spaces:</strong> 4 spaces define blocks. No braces <code>{}</code> to delimit code, no semicolons <code>;</code> at line endings.",
-        f_2: "<strong>Native HTTP server:</strong> the <code>api</code> module spins up web servers, routes (GET, POST, PUT, DELETE, PATCH), enables CORS, and returns JSON with straightforward functions.",
-        f_3: "<strong>System and filesystem access:</strong> <code>sys</code> and <code>fs</code> execute system commands, read environment variables, manage processes, and manipulate files on disk.",
-        f_4: "<strong>Terminal tools:</strong> the <code>cli</code> module includes argument parsing, table formatting, and bordered text boxes.",
-
-        h_inst: "Installation",
-        p_mod: "The official Go module is <code>github.com/JDVA0/snow</code>.",
-        h_go_get: "1. Download the module as a Go package",
-        p_go_embed: "If you want to embed the Snow interpreter inside a Go application:",
-        h_build: "2. Build and install the snowman executable",
-        p_cli_compile: "To run Snow programs directly on your machine:",
-
-        h_run: "Execution and CLI",
-        p_run_desc: "The <code>snowman</code> runner executes Snow programs and provides an interactive mode:",
-        th_cmd: "Command",
-        th_desc: "Description and Example",
-        c_run_1: "Runs the file directly: <code>snowman server.snow</code>",
-        c_run_2: "Runs passing arguments: <code>snowman run script.snow --port 8080</code>",
-        c_run_3: "Starts the line-by-line interactive REPL console.",
-        c_run_4: "Shows help with available modules.",
-        h_repl_ex: "REPL usage example",
-
-        h_syntax: "Syntax and Indentation",
-        p_syntax_intro: "Snow is a clean language. Instructions execute sequentially from top to bottom.",
-        h_comments: "Comments",
-        p_comments: "Everything after a hash # up to the end of the line is ignored:",
-        h_indent_rule: "Indentation Rule (Blocks)",
-        p_indent_desc: "When opening a code block (with if, elif, else, for, while, or fn), end the line with a colon :. All lines inside that block must begin with 4 indentation spaces:",
-        h_vars: "Variables and Assignments",
-
-        h_types: "Types and Operators",
-        h_types_table: "Data types",
-        th_type: "Type",
-        th_ex: "Example",
-        td_int: "Integers. Supports addition (+), subtraction (-), multiplication (*), float division (/), floor division (//), and modulo (%).",
-        td_float: "64-bit floating-point numbers.",
-        td_str: "Strings. Concatenation with +. Multiplication: \"ab\" * 3 produces \"ababab\". Supports indexing: s[0], s[-1].",
-        td_bool: "Boolean values. Logical operators: and, or, not.",
-        td_nil: "Represents absence of value.",
-        td_list: "Ordered zero-indexed list. Supports concatenation with + and negative indices (l[-1] returns last item).",
-        td_dict: "Key-value dictionary. Access via dot (d.name) or brackets (d[\"name\"]).",
-        h_ops_ex: "Example with lists and dictionaries",
-
-        h_fstr_elvis: "F-Strings, Elvis Operator (??), and Multiline Strings",
-        p_fstr_desc: "Snow supports expression string interpolation, default fallback for nulls, and multiline string literals:",
-
-        h_control: "Control Flow",
-        h_if: "1. Conditional if / elif / else",
-        h_for: "2. for Loop",
-        p_for_desc: "Iterates through items in a list:",
-        h_while: "3. while Loop with break and continue",
-
-        h_funcs: "Functions and Lambdas",
-        h_fn_std: "1. Standard functions with blocks (fn)",
-        p_fn_std_desc: "Defined with the fn keyword, name, comma-separated arguments in parentheses, a colon, and an indented block:",
-        h_fn_lambda: "2. Single-line lambda functions",
-        p_fn_lambda_desc: "For short expressions and passing as arguments to other functions:",
-
-        h_builtins: "Built-in Functions",
-        p_builtins_intro: "Always available in the interpreter without importing any module:",
-        th_fn: "Function",
-        b_print: "Writes arguments to stdout separated by spaces and adds a newline.",
-        b_len: "Returns item count of a string, list, or dictionary.",
-        b_conv: "Explicit type conversion.",
-        b_type: "Returns type name: \"int\", \"float\", \"str\", \"bool\", \"list\", \"dict\", \"nil\".",
-        b_append: "Adds a value to the end of a list and returns the list.",
-        b_split: "Splits a string into a list of substrings by delimiter.",
-        b_join: "Joins items of a string list using the given separator.",
-        b_trim: "Removes leading and trailing whitespace from string.",
-        b_case: "Converts characters to uppercase or lowercase.",
-        b_contains: "Checks if a string contains another or if an item is in a list.",
-        b_kv: "Returns dictionary keys or values as a list.",
-        b_sort: "Sorts a list of numbers or strings in ascending order.",
-        b_map: "Applies a function to each item in a list.",
-        b_filter: "Filters a list keeping items where the function returns true.",
-        b_exit: "Terminates program execution immediately with the given exit code (0 by default).",
-
-        p_mod_api_desc: "The api module enables creating HTTP servers, defining routes, and answering web requests with zero third-party libraries.",
-        h_api_methods: "Available Methods",
-        th_method: "Method",
-        api_m_cors: "Enables CORS for browser requests. Defaults to \"*\". Automatically handles OPTIONS preflight requests with code 204.",
-        api_m_get: "Registers a GET route. Supports dynamic parameters with colons: api.get(\"/users/:id\", handler).",
-        api_m_post: "Registers a POST route for data intake: api.post(\"/create\", handler).",
-        api_m_put: "Registers a PUT route (full update).",
-        api_m_patch: "Registers a PATCH route (partial update).",
-        api_m_delete: "Registers a DELETE route.",
-        api_m_all: "Registers a route matching any HTTP method.",
-        api_m_use: "Registers middleware executed on every request before routes. Returning a response halts the cycle. Returning nil continues.",
-        api_m_static: "Serves static files: api.static(\"/files\", \"./public\").",
-        api_m_serve: "Blocks the process and starts the HTTP server on the given port: api.serve(8080).",
-        api_m_json: "Generates response with Content-Type: application/json header and optional status code (defaults to 200).",
-        api_m_text: "Generates plain text response (text/plain).",
-        api_m_html: "Generates HTML response (text/html).",
-        api_m_redirect: "Redirects to another URL (302 by default).",
-
-        h_req_detail: "req Object Structure",
-        p_req_desc: "Each route function receives a single argument with the incoming request details:",
-        th_prop: "Property",
-        req_m: "Request method: \"GET\", \"POST\", \"PUT\", etc.",
-        req_p: "Requested path: \"/users/42\".",
-        req_q: "Query parameters: ?sort=price&limit=5 produces req.query.sort (\"price\") and req.query.limit (\"5\").",
-        req_param: "Captured path variables: in /users/:id, req.params.id contains the passed value.",
-        req_h: "HTTP headers sent by client in lowercase: req.headers[\"authorization\"].",
-        req_b: "Raw request body as string.",
-        req_j: "Automatically decoded body if client sent valid JSON.",
-        h_api_mini_ex: "Complete API server example",
-
-        p_mod_http_desc: "Built-in HTTP client to consume external REST APIs without relying on curl or extra libraries.",
-        http_get: "Performs an HTTP GET request. Returns an object with <code>status</code>, <code>ok</code>, <code>body</code>, <code>headers</code>, <code>json()</code>, and <code>text()</code>.",
-        http_post: "Performs a POST request. If <code>body</code> is a dict or list, it is serialized to JSON and the <code>application/json</code> header is set.",
-        http_others: "PUT, PATCH, and DELETE methods with identical body serialization and custom headers.",
-        h_http_ex: "API Consumption Example",
-
-        p_mod_db_desc: "Lightweight embedded key-value store persisted to disk (structured JSON) with atomic writes, ideal for microservices.",
-        db_open: "Opens or creates a data store at the given path. Returns a <code>store</code> object.",
-        db_set: "Stores a value (number, string, boolean, list, or dict) associated with the key.",
-        db_get: "Retrieves a key's value. If absent, returns <code>default</code> or <code>nil</code>.",
-        db_has: "Returns <code>true</code> if the key exists in the store.",
-        db_keys: "Returns a list of all stored keys.",
-        db_delete: "Deletes a key from the store.",
-        db_all: "Returns a copy of the entire data dictionary.",
-        db_save: "Persists all data to disk atomically in JSON format.",
-        h_db_ex: "db usage example",
-
-        p_mod_sys_desc: "Inspects runtime environment, runs external commands, and controls the process.",
-        sys_plat: "Operating system: \"linux\", \"darwin\" (macOS), or \"windows\".",
-        sys_arch: "Machine architecture: \"amd64\" or \"arm64\".",
-        sys_pid: "Numeric process ID on the system.",
-        sys_cwd: "Absolute path of current working directory.",
-        sys_env: "Reads an environment variable: port = sys.env(\"PORT\"). Returns nil if not found.",
-        sys_setenv: "Sets an environment variable: sys.set_env(\"MODE\", \"debug\").",
-        sys_sh: "Runs a command in system shell and returns {ok: bool, code: int, stdout: str, stderr: str}.",
-        sys_now: "Returns current RFC3339 timestamp (\"2026-09-18T16:00:00Z\").",
-        sys_sleep: "Pauses program for specified seconds: sys.sleep(1.5).",
-        sys_exit: "Terminates program execution with given code.",
-        h_sys_ex: "sys usage example",
-
-        p_mod_fs_desc: "Safe operations for reading, writing, and querying the filesystem.",
-        fs_read: "Reads complete text file content.",
-        fs_write: "Creates or overwrites a file with given text.",
-        fs_append: "Appends text to the end of a file without erasing prior content.",
-        fs_exists: "Checks if a file or folder exists (returns true or false).",
-        fs_list: "Returns a list with names of all entries inside the directory.",
-        fs_isdir: "Returns true if path is a directory.",
-        fs_remove: "Deletes a file or directory.",
-        fs_mkdir: "Creates a directory (including parent directories).",
-        h_fs_ex: "fs usage example",
-
-        p_mod_cli_desc: "Utilities to write terminal applications, parse arguments, and display tables.",
-        cli_parse: "Parses arguments passed in terminal. Returns {flags: {...}, args: [...]}. Example: --port 8080 --active run produces flags.port = \"8080\", flags.active = true, and args = [\"run\"].",
-        cli_logs: "Outputs messages with clean tags: [INFO], [OK], [WARN], [ERR].",
-        cli_table: "Renders a text table with columns automatically aligned to data width.",
-        cli_box: "Draws a line-bordered box to highlight titles or summaries.",
-        h_cli_ex: "cli usage example",
-
-        h_ex_crud: "Full Example 1: In-Memory REST CRUD API",
-        p_ex_crud_desc: "A complete web service with listing, lookup by ID, and creation with persistence in list:",
-
-        h_ex_cli: "Full Example 2: System Diagnostic CLI Tool",
-        p_ex_cli_desc: "A command-line tool that parses flags and inspects computer state:",
-
-        h_ex_fs: "Full Example 3: File Reader and Processor",
-        p_ex_fs_desc: "Script that processes text lines, counts records, and outputs formatted results:",
-
-        f_author: "Made by <strong>JDVA0</strong> · Created for fun and experimentation with AI assistance. Free and open for everyone."
+        nav_top_guide: "Documentation",
+        nav_top_lang: "Language",
+        nav_top_mods: "Modules",
+        hero_title: "<strong>Snow</strong> — a <span class="acc">light & calm</span> language for web APIs.",
+        hero_desc: "Made by <strong>JDVA0</strong> · A project built for fun and experimentation. Nothing revolutionary, just making APIs easier and experimenting with language design.",
+        btn_install: "❄️ Get Started",
+        btn_docs: "View Documentation",
+        h_dark_title: "A small, flat and relaxed language",
+        p_dark_text_1: "Snow was born from enthusiasm for language design in Go. It does not aim to be revolutionary or compete with giants: its goal is to make spinning up a microservice or fetching an API as simple as 5 clean lines.",
+        p_dark_text_2: "No braces <code>{}</code>, no semicolons <code>;</code>, with integrated HTTP client and server, disk persistence, and terminal tools.",
+        badge_humble_text: "❄️ Made by <strong>JDVA0</strong> · Free experimentation and fun",
+        ribbon_text: "❄️ Made by <strong>JDVA0</strong> · A project made for fun and experimentation · Free and open to the entire world",
+        f_author: "Made by <strong>JDVA0</strong> · Created for fun and experimentation. Free and open for everyone."
       }
     };
 
@@ -1547,83 +184,49 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
       document.documentElement.lang = lang;
       document.getElementById('btn-es').classList.toggle('active', lang === 'es');
       document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-
       const dict = i18n[lang];
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (dict[key]) {
-          el.innerHTML = dict[key];
-        }
+        if (dict[key]) el.innerHTML = dict[key];
       });
-      localStorage.setItem('snow_docs_lang', lang);
+      localStorage.setItem('snow_lang', lang);
     }
 
-    // Resaltado de sintaxis ligero para bloques de código
     function highlightCode() {
-      const codeBlocks = document.querySelectorAll('pre code');
-      codeBlocks.forEach(block => {
-        let text = block.textContent;
-        // Evitar procesar bloques de terminal shell
-        if (text.startsWith('$') || text.includes('git clone') || text.includes('go get')) {
-          return;
-        }
-        // Tokenizar y colorear de forma segura
-        const lines = text.split('\n');
-        const coloredLines = lines.map(line => {
-          let comment = '';
-          let codePart = line;
-          const hashIdx = line.indexOf('#');
-          if (hashIdx !== -1) {
-            // Verificar si el hash no está dentro de una cadena
-            const before = line.substring(0, hashIdx);
-            const quotes = (before.match(/"/g) || []).length;
-            if (quotes % 2 === 0) {
-              codePart = before;
-              comment = '<span class="syn-comment">' + escapeHtml(line.substring(hashIdx)) + '</span>';
+      document.querySelectorAll('pre code').forEach(block => {
+        const text = block.textContent;
+        const lines = text.split('
+');
+        const out = lines.map(line => {
+          let comment = '', code = line;
+          const hi = line.indexOf('#');
+          if (hi !== -1) {
+            const before = line.substring(0, hi);
+            if ((before.match(/"/g) || []).length % 2 === 0) {
+              code = before;
+              comment = '<span class="syn-comment">' + esc(line.substring(hi)) + '</span>';
             }
           }
-
-          // Cadenas y F-strings
-          codePart = codePart.replace(/(f)?("([^"\\]|\\.)*")/g, (m, f, str) => {
-            if (f) {
-              return '<span class="syn-keyword">f</span><span class="syn-string">' + escapeHtml(str) + '</span>';
-            }
-            return '<span class="syn-string">' + escapeHtml(m) + '</span>';
-          });
-
-          // Números
-          codePart = codePart.replace(/\b(\d+(\.\d+)?|0x[0-9a-fA-F]+)\b/g, '<span class="syn-number">$&</span>');
-
-          // Palabras clave
-          codePart = codePart.replace(/\b(using|fn|return|if|elif|else|for|while|break|continue|and|or|not)\b/g, '<span class="syn-keyword">$&</span>');
-
-          // Booleanos y nil
-          codePart = codePart.replace(/\b(true|false|nil)\b/g, '<span class="syn-bool">$&</span>');
-
-          // Funciones conocidas o llamadas func(...)
-          codePart = codePart.replace(/\b(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|str|int|float|type)\b(?=\()/g, '<span class="syn-func">$&</span>');
-
-          // Métodos de api, sys, fs, cli, http, db
-          codePart = codePart.replace(/\b(api|sys|fs|cli|http|db)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword">$1</span>.<span class="syn-func">$2</span>');
-
-          return codePart + comment;
+          code = code.replace(/(f)?("([^"\]|\.)*")/g, (m, f, s) =>
+            f ? '<span class="syn-keyword">f</span><span class="syn-string">' + esc(s) + '</span>'
+              : '<span class="syn-string">' + esc(m) + '</span>');
+          code = code.replace(/(\d+(\.\d+)?|0x[0-9a-fA-F]+)/g, '<span class="syn-number">$&</span>');
+          code = code.replace(/(using|fn|return|if|elif|else|for|while|break|continue|and|or|not|in)/g, '<span class="syn-keyword">$&</span>');
+          code = code.replace(/(true|false|nil)/g, '<span class="syn-bool">$&</span>');
+          code = code.replace(/(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|str|int|float|type)(?=\()/g, '<span class="syn-func">$&</span>');
+          code = code.replace(/(api|sys|fs|cli|http|db)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword"></span>.<span class="syn-func"></span>');
+          return code + comment;
         });
-
-        block.innerHTML = coloredLines.join('\n');
+        block.innerHTML = out.join('
+');
       });
     }
 
-    function escapeHtml(str) {
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    // Restaurar idioma guardado si existe
-    const saved = localStorage.getItem('snow_docs_lang');
-    if (saved === 'es' || saved === 'en') {
-      setLang(saved);
-    }
+    const saved = localStorage.getItem('snow_lang');
+    if (saved === 'en') setLang('en');
 
-    // Ejecutar resaltador al cargar la página
     document.addEventListener('DOMContentLoaded', highlightCode);
     highlightCode();
   </script>

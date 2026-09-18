@@ -171,6 +171,47 @@ func replTerminal(i *Interp, fd int) {
 	// golang.org/x/term Terminal has no exported SetHistory, so we replay
 	// by calling ReadLine on a fake source isn't feasible. We instead track
 	// new entries ourselves and persist on exit.
+	// Handle Tab keypresses: insert 4 spaces (standard Snow block indentation)
+	// or complete common built-ins if completing a word.
+	t.AutoCompleteCallback = func(line string, pos int, key rune) (string, int, bool) {
+		if key == '\t' {
+			// If cursor is at or after leading whitespace, or pressing tab:
+			// insert 4 spaces for easy Python-style indentation
+			prefix := line[:pos]
+			suffix := line[pos:]
+			// If prefix is just whitespace, indent by 4 spaces
+			if strings.TrimSpace(prefix) == "" {
+				return prefix + "    " + suffix, pos + 4, true
+			}
+			// Keyword autocompletion
+			lastWord := ""
+			for i := pos - 1; i >= 0; i-- {
+				if (line[i] >= 'a' && line[i] <= 'z') || (line[i] >= 'A' && line[i] <= 'Z') || line[i] == '_' || (line[i] >= '0' && line[i] <= '9') {
+					lastWord = string(line[i]) + lastWord
+				} else {
+					break
+				}
+			}
+			if lastWord != "" {
+				candidates := []string{
+					"using", "fn", "return", "if", "elif", "else", "for", "while", "break",
+					"api", "http", "db", "sys", "fs", "cli", "print", "len", "str", "int",
+					"float", "bool", "type", "range", "append", "keys", "values", "trim",
+					"split", "join", "contains", "help", "exit", "clear",
+				}
+				for _, c := range candidates {
+					if strings.HasPrefix(c, lastWord) && len(c) > len(lastWord) {
+						added := c[len(lastWord):]
+						return prefix + added + suffix, pos + len(added), true
+					}
+				}
+			}
+			// Default fallback on tab: insert 4 spaces
+			return prefix + "    " + suffix, pos + 4, true
+		}
+		return "", 0, false
+	}
+
 	var sessionHistory []string
 
 	defer func() {
@@ -222,6 +263,15 @@ func replTerminal(i *Interp, fd int) {
 			}
 			if trimmed != "" {
 				sessionHistory = append(sessionHistory, trimmed)
+			}
+		}
+
+		// Auto-indent helper: if the previous statement ended with ':' (a new block)
+		// and the user provided code without leading indentation, auto-indent with 4 spaces.
+		if buf != "" {
+			prevTrimmed := strings.TrimRight(buf, " \t\r\n")
+			if strings.HasSuffix(prevTrimmed, ":") && line != "" && !strings.HasPrefix(line, " ") && !strings.HasPrefix(line, "\t") {
+				line = "    " + line
 			}
 		}
 
@@ -293,6 +343,12 @@ func replFallback(i *Interp) {
 				fmt.Fprintln(i.out, "  .exit / exit    quit the REPL")
 				fmt.Fprintln(i.out, "  .clear / clear  clear the terminal")
 				continue
+			}
+		}
+		if buf != "" {
+			prevTrimmed := strings.TrimRight(buf, " \t\r\n")
+			if strings.HasSuffix(prevTrimmed, ":") && trimmed != "" && !strings.HasPrefix(line, " ") && !strings.HasPrefix(line, "\t") {
+				line = "    " + line
 			}
 		}
 		buf += line
