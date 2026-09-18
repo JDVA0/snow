@@ -1,6 +1,6 @@
 /* Snow — Flat, minimal, pure grayscale palette. Hecho por JDVA0. */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
   --bg:      #111213;   /* darkest surface */
@@ -27,7 +27,7 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
@@ -413,28 +413,6 @@ p code, li code, td code {
 }
 .table-nord tr:last-child td { border-bottom: none; }
 
-/* ── Footer ── */
-footer.site-footer {
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--faint);
-  font-size: .82rem;
-  padding: 1.75rem 0;
-  margin-top: 3rem;
-}
-.footer-inner {
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: .5rem;
-}
-.footer-inner strong { color: var(--muted); }
-.footer-inner a { color: var(--faint); }
-.footer-inner a:hover { color: var(--muted); }
 
 /* ── Responsive ── */
 @media (max-width: 860px) {

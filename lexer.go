@@ -49,7 +49,8 @@ const (
 	tLe
 	tGt
 	tGe
-	tQQ // ??
+	tQQ    // ??
+	tQBrack // ?[
 )
 
 // Tok is a single lexical token.
@@ -448,6 +449,9 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 					kind, n = tPctEq, 2
 				case "??":
 					kind, n = tQQ, 2
+				case "?[":
+					kind, n = tQBrack, 2
+					*depth++ // ?[ opens a bracket scope, matched by ]
 				}
 			}
 			if kind == 0 {

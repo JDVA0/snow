@@ -1,6 +1,7 @@
 package snow
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -74,6 +75,8 @@ func NewEnv(parent *Env) *Env {
 type Interp struct {
 	stack     []Val
 	env       *Env
+	in        io.Reader
+	inReader  *bufio.Reader
 	out       io.Writer
 	errOut    io.Writer
 	src       string
@@ -91,15 +94,39 @@ const maxDepth = 10000
 // New creates an interpreter with the standard library loaded.
 func New() *Interp {
 	i := &Interp{
-		out:     os.Stdout,
-		errOut:  os.Stderr,
-		modules: map[string]Val{},
+		in:       os.Stdin,
+		inReader: bufio.NewReader(os.Stdin),
+		out:      os.Stdout,
+		errOut:   os.Stderr,
+		modules:  map[string]Val{},
 	}
 	i.env = NewEnv(nil)
 	for name, fn := range stdBuiltins() {
 		i.env.vars[name] = Native(fn)
 	}
 	return i
+}
+
+// In redirects input reader (for testing or embedding).
+func (i *Interp) In(r io.Reader) {
+	i.in = r
+	if r != nil {
+		i.inReader = bufio.NewReader(r)
+	} else {
+		i.inReader = nil
+	}
+}
+
+// InReader returns a persistent buffered reader for the interpreter's input stream.
+func (i *Interp) InReader() *bufio.Reader {
+	if i.inReader == nil {
+		if i.in != nil {
+			i.inReader = bufio.NewReader(i.in)
+		} else {
+			i.inReader = bufio.NewReader(os.Stdin)
+		}
+	}
+	return i.inReader
 }
 
 // Out redirects output (for embedding).
@@ -360,6 +387,27 @@ func (i *Interp) execOps(ops []Op) error {
 				return i.opErr(op, err)
 			}
 			i.push(v)
+		case OpSafeIndex:
+			// x?[key] — returns nil if container is nil, wrong type, or key is absent.
+			key, err := i.pop()
+			if err != nil {
+				return i.opErr(op, err)
+			}
+			box, err := i.pop()
+			if err != nil {
+				return i.opErr(op, err)
+			}
+			if _, isNil := box.(NilT); isNil {
+				i.push(Nil)
+				break
+			}
+			v, err := indexVal(box, key)
+			if err != nil {
+				// Missing key or wrong container type → propagate nil
+				i.push(Nil)
+				break
+			}
+			i.push(v)
 		case OpLen:
 			v, err := i.pop()
 			if err != nil {
@@ -483,12 +531,12 @@ func (i *Interp) useOp(op Op) error {
 	stdMod := ""
 	if len(path) == 2 && path[0] == "snow" {
 		switch path[1] {
-		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task":
+		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task", "input":
 			stdMod = path[1]
 		}
 	} else if len(path) == 1 {
 		switch path[0] {
-		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task":
+		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task", "input":
 			stdMod = path[0]
 		}
 	}
@@ -521,6 +569,8 @@ func (i *Interp) useOp(op Op) error {
 			m = newCryptoModule(i, op.Name)
 		case "task":
 			m = newTaskModule(i, op.Name)
+		case "input":
+			m = newInputModule(i, op.Name)
 		default:
 			return fmt.Errorf("unknown standard module snow.%s", stdMod)
 		}

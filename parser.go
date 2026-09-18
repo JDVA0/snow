@@ -108,6 +108,12 @@ type IndexE struct {
 	X   Expr
 	Key Expr
 }
+// SafeIndexE is a safe subscript: x?[key] returns nil if x is nil or key is missing.
+type SafeIndexE struct {
+	Pos
+	X   Expr
+	Key Expr
+}
 type AttrE struct {
 	Pos
 	X    Expr
@@ -157,8 +163,9 @@ func (*NameE) expr()      {}
 func (*BinE) expr()       {}
 func (*UnE) expr()        {}
 func (*CallE) expr()      {}
-func (*IndexE) expr()     {}
-func (*AttrE) expr()      {}
+func (*IndexE) expr()      {}
+func (*SafeIndexE) expr()  {}
+func (*AttrE) expr()       {}
 func (*ListLit) expr()    {}
 func (*DictLit) expr()    {}
 func (*FnExpr) expr()     {}
@@ -908,6 +915,18 @@ func (p *parser) parsePostfix() (Expr, error) {
 			}
 			p.next()
 			x = &IndexE{Pos{posLine(x), posCol(x)}, x, key}
+		case tQBrack:
+			// safe index: x?[key] → nil if x is nil or key is absent
+			p.next()
+			key, err := p.parseOr()
+			if err != nil {
+				return nil, err
+			}
+			if k2 := p.peek(); k2.Kind != tRBrack {
+				return nil, p.errf(k2, "expected ']'")
+			}
+			p.next()
+			x = &SafeIndexE{Pos{posLine(x), posCol(x)}, x, key}
 		case tDot:
 			p.next()
 			n, err := p.expectIdent()

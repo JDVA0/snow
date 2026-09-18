@@ -715,10 +715,8 @@ func bInput(i *Interp, args []Val) ([]Val, error) {
 		}
 		fmt.Fprint(i.out, string(s))
 	}
-	if stdinReader == nil {
-		stdinReader = bufio.NewReader(os.Stdin)
-	}
-	line, err := stdinReader.ReadString('\n')
+	reader := i.InReader()
+	line, err := reader.ReadString('\n')
 	if err != nil && len(line) == 0 {
 		return []Val{Nil}, nil
 	}

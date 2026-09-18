@@ -26,6 +26,7 @@ const (
 	OpMakeList
 	OpMakeDict
 	OpIndex
+	OpSafeIndex // x?[key]: returns nil when key is absent or container is nil
 	OpLen
 	OpDup
 	OpPop
@@ -376,6 +377,14 @@ func (c *compiler) expr(e Expr) error {
 			return err
 		}
 		c.emit(Op{Kind: OpIndex, Line: t.Line, Col: t.Col})
+	case *SafeIndexE:
+		if err := c.expr(t.X); err != nil {
+			return err
+		}
+		if err := c.expr(t.Key); err != nil {
+			return err
+		}
+		c.emit(Op{Kind: OpSafeIndex, Line: t.Line, Col: t.Col})
 	case *AttrE:
 		if err := c.expr(t.X); err != nil {
 			return err

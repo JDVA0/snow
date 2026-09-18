@@ -554,7 +554,117 @@ api.delete("/item", handle_del)
 	}
 }
 
+func TestInputModule(t *testing.T) {
+	src := `
+using input
 
+nombre = input.str()
+edad = input.int()
+precio = input.float()
+activo = input.bool()
 
+print(nombre)
+print(edad)
+print(precio)
+print(activo)
+`
+	i := New()
+	i.In(strings.NewReader("Julian\n28\n19.95\nyes\n"))
+	var buf bytes.Buffer
+	i.Out(&buf)
+	err := i.Run(src, "<test>")
+	if err != nil {
+		t.Fatalf("run failed: %v", err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	if len(lines) != 4 {
+		t.Fatalf("expected 4 lines output, got: %v", lines)
+	}
+	if lines[0] != "Julian" || lines[1] != "28" || lines[2] != "19.95" || lines[3] != "true" {
+		t.Fatalf("unexpected input module outputs: %v", lines)
+	}
+}
+
+func TestInputModuleDefaults(t *testing.T) {
+	src := `
+using input
+
+s = input.str("", "def_name")
+n = input.int("", 99)
+f = input.float("", 1.5)
+b = input.bool("", false)
+
+print(s)
+print(n)
+print(f)
+print(b)
+`
+	i := New()
+	i.In(strings.NewReader("\n\n\n\n"))
+	var buf bytes.Buffer
+	i.Out(&buf)
+	err := i.Run(src, "<test>")
+	if err != nil {
+		t.Fatalf("run failed: %v", err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	if len(lines) != 4 {
+		t.Fatalf("expected 4 lines output, got: %v", lines)
+	}
+	if lines[0] != "def_name" || lines[1] != "99" || lines[2] != "1.5" || lines[3] != "false" {
+		t.Fatalf("unexpected input module default outputs: %v", lines)
+	}
+}
+func TestSafeIndex(t *testing.T) {
+	// Basic safe access on a real key returns the value
+	check(t, `
+d = {"a": {"b": 42}}
+print(d?["a"]?["b"] ?? "missing")
+`, "42")
+
+	// Missing inner key returns nil → ?? kicks in
+	check(t, `
+d = {"a": {"b": 42}}
+print(d?["a"]?["x"] ?? "missing")
+`, "missing")
+
+	// Missing outer key returns nil, chain short-circuits, ?? provides default
+	check(t, `
+d = {"a": {"b": 42}}
+print(d?["z"]?["b"] ?? "missing")
+`, "missing")
+
+	// Safe access on a nil value returns nil → ?? default
+	check(t, `
+d = nil
+print(d?["key"] ?? "none")
+`, "none")
+
+	// Deep chain: three levels, last key missing
+	check(t, `
+data = {"user": {"profile": {"age": 30}}}
+print(data?["user"]?["profile"]?["name"] ?? "anonymous")
+`, "anonymous")
+
+	// Deep chain: all keys present
+	check(t, `
+data = {"user": {"profile": {"name": "snow"}}}
+print(data?["user"]?["profile"]?["name"] ?? "anonymous")
+`, "snow")
+
+	// Safe access on a list index (out of bounds) returns nil
+	check(t, `
+items = [1, 2, 3]
+print(items?[10] ?? "oob")
+`, "oob")
+
+	// Safe access on a list index that exists
+	check(t, `
+items = [10, 20, 30]
+print(items?[1] ?? "oob")
+`, "20")
+}
 
 

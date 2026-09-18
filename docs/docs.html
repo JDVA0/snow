@@ -8,7 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="snowflake.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <!-- HTMX (compatible con GitHub Pages / estático) -->
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
@@ -16,11 +16,10 @@
 <body>
   <!-- Nav -->
   <nav class="topbar">
-    <div class="wrap nav-inner">
+    <div class="nav-inner">
       <a href="index.html" class="brand">
         <img src="snowflake.svg" alt="Snow">
         Snow
-        <span class="brand-ver">0.1</span>
       </a>
       <ul class="nav-links">
         <li><a href="index.html">Inicio</a></li>
@@ -59,6 +58,7 @@
           <li><a href="#sintaxis" data-i18n="nav_syntax">Sintaxis e Indentación</a></li>
           <li><a href="#tipos" data-i18n="nav_types">Tipos y Operadores</a></li>
           <li><a href="#fstr-elvis" data-i18n="nav_fstr">F-Strings y Elvis (??)</a></li>
+          <li><a href="#safe-index" data-i18n="nav_safe_index">Acceso seguro <code>?[]</code></a></li>
           <li><a href="#control" data-i18n="nav_control">Control de Flujo</a></li>
           <li><a href="#funciones" data-i18n="nav_funcs">Funciones y Closures</a></li>
           <li><a href="#nativas" data-i18n="nav_builtins">Funciones Nativas</a></li>
@@ -80,6 +80,7 @@
           <li><a href="#mod-json">json (Parse y Stringify)</a></li>
           <li><a href="#mod-crypto">crypto (Hashes y JWT)</a></li>
           <li><a href="#mod-task">task (Tareas y Cron)</a></li>
+          <li><a href="#mod-input">input (Entrada por Consola)</a></li>
         </ul>
 
         <div class="sidebar-heading" data-i18n="nav_ex">Ejemplos</div>
@@ -296,6 +297,24 @@ FROM usuarios
 WHERE activo = true
 ORDER BY id DESC"""
 print(sql)</code></pre>
+
+        <h3 id="safe-index" data-i18n="h_safe_index">Acceso seguro a JSON anidado (<code>?[]</code>)</h3>
+        <p data-i18n="p_safe_index_desc">Cuando trabajas con JSON profundo, una clave ausente lanza un error. El operador <code>?[]</code> devuelve <code>nil</code> en vez de fallar, y se combina con <code>??</code> para dar un valor por defecto:</p>
+        <pre><code># Acceso normal — falla si alguna clave falta
+# nombre = data["user"]["profile"]["name"]  ← error
+
+# Acceso seguro — propaga nil en silencio
+data = {"user": {"profile": {"age": 30}}}
+
+nombre = data?["user"]?["profile"]?["name"] ?? "anónimo"
+print(nombre)   # anónimo  (la clave "name" no existe)
+
+edad = data?["user"]?["profile"]?["age"] ?? 0
+print(edad)     # 30
+
+# Si el contenedor es nil, toda la cadena devuelve nil
+d = nil
+print(d?["key"] ?? "nada")   # nada</code></pre>
       </section>
 
       <!-- Control -->
@@ -864,6 +883,35 @@ control = task.every("10s", verificar)
 task.after("1m", fn(): control.stop())</code></pre>
       </section>
 
+      <!-- Módulo input -->
+      <section id="mod-input" class="doc-section">
+        <h2>using input &mdash; Lectura de Entrada con Conversión de Tipos</h2>
+        <p data-i18n="p_mod_input_desc">Lectura limpia de datos desde la consola estándar con conversión automática al tipo deseado y valores por defecto opcionales.</p>
+        <table class="table-nord">
+          <thead>
+            <tr>
+              <th style="width: 34%;">Función</th>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>input.str([prompt], [defecto])</code></td><td data-i18n="input_str_desc">Lee una línea de texto desde stdin. Si no se ingresa nada o se pulsa enter, retorna el valor por defecto o texto vacío.</td></tr>
+            <tr><td><code>input.int([prompt], [defecto])</code></td><td data-i18n="input_int_desc">Solicita y convierte la entrada a un entero (<code>int</code>). Si el valor ingresado no es válido, vuelve a solicitarlo.</td></tr>
+            <tr><td><code>input.float([prompt], [defecto])</code></td><td data-i18n="input_flt_desc">Solicita y convierte la entrada a un número decimal (<code>float</code>).</td></tr>
+            <tr><td><code>input.bool([prompt], [defecto])</code></td><td data-i18n="input_bool_desc">Lee una confirmación booleana (<code>y/n</code>, <code>si/no</code>, <code>true/false</code>).</td></tr>
+            <tr><td><code>input.hidden([prompt])</code></td><td data-i18n="input_hidden_desc">Lectura de entradas confidenciales (claves, tokens) desde la terminal.</td></tr>
+          </tbody>
+        </table>
+        <pre><code>using input
+
+nombre = input.str("Tu nombre: ", "Invitado")
+edad = input.int("Tu edad: ", 18)
+altura = input.float("Tu altura (m): ", 1.75)
+activo = input.bool("¿Deseas recibir notificaciones? (s/n): ", true)
+
+print(f"Usuario: {nombre}, Edad: {edad}, Altura: {altura}m, Activo: {activo}")</code></pre>
+      </section>
+
       <!-- Ejemplos completos -->
       <section id="ej-crud" class="doc-section">
         <h2 data-i18n="h_ex_crud">Ejemplo Completo 1: API REST CRUD en Memoria</h2>
@@ -995,16 +1043,6 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
     </main>
   </div>
 
-  <!-- Footer -->
-  <footer>
-    <div class="wrap">
-      <p data-i18n="f_author">Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Libre y gratuito para todo el mundo.</p>
-      <p style="margin-top:.4rem; color: var(--muted);">
-        <a href="https://github.com/JDVA0/snow">github.com/JDVA0/snow</a> · Licencia MIT
-      </p>
-    </div>
-  </footer>
-
   <script>
     const i18n = {
       es: {
@@ -1020,7 +1058,7 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         nav_start: "Primeros Pasos", nav_desc: "Descripción", nav_inst: "Instalación", nav_run: "Ejecución y CLI",
         nav_repl: "REPL Interactivo", nav_script: "Tu Primer Script", nav_api5: "API en 5 Líneas",
         nav_lang: "El Lenguaje", nav_syntax: "Sintaxis e Indentación", nav_types: "Tipos y Operadores",
-        nav_fstr: "F-Strings y Elvis (??)", nav_control: "Control de Flujo", nav_funcs: "Funciones y Closures", nav_builtins: "Funciones Nativas",
+        nav_fstr: "F-Strings y Elvis (??)", nav_safe_index: "Acceso seguro ?[]", nav_control: "Control de Flujo", nav_funcs: "Funciones y Closures", nav_builtins: "Funciones Nativas",
         nav_errors: "Manejo de Errores",
         nav_mods: "Módulos Integrados", nav_ex: "Ejemplos",
         nav_ex_crud: "API REST CRUD", nav_ex_cli: "Herramienta CLI", nav_ex_fs: "Procesador de Archivos",
@@ -1156,6 +1194,12 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         h_ex_crud: "Ejemplo Completo 1: API REST CRUD en Memoria", p_ex_crud_desc: "Un servicio web completo con listado, consulta por ID y creación con persistencia en lista:",
         h_ex_cli: "Ejemplo Completo 2: Herramienta de Diagnóstico de Sistema", p_ex_cli_desc: "Un programa de línea de comandos que acepta flags y analiza el estado de la computadora:",
         h_ex_fs: "Ejemplo Completo 3: Lector y Procesador de Archivos", p_ex_fs_desc: "Script que procesa líneas de texto, cuenta registros y exporta resultados limpios:",
+        p_mod_input_desc: "Lectura limpia de datos desde la consola estándar con conversión automática al tipo deseado y valores por defecto opcionales.",
+        input_str_desc: "Lee una línea de texto desde stdin. Si no se ingresa nada o se pulsa enter, retorna el valor por defecto o texto vacío.",
+        input_int_desc: "Solicita y convierte la entrada a un entero (<code>int</code>). Si el valor ingresado no es válido, vuelve a solicitarlo.",
+        input_flt_desc: "Solicita y convierte la entrada a un número decimal (<code>float</code>).",
+        input_bool_desc: "Lee una confirmación booleana (<code>y/n</code>, <code>si/no</code>, <code>true/false</code>).",
+        input_hidden_desc: "Lectura de entradas confidenciales (claves, tokens) desde la terminal.",
         f_author: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Libre y gratuito para todo el mundo."
       },
       en: {
@@ -1171,7 +1215,7 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         nav_start: "Getting Started", nav_desc: "Overview", nav_inst: "Installation", nav_run: "Running & CLI",
         nav_repl: "Interactive REPL", nav_script: "Your First Script", nav_api5: "API in 5 Lines",
         nav_lang: "The Language", nav_syntax: "Syntax & Indentation", nav_types: "Types & Operators",
-        nav_fstr: "F-Strings & Elvis (??)", nav_control: "Control Flow", nav_funcs: "Functions & Closures", nav_builtins: "Built-in Functions",
+        nav_fstr: "F-Strings & Elvis (??)", nav_safe_index: "Safe access ?[]", nav_control: "Control Flow", nav_funcs: "Functions & Closures", nav_builtins: "Built-in Functions",
         nav_errors: "Error Handling",
         nav_mods: "Built-in Modules", nav_ex: "Examples",
         nav_ex_crud: "REST CRUD API", nav_ex_cli: "CLI Tool", nav_ex_fs: "File Processor",
@@ -1303,6 +1347,12 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         h_ex_crud: "Full Example 1: In-Memory REST CRUD API", p_ex_crud_desc: "A complete web service with listing, lookup by ID, and creation with persistence in list:",
         h_ex_cli: "Full Example 2: System Diagnostic CLI Tool", p_ex_cli_desc: "A command-line tool that parses flags and inspects computer state:",
         h_ex_fs: "Full Example 3: File Reader and Processor", p_ex_fs_desc: "Script that processes text lines, counts records, and outputs formatted results:",
+        p_mod_input_desc: "Clean console input reading with automatic type conversion and optional default values.",
+        input_str_desc: "Reads a text line from stdin. If empty or user hits enter, returns default value or empty string.",
+        input_int_desc: "Prompts and converts input to integer (<code>int</code>). Re-prompts if input is not valid integer.",
+        input_flt_desc: "Prompts and converts input to decimal number (<code>float</code>).",
+        input_bool_desc: "Reads boolean confirmation (<code>y/n</code>, <code>yes/no</code>, <code>true/false</code>).",
+        input_hidden_desc: "Reads sensitive inputs (passwords, tokens) from terminal.",
         f_author: "Made by <strong>JDVA0</strong> · Created for fun and experimentation with AI assistance. Free and open for everyone."
       }
     };
