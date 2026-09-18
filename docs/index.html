@@ -1278,10 +1278,69 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
       localStorage.setItem('snow_docs_lang', lang);
     }
 
+    // Resaltado de sintaxis ligero para bloques de código
+    function highlightCode() {
+      const codeBlocks = document.querySelectorAll('pre code');
+      codeBlocks.forEach(block => {
+        let text = block.textContent;
+        // Evitar procesar bloques de terminal shell
+        if (text.startsWith('$') || text.includes('git clone') || text.includes('go get')) {
+          return;
+        }
+        // Tokenizar y colorear de forma segura
+        const lines = text.split('\n');
+        const coloredLines = lines.map(line => {
+          let comment = '';
+          let codePart = line;
+          const hashIdx = line.indexOf('#');
+          if (hashIdx !== -1) {
+            // Verificar si el hash no está dentro de una cadena
+            const before = line.substring(0, hashIdx);
+            const quotes = (before.match(/"/g) || []).length;
+            if (quotes % 2 === 0) {
+              codePart = before;
+              comment = '<span class="syn-comment">' + escapeHtml(line.substring(hashIdx)) + '</span>';
+            }
+          }
+
+          // Cadenas
+          codePart = codePart.replace(/"([^"\\]|\\.)*"/g, m => '<span class="syn-string">' + escapeHtml(m) + '</span>');
+
+          // Números
+          codePart = codePart.replace(/\b(\d+(\.\d+)?|0x[0-9a-fA-F]+)\b/g, '<span class="syn-number">$&</span>');
+
+          // Palabras clave
+          codePart = codePart.replace(/\b(using|fn|return|if|elif|else|for|while|break|continue|and|or|not)\b/g, '<span class="syn-keyword">$&</span>');
+
+          // Booleanos y nil
+          codePart = codePart.replace(/\b(true|false|nil)\b/g, '<span class="syn-bool">$&</span>');
+
+          // Funciones conocidas o llamadas func(...)
+          codePart = codePart.replace(/\b(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|str|int|float|type)\b(?=\()/g, '<span class="syn-func">$&</span>');
+
+          // Métodos de api, sys, fs, cli
+          codePart = codePart.replace(/\b(api|sys|fs|cli)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword">$1</span>.<span class="syn-func">$2</span>');
+
+          return codePart + comment;
+        });
+
+        block.innerHTML = coloredLines.join('\n');
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Restaurar idioma guardado si existe
     const saved = localStorage.getItem('snow_docs_lang');
     if (saved === 'es' || saved === 'en') {
       setLang(saved);
     }
+
+    // Ejecutar resaltador al cargar la página
+    document.addEventListener('DOMContentLoaded', highlightCode);
+    highlightCode();
   </script>
 </body>
 </html>
