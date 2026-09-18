@@ -1,0 +1,1113 @@
+package snow
+
+import (
+	"fmt"
+	"strings"
+)
+
+// Pos is a source position.
+type Pos struct{ Line, Col int }
+
+// Stmt is a Snow statement.
+type Stmt interface{ stmt() }
+
+// Expr is a Snow expression.
+type Expr interface{ expr() }
+
+// Program is a parsed source file.
+type Program struct {
+	Stmts      []Stmt
+	Incomplete bool
+	SrcName    string
+}
+
+type UseStmt struct {
+	Pos
+	Path  []string // snow.api or a/b (file module)
+	Alias string
+}
+type AssignStmt struct {
+	Pos
+	Names []string
+	Op    byte // 0 for '=', otherwise the binary op code
+	Vals  []Expr
+}
+type FnStmt struct {
+	Pos
+	Name   string
+	Params []string
+	Body   []Stmt
+}
+type ReturnStmt struct {
+	Pos
+	Vals []Expr
+}
+type IfStmt struct {
+	Pos
+	Conds  []Expr
+	Bodies [][]Stmt
+	Else   []Stmt
+}
+type ForStmt struct {
+	Pos
+	Name string
+	Iter Expr
+	Body []Stmt
+}
+type WhileStmt struct {
+	Pos
+	Cond Expr
+	Body []Stmt
+}
+type LoopStmt struct {
+	Pos
+	Break bool
+}
+type ExprStmt struct {
+	Pos
+	X Expr
+}
+
+type NumLit struct {
+	Pos
+	IsFloat bool
+	Int     int64
+	Float   float64
+}
+type StrLit struct {
+	Pos
+	V string
+}
+type BoolLit struct {
+	Pos
+	V bool
+}
+type NilLit struct{ Pos }
+type NameE struct {
+	Pos
+	X string
+}
+type BinE struct {
+	Pos
+	Op string
+	X  Expr
+	Y  Expr
+}
+type UnE struct {
+	Pos
+	Op string
+	X  Expr
+}
+type CallE struct {
+	Pos
+	Fn   Expr
+	Args []Expr
+}
+type IndexE struct {
+	Pos
+	X   Expr
+	Key Expr
+}
+type AttrE struct {
+	Pos
+	X    Expr
+	Name string
+}
+type ListLit struct {
+	Pos
+	Items []Expr
+}
+type DictLit struct {
+	Pos
+	Pairs [][2]Expr
+}
+
+type FnExpr struct {
+	Pos
+	Params []string
+	Body   []Stmt
+}
+
+func (*UseStmt) stmt()    {}
+func (*AssignStmt) stmt() {}
+func (*FnStmt) stmt()     {}
+func (*ReturnStmt) stmt() {}
+func (*IfStmt) stmt()     {}
+func (*ForStmt) stmt()    {}
+func (*WhileStmt) stmt()  {}
+func (*LoopStmt) stmt()   {}
+func (*ExprStmt) stmt()   {}
+func (*NumLit) expr()     {}
+func (*StrLit) expr()     {}
+func (*BoolLit) expr()    {}
+func (*NilLit) expr()     {}
+func (*NameE) expr()      {}
+func (*BinE) expr()       {}
+func (*UnE) expr()        {}
+func (*CallE) expr()      {}
+func (*IndexE) expr()     {}
+func (*AttrE) expr()      {}
+func (*ListLit) expr()    {}
+func (*DictLit) expr()    {}
+func (*FnExpr) expr()     {}
+
+type parser struct {
+	toks       []Tok
+	pos        int
+	name       string
+	src        string
+	fnN        int
+	loopN      int
+	incomplete bool
+}
+
+// Parse parses Snow source into a program.
+func Parse(src, name string) (*Program, error) {
+	toks, err := Tokenize(src, name)
+	if err != nil {
+		return nil, err
+	}
+	p := &parser{toks: toks, name: name, src: src}
+	return p.parseProgram()
+}
+
+func (p *parser) errf(t Tok, format string, a ...any) error {
+	return &Errat{p.name, t.Line, t.Col, fmt.Errorf(format, a...)}
+}
+
+func (p *parser) peek() Tok {
+	if p.pos < len(p.toks) {
+		return p.toks[p.pos]
+	}
+	return p.toks[len(p.toks)-1]
+}
+
+func (p *parser) next() Tok {
+	t := p.peek()
+	if p.pos < len(p.toks)-1 {
+		p.pos++
+	}
+	return t
+}
+
+func (p *parser) parseProgram() (*Program, error) {
+	prog := &Program{SrcName: p.name}
+	for {
+		k := p.peek()
+		switch k.Kind {
+		case tEOF:
+			prog.Incomplete = p.incomplete || sourceOpen(p.src)
+			return prog, nil
+		case tNewline:
+			p.next()
+		case tIndent, tDedent:
+			return nil, p.errf(k, "unexpected indentation")
+		default:
+			s, err := p.parseStmt()
+			if err != nil {
+				return nil, err
+			}
+			prog.Stmts = append(prog.Stmts, s)
+		}
+	}
+}
+
+func sourceOpen(src string) bool {
+	trimmed := strings.TrimRight(src, " \t\r\n")
+	if strings.HasSuffix(trimmed, ":") {
+		return true
+	}
+	var pCount, bCount, cCount int
+	inStr := false
+	var strQuote byte
+	escaped := false
+	for i := 0; i < len(src); i++ {
+		c := src[i]
+		if inStr {
+			if escaped {
+				escaped = false
+			} else if c == '\\' {
+				escaped = true
+			} else if c == strQuote {
+				inStr = false
+			}
+			continue
+		}
+		if c == '#' {
+			for i < len(src) && src[i] != '\n' {
+				i++
+			}
+			continue
+		}
+		if c == '"' || c == '\'' {
+			inStr = true
+			strQuote = c
+			continue
+		}
+		switch c {
+		case '(':
+			pCount++
+		case ')':
+			if pCount > 0 {
+				pCount--
+			}
+		case '[':
+			bCount++
+		case ']':
+			if bCount > 0 {
+				bCount--
+			}
+		case '{':
+			cCount++
+		case '}':
+			if cCount > 0 {
+				cCount--
+			}
+		}
+	}
+	if inStr || pCount > 0 || bCount > 0 || cCount > 0 {
+		return true
+	}
+
+	lines := strings.Split(strings.ReplaceAll(src, "\r\n", "\n"), "\n")
+	if strings.HasSuffix(src, "\n\n") {
+		return false
+	}
+	for i := len(lines) - 1; i >= 0; i-- {
+		l := lines[i]
+		if strings.TrimSpace(l) == "" {
+			continue
+		}
+		if strings.HasPrefix(l, " ") || strings.HasPrefix(l, "\t") {
+			return true
+		}
+		break
+	}
+	return false
+}
+
+func (p *parser) parseStmt() (Stmt, error) {
+	k := p.peek()
+	if k.Kind == tIdent {
+		switch k.Text {
+		case "using":
+			return p.parseUsing()
+		case "fn":
+			return p.parseFn()
+		case "return":
+			return p.parseReturn()
+		case "if":
+			return p.parseIf()
+		case "elif", "else":
+			return nil, p.errf(k, "'%s' without matching 'if'", k.Text)
+		case "for":
+			return p.parseFor()
+		case "while":
+			return p.parseWhile()
+		case "break":
+			return p.parseLoopCtrl(true)
+		case "continue":
+			return p.parseLoopCtrl(false)
+		}
+	}
+	return p.parseSimple()
+}
+
+var assignTokens = map[TokKind]byte{
+	tAssign:       0,
+	tPlusEq:       boAdd,
+	tMinusEq:      boSub,
+	tStarEq:       boMul,
+	tSlashEq:      boDiv,
+	tSlashSlashEq: boFloorDiv,
+	tPctEq:        boMod,
+}
+
+func (p *parser) parseSimple() (Stmt, error) {
+	vals, err := p.parseExprList()
+	if err != nil {
+		return nil, err
+	}
+	if op, ok := assignTokens[p.peek().Kind]; ok {
+		eq := p.next()
+		names := make([]string, len(vals))
+		for i, v := range vals {
+			n, ok := v.(*NameE)
+			if !ok {
+				ps := posOf(v)
+				return nil, p.errf(Tok{Line: ps.Line, Col: ps.Col}, "invalid assignment target")
+			}
+			names[i] = n.X
+		}
+		rhs, err := p.parseValueList()
+		if err != nil {
+			return nil, err
+		}
+		if op != 0 && len(names) != 1 {
+			return nil, p.errf(eq, "augmented assignment needs a single name")
+		}
+		if op != 0 && len(rhs) != 1 {
+			return nil, p.errf(eq, "augmented assignment expects a single value")
+		}
+		if err := p.lineEnd(); err != nil {
+			return nil, err
+		}
+		return &AssignStmt{Pos{eq.Line, eq.Col}, names, op, rhs}, nil
+	}
+	if len(vals) > 1 {
+		ps := posOf(vals[0])
+		return nil, p.errf(Tok{Line: ps.Line, Col: ps.Col}, "multiple values need an assignment (name = ...)")
+	}
+	if err := p.lineEnd(); err != nil {
+		return nil, err
+	}
+	return &ExprStmt{posOf(vals[0]), vals[0]}, nil
+}
+
+// lineEnd consumes the newline that ends a simple statement and
+// rejects leftover tokens on the same line.
+func (p *parser) lineEnd() error {
+	if p.pos > 0 && p.toks[p.pos-1].Kind == tDedent {
+		return nil
+	}
+	k := p.peek()
+	switch k.Kind {
+	case tNewline:
+		p.next()
+		return nil
+	case tEOF, tDedent:
+		return nil
+	}
+	return p.errf(k, "unexpected %s", k.String())
+}
+
+func (p *parser) parseUsing() (Stmt, error) {
+	st := p.next()
+	first, err := p.expectIdent()
+	if err != nil {
+		return nil, err
+	}
+	path := []string{first}
+	for p.peek().Kind == tDot {
+		p.next()
+		seg, err := p.expectIdent()
+		if err != nil {
+			return nil, err
+		}
+		path = append(path, seg)
+	}
+	alias := path[len(path)-1]
+	if p.peek().Kind == tIdent && p.peek().Text == "as" {
+		p.next()
+		a, err := p.expectIdent()
+		if err != nil {
+			return nil, err
+		}
+		alias = a
+	}
+	return &UseStmt{Pos{st.Line, st.Col}, path, alias}, nil
+}
+
+func (p *parser) expectIdent() (string, error) {
+	k := p.peek()
+	if k.Kind != tIdent || isReserved(k.Text) {
+		return "", p.errf(k, "expected a name")
+	}
+	p.next()
+	return k.Text, nil
+}
+
+func (p *parser) parseFn() (Stmt, error) {
+	st := p.next()
+	name, err := p.expectIdent()
+	if err != nil {
+		return nil, err
+	}
+	if k := p.peek(); k.Kind != tLParen {
+		return nil, p.errf(k, "expected '(' after function name")
+	}
+	p.next()
+	params, err := p.parseParams()
+	if err != nil {
+		return nil, err
+	}
+	if k := p.peek(); k.Kind != tRParen {
+		return nil, p.errf(k, "expected ')' after parameters")
+	}
+	p.next()
+	if _, err := p.expectColon(); err != nil {
+		return nil, err
+	}
+	p.fnN++
+	body, err := p.parseSuite()
+	p.fnN--
+	if err != nil {
+		return nil, err
+	}
+	return &FnStmt{Pos{st.Line, st.Col}, name, params, body}, nil
+}
+
+func (p *parser) parseParams() ([]string, error) {
+	var params []string
+	if p.peek().Kind == tRParen {
+		return params, nil
+	}
+	for {
+		n, err := p.expectIdent()
+		if err != nil {
+			return nil, err
+		}
+		params = append(params, n)
+		k := p.peek()
+		switch k.Kind {
+		case tRParen:
+			return params, nil
+		case tComma:
+			p.next()
+			if p.peek().Kind == tRParen {
+				return params, nil
+			}
+		case tIdent:
+			// optional commas: fn f(a b):
+		default:
+			return nil, p.errf(k, "expected a parameter name or ')'")
+		}
+	}
+}
+
+func (p *parser) expectColon() (Tok, error) {
+	k := p.peek()
+	if k.Kind != tColon {
+		return k, p.errf(k, "expected ':'")
+	}
+	p.next()
+	return k, nil
+}
+
+// parseSuite parses the block that follows the ':' of a compound statement.
+func (p *parser) parseSuite() ([]Stmt, error) {
+	k := p.peek()
+	if k.Kind == tNewline {
+		p.next()
+		k = p.peek()
+		if k.Kind == tIndent {
+			p.next()
+			return p.parseBlockStmts()
+		}
+		if k.Kind == tEOF {
+			return nil, &Errat{p.name, k.Line, k.Col, ErrIncomplete}
+		}
+		return nil, p.errf(k, "expected an indented block")
+	}
+	s, err := p.parseStmt()
+	if err != nil {
+		return nil, err
+	}
+	return []Stmt{s}, nil
+}
+
+func (p *parser) parseBlockStmts() ([]Stmt, error) {
+	var stmts []Stmt
+	for {
+		k := p.peek()
+		switch k.Kind {
+		case tDedent:
+			p.next()
+			return stmts, nil
+		case tEOF:
+			p.incomplete = true
+			return stmts, nil
+		case tNewline:
+			p.next()
+		case tIndent:
+			return nil, p.errf(k, "unexpected indentation")
+		case tRParen:
+			// closing paren of outer call — stop block, don't consume
+			return stmts, nil
+		default:
+			s, err := p.parseStmt()
+			if err != nil {
+				return nil, err
+			}
+			stmts = append(stmts, s)
+			if p.peek().Kind == tNewline {
+				p.next()
+			}
+		}
+	}
+}
+
+func (p *parser) parseIf() (Stmt, error) {
+	st := p.next()
+	cond, err := p.parseOr()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := p.expectColon(); err != nil {
+		return nil, err
+	}
+	body, err := p.parseSuite()
+	if err != nil {
+		return nil, err
+	}
+	conds := []Expr{cond}
+	bodies := [][]Stmt{body}
+	var els []Stmt
+	for p.peek().Kind == tIdent && p.peek().Text == "elif" {
+		p.next()
+		c, err := p.parseOr()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.expectColon(); err != nil {
+			return nil, err
+		}
+		b, err := p.parseSuite()
+		if err != nil {
+			return nil, err
+		}
+		conds = append(conds, c)
+		bodies = append(bodies, b)
+	}
+	if p.peek().Kind == tIdent && p.peek().Text == "else" {
+		p.next()
+		if _, err := p.expectColon(); err != nil {
+			return nil, err
+		}
+		if els, err = p.parseSuite(); err != nil {
+			return nil, err
+		}
+	}
+	return &IfStmt{Pos{st.Line, st.Col}, conds, bodies, els}, nil
+}
+
+func (p *parser) parseFor() (Stmt, error) {
+	st := p.next()
+	name, err := p.expectIdent()
+	if err != nil {
+		return nil, err
+	}
+	k := p.peek()
+	if k.Kind != tIdent || k.Text != "in" {
+		return nil, p.errf(k, "expected 'in' in for statement")
+	}
+	p.next()
+	iter, err := p.parseOr()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := p.expectColon(); err != nil {
+		return nil, err
+	}
+	p.loopN++
+	body, err := p.parseSuite()
+	p.loopN--
+	if err != nil {
+		return nil, err
+	}
+	return &ForStmt{Pos{st.Line, st.Col}, name, iter, body}, nil
+}
+
+func (p *parser) parseWhile() (Stmt, error) {
+	st := p.next()
+	cond, err := p.parseOr()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := p.expectColon(); err != nil {
+		return nil, err
+	}
+	p.loopN++
+	body, err := p.parseSuite()
+	p.loopN--
+	if err != nil {
+		return nil, err
+	}
+	return &WhileStmt{Pos{st.Line, st.Col}, cond, body}, nil
+}
+
+func (p *parser) parseLoopCtrl(break_ bool) (Stmt, error) {
+	st := p.next()
+	if p.loopN == 0 {
+		if break_ {
+			return nil, p.errf(st, "'break' outside of a loop")
+		}
+		return nil, p.errf(st, "'continue' outside of a loop")
+	}
+	return &LoopStmt{Pos{st.Line, st.Col}, break_}, nil
+}
+
+func (p *parser) parseReturn() (Stmt, error) {
+	st := p.next()
+	if p.fnN == 0 {
+		return nil, p.errf(st, "'return' outside of a function")
+	}
+	var vals []Expr
+	if exprStart(p.peek()) {
+		var err error
+		if vals, err = p.parseExprList(); err != nil {
+			return nil, err
+		}
+	}
+	if err := p.lineEnd(); err != nil {
+		return nil, err
+	}
+	return &ReturnStmt{Pos{st.Line, st.Col}, vals}, nil
+}
+
+// ---- expressions ----
+
+func (p *parser) parseExprList() ([]Expr, error) {
+	var xs []Expr
+	e, err := p.parseOr()
+	if err != nil {
+		return nil, err
+	}
+	xs = append(xs, e)
+	for {
+		k := p.peek()
+		switch {
+		case k.Kind == tComma:
+			p.next()
+			if !exprStart(p.peek()) {
+				return xs, nil
+			}
+			e, err := p.parseOr()
+			if err != nil {
+				return nil, err
+			}
+			xs = append(xs, e)
+		case exprStart(k):
+			if p.pos > 0 && p.toks[p.pos-1].Kind == tDedent {
+				return xs, nil
+			}
+			e, err := p.parseOr()
+			if err != nil {
+				return nil, err
+			}
+			xs = append(xs, e)
+		default:
+			return xs, nil
+		}
+	}
+}
+
+func (p *parser) parseValueList() ([]Expr, error) {
+	return p.parseExprList()
+}
+
+func (p *parser) parseOr() (Expr, error) {
+	l, err := p.parseAnd()
+	if err != nil {
+		return nil, err
+	}
+	for p.peek().Kind == tIdent && p.peek().Text == "or" {
+		p.next()
+		r, err := p.parseAnd()
+		if err != nil {
+			return nil, err
+		}
+		l = &BinE{Pos{posLine(l), posCol(l)}, "or", l, r}
+	}
+	return l, nil
+}
+
+func (p *parser) parseAnd() (Expr, error) {
+	l, err := p.parseNot()
+	if err != nil {
+		return nil, err
+	}
+	for p.peek().Kind == tIdent && p.peek().Text == "and" {
+		p.next()
+		r, err := p.parseNot()
+		if err != nil {
+			return nil, err
+		}
+		l = &BinE{Pos{posLine(l), posCol(l)}, "and", l, r}
+	}
+	return l, nil
+}
+
+func (p *parser) parseNot() (Expr, error) {
+	k := p.peek()
+	if k.Kind == tIdent && k.Text == "not" {
+		p.next()
+		x, err := p.parseNot()
+		if err != nil {
+			return nil, err
+		}
+		return &UnE{Pos{posLine(x), posCol(x)}, "not", x}, nil
+	}
+	return p.parseCmp()
+}
+
+var cmpOps = map[TokKind]string{tEq: "==", tNe: "!=", tLt: "<", tLe: "<=", tGt: ">", tGe: ">="}
+
+func (p *parser) parseCmp() (Expr, error) {
+	x, err := p.parseAdd()
+	if err != nil {
+		return nil, err
+	}
+	var ops []string
+	vals := []Expr{x}
+	for {
+		op := ""
+		if o, ok := cmpOps[p.peek().Kind]; ok {
+			op = o
+			p.next()
+		} else if p.peek().Kind == tIdent && p.peek().Text == "in" {
+			op = "in"
+			p.next()
+		} else {
+			break
+		}
+		v, err := p.parseAdd()
+		if err != nil {
+			return nil, err
+		}
+		ops = append(ops, op)
+		vals = append(vals, v)
+	}
+	if len(ops) == 0 {
+		return x, nil
+	}
+	res := &BinE{Pos{posLine(x), posCol(x)}, ops[0], vals[0], vals[1]}
+	for i := 1; i < len(ops); i++ {
+		res = &BinE{Pos{posLine(vals[i]), posCol(vals[i])}, "and", res,
+			&BinE{Pos{posLine(vals[i]), posCol(vals[i])}, ops[i], vals[i], vals[i+1]}}
+	}
+	return res, nil
+}
+
+func (p *parser) parseAdd() (Expr, error) {
+	l, err := p.parseMul()
+	if err != nil {
+		return nil, err
+	}
+	for {
+		var op string
+		switch p.peek().Kind {
+		case tPlus:
+			op = "+"
+		case tMinus:
+			op = "-"
+		default:
+			return l, nil
+		}
+		p.next()
+		r, err := p.parseMul()
+		if err != nil {
+			return nil, err
+		}
+		l = &BinE{Pos{posLine(l), posCol(l)}, op, l, r}
+	}
+}
+
+func (p *parser) parseMul() (Expr, error) {
+	l, err := p.parseFactor()
+	if err != nil {
+		return nil, err
+	}
+	for {
+		var op string
+		switch p.peek().Kind {
+		case tStar:
+			op = "*"
+		case tSlash:
+			op = "/"
+		case tSlashSlash:
+			op = "//"
+		case tPct:
+			op = "%"
+		default:
+			return l, nil
+		}
+		p.next()
+		r, err := p.parseFactor()
+		if err != nil {
+			return nil, err
+		}
+		l = &BinE{Pos{posLine(l), posCol(l)}, op, l, r}
+	}
+}
+
+func (p *parser) parseFactor() (Expr, error) {
+	k := p.peek()
+	if k.Kind == tMinus {
+		p.next()
+		x, err := p.parseFactor()
+		if err != nil {
+			return nil, err
+		}
+		return &UnE{Pos{posLine(x), posCol(x)}, "-", x}, nil
+	}
+	if k.Kind == tPlus {
+		p.next()
+		return p.parseFactor()
+	}
+	return p.parsePostfix()
+}
+
+func (p *parser) parsePostfix() (Expr, error) {
+	x, err := p.parsePrimary()
+	if err != nil {
+		return nil, err
+	}
+	for {
+		k := p.peek()
+		switch k.Kind {
+		case tLParen:
+			p.next()
+			args, err := p.parseCallArgs()
+			if err != nil {
+				return nil, err
+			}
+			if k2 := p.peek(); k2.Kind != tRParen {
+				return nil, p.errf(k2, "expected ')'")
+			}
+			p.next()
+			x = &CallE{Pos{posLine(x), posCol(x)}, x, args}
+		case tLBrack:
+			p.next()
+			key, err := p.parseOr()
+			if err != nil {
+				return nil, err
+			}
+			if k2 := p.peek(); k2.Kind != tRBrack {
+				return nil, p.errf(k2, "expected ']'")
+			}
+			p.next()
+			x = &IndexE{Pos{posLine(x), posCol(x)}, x, key}
+		case tDot:
+			p.next()
+			n, err := p.expectIdent()
+			if err != nil {
+				return nil, err
+			}
+			x = &AttrE{Pos{posLine(x), posCol(x)}, x, n}
+		default:
+			return x, nil
+		}
+	}
+}
+
+func (p *parser) parseCallArgs() ([]Expr, error) {
+	var args []Expr
+	// skip any leading newlines/indent inside the call parens
+	for p.peek().Kind == tNewline || p.peek().Kind == tIndent || p.peek().Kind == tDedent {
+		p.next()
+	}
+	if p.peek().Kind == tRParen {
+		return args, nil
+	}
+	for {
+		// skip whitespace before each argument
+		for p.peek().Kind == tNewline || p.peek().Kind == tIndent {
+			p.next()
+		}
+		a, err := p.parseOr()
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, a)
+		// skip whitespace/newlines/dedents after argument
+		for p.peek().Kind == tNewline || p.peek().Kind == tDedent {
+			p.next()
+		}
+		k := p.peek()
+		switch k.Kind {
+		case tRParen:
+			return args, nil
+		case tComma:
+			p.next()
+			for p.peek().Kind == tNewline || p.peek().Kind == tIndent || p.peek().Kind == tDedent {
+				p.next()
+			}
+			if p.peek().Kind == tRParen {
+				return args, nil
+			}
+		default:
+			if !exprStart(k) {
+				return nil, p.errf(k, "expected ')' or another argument")
+			}
+		}
+	}
+}
+
+func (p *parser) parsePrimary() (Expr, error) {
+	k := p.peek()
+	switch k.Kind {
+	case tInt:
+		p.next()
+		return &NumLit{Pos{k.Line, k.Col}, false, k.Num, 0}, nil
+	case tFlt:
+		p.next()
+		return &NumLit{Pos{k.Line, k.Col}, true, 0, k.Flt}, nil
+	case tStr:
+		p.next()
+		return &StrLit{Pos{k.Line, k.Col}, k.Text}, nil
+	case tIdent:
+		if k.Text == "fn" && p.pos+1 < len(p.toks) && p.toks[p.pos+1].Kind == tLParen {
+			p.next() // consume 'fn'
+			p.next() // consume '('
+			params, err := p.parseParams()
+			if err != nil {
+				return nil, err
+			}
+			if p.peek().Kind != tRParen {
+				return nil, p.errf(p.peek(), "expected ')'")
+			}
+			p.next()
+			if _, err := p.expectColon(); err != nil {
+				return nil, err
+			}
+			if p.peek().Kind != tNewline {
+				expr, err := p.parseOr()
+				if err != nil {
+					return nil, err
+				}
+				body := []Stmt{&ReturnStmt{Pos: posOf(expr), Vals: []Expr{expr}}}
+				return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, Body: body}, nil
+			}
+			p.fnN++
+			body, err := p.parseSuite()
+			p.fnN--
+			if err != nil {
+				return nil, err
+			}
+			return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, Body: body}, nil
+		}
+		switch k.Text {
+		case "true":
+			p.next()
+			return &BoolLit{Pos{k.Line, k.Col}, true}, nil
+		case "false":
+			p.next()
+			return &BoolLit{Pos{k.Line, k.Col}, false}, nil
+		case "nil":
+			p.next()
+			return &NilLit{Pos{k.Line, k.Col}}, nil
+		case "and", "or", "not", "in", "using", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue":
+			return nil, p.errf(k, "unexpected %q", k.Text)
+		}
+		p.next()
+		return &NameE{Pos{k.Line, k.Col}, k.Text}, nil
+	case tLParen:
+		p.next()
+		e, err := p.parseOr()
+		if err != nil {
+			return nil, err
+		}
+		if k2 := p.peek(); k2.Kind != tRParen {
+			return nil, p.errf(k2, "expected ')'")
+		}
+		p.next()
+		return e, nil
+	case tLBrack:
+		p.next()
+		var items []Expr
+		if p.peek().Kind != tRBrack {
+			var err error
+			items, err = p.parseExprList()
+			if err != nil {
+				return nil, err
+			}
+		}
+		if k2 := p.peek(); k2.Kind != tRBrack {
+			return nil, p.errf(k2, "expected ']'")
+		}
+		p.next()
+		return &ListLit{Pos{k.Line, k.Col}, items}, nil
+	case tLBrace:
+		p.next()
+		var pairs [][2]Expr
+		for p.peek().Kind != tRBrace {
+			key, err := p.parseOr()
+			if err != nil {
+				return nil, err
+			}
+			if n, ok := key.(*NameE); ok {
+				key = &StrLit{Pos{n.Line, n.Col}, n.X}
+			}
+			if k2 := p.peek(); k2.Kind != tColon {
+				return nil, p.errf(k2, "expected ':' in dict literal")
+			}
+			p.next()
+			val, err := p.parseOr()
+			if err != nil {
+				return nil, err
+			}
+			pairs = append(pairs, [2]Expr{key, val})
+			k := p.peek()
+			switch k.Kind {
+			case tComma:
+				p.next()
+			case tRBrace:
+			case tIdent, tInt, tFlt, tStr, tLParen, tLBrack, tLBrace:
+				// optional commas between pairs
+			default:
+				return nil, p.errf(k, "expected '}' or another pair")
+			}
+		}
+		if k2 := p.peek(); k2.Kind != tRBrace {
+			return nil, p.errf(k2, "expected '}'")
+		}
+		p.next()
+		return &DictLit{Pos{k.Line, k.Col}, pairs}, nil
+	}
+	return nil, p.errf(k, "expected an expression, got %s", k.String())
+}
+
+func exprStart(k Tok) bool {
+	switch k.Kind {
+	case tIdent:
+		return !isReserved(k.Text) || k.Text == "true" || k.Text == "false" || k.Text == "nil" || k.Text == "fn"
+	case tInt, tFlt, tStr, tLParen, tLBrack, tLBrace:
+		return true
+	}
+	return false
+}
+
+func isReserved(w string) bool {
+	switch w {
+	case "using", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not":
+		return true
+	}
+	return false
+}
+
+func posLine(e Expr) int { return posOf(e).Line }
+
+func posCol(e Expr) int { return posOf(e).Col }
+
+func posOf(e Expr) Pos {
+	switch x := e.(type) {
+	case *NumLit:
+		return x.Pos
+	case *StrLit:
+		return x.Pos
+	case *BoolLit:
+		return x.Pos
+	case *NilLit:
+		return x.Pos
+	case *NameE:
+		return x.Pos
+	case *BinE:
+		return x.Pos
+	case *UnE:
+		return x.Pos
+	case *CallE:
+		return x.Pos
+	case *IndexE:
+		return x.Pos
+	case *AttrE:
+		return x.Pos
+	case *ListLit:
+		return x.Pos
+	case *DictLit:
+		return x.Pos
+	case *FnExpr:
+		return x.Pos
+	}
+	return Pos{}
+}

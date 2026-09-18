@@ -1,0 +1,242 @@
+/* Tema Nord - Sobrio, plano y de alto contraste */
+:root {
+  --nord0: #2e3440;
+  --nord1: #3b4252;
+  --nord2: #434c5e;
+  --nord3: #4c566a;
+  --nord4: #d8dee9;
+  --nord5: #e5e9f0;
+  --nord6: #eceff4;
+  --nord8: #88c0d0;
+  --nord9: #81a1c1;
+
+  --bg: #2e3440;
+  --surface: #3b4252;
+  --surface-alt: #434c5e;
+  --border: #4c566a;
+  --text: #eceff4;
+  --text-muted: #e5e9f0; /* Color claro para evitar textos oscuros difíciles de leer */
+  --accent: #88c0d0;
+  --code-bg: #242933;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 14.5px;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+/* Forzar contraste alto en elementos de texto comunes */
+p, span, li, td, th, div {
+  color: var(--text);
+}
+
+/* Enlaces siempre claros */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: #a3be8c;
+  text-decoration: underline;
+}
+
+/* Sobreescribir clases de Bootstrap que oscurecen texto */
+.text-muted,
+.text-secondary {
+  color: var(--nord4) !important; /* #d8dee9 - Gris claro perfectamente legible sobre fondo oscuro */
+}
+
+/* Barra superior */
+header.top-nav {
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.badge-flat {
+  background-color: var(--surface-alt);
+  color: var(--nord6);
+  font-size: 0.75rem;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+}
+
+.lang-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--nord6);
+  font-size: 0.78rem;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+.lang-btn.active {
+  background: var(--accent);
+  color: var(--nord0);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* Navegacion lateral */
+.sidebar-sticky {
+  position: sticky;
+  top: 4rem;
+  max-height: calc(100vh - 4.5rem);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.sidebar-heading {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  padding-left: 0.4rem;
+}
+
+.sidebar-sticky .nav-link {
+  color: var(--nord4);
+  font-size: 0.88rem;
+  padding: 0.25rem 0.4rem;
+  display: block;
+}
+.sidebar-sticky .nav-link:hover,
+.sidebar-sticky .nav-link.active {
+  color: var(--nord6);
+  background-color: var(--surface);
+}
+
+/* Secciones */
+.doc-section {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+h1, h2, h3, h4 {
+  color: var(--nord6);
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin-bottom: 0.4rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin-top: 1.4rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--accent);
+}
+
+h3 {
+  font-size: 1.05rem;
+  margin-top: 1.1rem;
+  margin-bottom: 0.35rem;
+  color: var(--nord5);
+}
+
+p {
+  margin-bottom: 0.75rem;
+  color: var(--text);
+}
+
+/* Cajas informativas sobrias */
+.notice-box {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  margin: 0.8rem 0;
+  font-size: 0.9rem;
+  color: var(--nord6);
+}
+
+/* Codigo */
+pre {
+  background-color: var(--code-bg) !important;
+  color: var(--nord6) !important;
+  border: 1px solid var(--border);
+  padding: 0.75rem 0.9rem;
+  font-family: monospace;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin-top: 0.4rem;
+  margin-bottom: 0.9rem;
+  overflow-x: auto;
+}
+
+code {
+  color: var(--accent);
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+pre code {
+  color: var(--nord6);
+}
+
+p code, li code, td code {
+  background-color: var(--surface);
+  color: var(--nord6);
+  padding: 1px 4px;
+  border: 1px solid var(--border);
+}
+
+/* Tablas */
+.table-nord {
+  width: 100%;
+  color: var(--nord6);
+  border-collapse: collapse;
+  margin-top: 0.6rem;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+}
+.table-nord th {
+  background-color: var(--surface-alt);
+  color: var(--nord6);
+  font-weight: 600;
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+}
+.table-nord td {
+  background-color: var(--surface);
+  color: var(--nord6);
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+
+/* Pie */
+footer {
+  background-color: var(--surface);
+  border-top: 1px solid var(--border);
+  color: var(--nord4);
+  font-size: 0.85rem;
+  padding: 1.2rem 0;
+}

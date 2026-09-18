@@ -1,0 +1,89 @@
+package main
+
+import (
+	"errors"
+	"fmt"
+	"os"
+	"github.com/JDVA0/snow"
+)
+
+const usage = `snowman - the Snow language runner
+
+Usage:
+  snowman [file] [args...]         run a .snow file
+  snowman run <file> [args...]     run a .snow file
+  snowman eval <code>              evaluate a snippet
+  snowman -e <code>                same as eval
+  snowman repl                     start an interactive session
+  snowman -h, --help               show this help
+  snowman -v, --version            print version
+
+Standard modules (use with 'using'):
+  sys     shell commands, environment, process, filesystem helpers
+  fs      file operations: read, write, append, list, stat, mkdir
+  cli     terminal colors, tables, boxes, prompts, flag parsing
+  api     HTTP server with routing, middleware, static files
+
+Examples:
+  snowman app.snow
+  snowman -e 'using sys; print(sys.platform)'
+  snowman run server.snow --port 8080
+`
+
+func main() {
+	args := os.Args[1:]
+	i := snow.New()
+
+	if len(args) == 0 {
+		snow.Repl(i)
+		return
+	}
+
+	switch args[0] {
+	case "-h", "--help":
+		fmt.Print(usage)
+	case "-v", "--version":
+		fmt.Printf("snow %s\n", snow.Version)
+	case "repl":
+		snow.Repl(i)
+	case "-e", "eval":
+		if len(args) < 2 {
+			fmt.Fprintln(os.Stderr, "error: eval expects a code string")
+			os.Exit(1)
+		}
+		i.Args(args[2:])
+		runSrc(i, args[1], "<eval>")
+	case "run":
+		if len(args) < 2 {
+			fmt.Fprintln(os.Stderr, "error: run expects a file path")
+			os.Exit(1)
+		}
+		i.Args(args[2:])
+		runFile(i, args[1])
+	default:
+		i.Args(args[1:])
+		runFile(i, args[0])
+	}
+}
+
+func runSrc(i *snow.Interp, src, name string) {
+	if err := i.Run(src, name); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		var ex *snow.ExitError
+		if errors.As(err, &ex) {
+			os.Exit(ex.Code)
+		}
+		os.Exit(1)
+	}
+}
+
+func runFile(i *snow.Interp, path string) {
+	if err := i.RunFile(path); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		var ex *snow.ExitError
+		if errors.As(err, &ex) {
+			os.Exit(ex.Code)
+		}
+		os.Exit(1)
+	}
+}

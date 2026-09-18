@@ -1,0 +1,14 @@
+# Binarios compilados
+snowman
+snowman.exe
+*.exe
+*.bin
+
+# Temporales de Go y SO
+*.test
+*.prof
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/

@@ -1,0 +1,63 @@
+# Snow API — Simple, powerful and concise.
+#
+#   snowman examples/api.snow
+#   curl localhost:8099/
+#   curl "localhost:8099/hola?nombre=ana"
+#   curl -X POST localhost:8099/echo -d '{"ping":"pong"}'
+#   curl localhost:8099/users/42
+#   curl localhost:8099/system
+
+using api
+using sys
+using cli
+
+# Enable CORS for all routes
+api.cors()
+
+# Logging middleware
+fn logger(req):
+    cli.info(req.method + " " + req.path)
+    return nil
+
+api.use(logger)
+
+# Concise route handlers
+api.get("/", fn(req): api.text("❄️ Snow is fresh & concise!"))
+
+fn handle_hola(req):
+    name = req.query.nombre
+    if name == nil:
+        name = "mundo"
+    return api.json({mensaje: "¡Hola, " + name + "!", ok: true})
+
+api.get("/hola", handle_hola)
+
+# req.json automatically parses incoming JSON payloads
+fn handle_echo(req):
+    return api.json({received: req.json, status: "ok"}, 201)
+
+api.post("/echo", handle_echo)
+
+# Dynamic URL parameters (:id)
+fn handle_user(req):
+    return {id: int(req.params.id), role: "developer", active: true}
+
+api.get("/users/:id", handle_user)
+
+# System status route
+fn handle_system(req):
+    return {
+        platform: sys.platform,
+        arch: sys.arch,
+        pid: sys.pid,
+        cwd: sys.cwd(),
+        time: sys.now()
+    }
+
+api.get("/system", handle_system)
+
+api.get("/error", fn(req): 1 // 0)
+
+# Start server directly with port
+api.serve(8099)
+
