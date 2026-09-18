@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snow — Un lenguaje sencillo para APIs. Hecho por JDVA0.</title>
-  <meta name="description" content="Snow es un pequeño lenguaje de programación para crear APIs web y scripts de sistema, hecho por diversión por JDVA0.">
+  <title>Snow — Un lenguaje sencillo para APIs.</title>
+  <meta name="description" content="Snow es un pequeño lenguaje de programación para crear APIs web y scripts, hecho por JDVA0 por diversión.">
   <link rel="icon" type="image/svg+xml" href="snowflake.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,16 +23,10 @@
       </a>
       <ul class="nav-links">
         <li><a href="index.html" class="active">Inicio</a></li>
-        <li><a href="docs.html" data-i18n="nav_top_guide">Documentación</a></li>
-        <li><a href="docs.html#sintaxis" data-i18n="nav_top_lang">Lenguaje</a></li>
-        <li><a href="docs.html#mod-api" data-i18n="nav_top_mods">Módulos</a></li>
+        <li><a href="docs.html">Documentación</a></li>
+        <li><a href="docs.html#sintaxis">Lenguaje</a></li>
+        <li><a href="docs.html#mod-api">Módulos</a></li>
         <li><a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener">GitHub</a></li>
-        <li>
-          <div class="lang-group">
-            <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
-            <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
-          </div>
-        </li>
       </ul>
     </div>
   </nav>
@@ -41,19 +35,20 @@
   <section class="hero">
     <div class="wrap">
       <div class="hero-row">
-        <div class="hero-mascot">
-          <img src="snowflake.svg" alt="Copo de nieve Snow" class="mascot-img">
+        <div class="hero-icon">
+          <img src="snowflake.svg" alt="Snow">
         </div>
         <div class="hero-text">
-          <h1 class="hero-title" data-i18n="hero_title">
+          <h1 class="hero-title">
             <strong>Snow</strong> — un lenguaje <span class="acc">pequeño y tranquilo</span> para crear APIs web.
           </h1>
-          <p class="hero-subtitle" data-i18n="hero_desc">
-            Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Nada revolucionario, solo para experimentar con APIs y hacer las cosas un poco más fáciles.
+          <p class="hero-subtitle">
+            Hecho por <strong>JDVA0</strong> · Un proyecto por diversión y experimentación.
+            Nada revolucionario, solo para hacer las cosas un poco más simples.
           </p>
           <div class="hero-btns">
-            <a href="docs.html#instalacion" class="btn-dark" data-i18n="btn_install">Comenzar</a>
-            <a href="docs.html" class="btn-outline" data-i18n="btn_docs">Ver la documentación</a>
+            <a href="docs.html#instalacion" class="btn-primary">Comenzar</a>
+            <a href="docs.html" class="btn-outline">Documentación</a>
             <a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener" class="btn-link">github.com/JDVA0/snow →</a>
           </div>
         </div>
@@ -61,18 +56,25 @@
     </div>
   </section>
 
-  <!-- Dark strip -->
-  <section class="dark-strip">
+  <!-- Code sample -->
+  <section class="section-code">
     <div class="wrap">
-      <div class="strip-row">
-        <div class="strip-text">
-          <h2 data-i18n="h_dark_title">Un lenguaje pequeño, plano y relajado</h2>
-          <p data-i18n="p_dark_text_1">Snow nació del entusiasmo por experimentar y crear un intérprete funcional en Go. No busca ser revolucionario ni competir con otros: su meta es que levantar un microservicio o consultar una API sea tan simple como escribir 5 líneas limpias.</p>
-          <p data-i18n="p_dark_text_2">Sin llaves <code>{}</code>, sin puntos y coma <code>;</code>, con cliente y servidor HTTP integrados, almacenamiento en disco y herramientas de terminal.</p>
-          <p class="credit-line" data-i18n="badge_humble_text">Hecho por <strong>JDVA0</strong> · Diversión y experimentación libre</p>
+      <div class="two-col">
+        <div class="col-text">
+          <h2>Un lenguaje pequeño y relajado</h2>
+          <p>
+            Snow nació del entusiasmo por experimentar con intérpretes en Go.
+            No compite con nadie: su meta es que levantar un microservicio o
+            consultar una API sea tan simple como escribir 5 líneas limpias.
+          </p>
+          <p>
+            Sin llaves <code>{}</code>, sin puntos y coma <code>;</code>,
+            con HTTP integrado, almacenamiento en disco y herramientas de terminal.
+          </p>
+          <p class="credit-line">Hecho por <strong>JDVA0</strong> · Diversión y experimentación libre</p>
         </div>
-        <div class="strip-code">
-          <div class="code-plain-box">
+        <div class="col-code">
+          <div class="code-box">
             <pre><code>using api
 
 # Servidor web en 5 líneas
@@ -93,45 +95,85 @@ api.serve(8080)</code></pre>
     </div>
   </section>
 
-  <!-- Ribbon -->
-  <div class="ribbon">
-    <span data-i18n="ribbon_text">Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación · Libre y abierto para todo el mundo</span>
-  </div>
-
-  <!-- Features Grid -->
-  <section style="padding: 3.5rem 0; background: var(--bg);">
+  <!-- Features -->
+  <section class="section-features">
     <div class="wrap">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-        <div class="doc-section" style="margin-bottom: 0;">
-          <h3 style="margin-top: 0; color: #fff;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Servidor HTTP Nativo</h3>
-          <p style="color: var(--soft); font-size: .92rem;">El módulo <code>api</code> permite definir rutas GET, POST, PUT, DELETE, habilitar CORS y responder JSON en milisegundos sin frameworks pesados.</p>
-          <a href="docs.html#mod-api" style="font-size: .85rem;">Ver módulo api →</a>
+      <div class="features-grid">
+
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </div>
+          <h3>Servidor HTTP</h3>
+          <p>Módulo <code>api</code> con rutas GET, POST, PUT, DELETE, CORS y respuesta JSON sin frameworks pesados.</p>
+          <a href="docs.html#mod-api">Ver módulo api →</a>
         </div>
-        <div class="doc-section" style="margin-bottom: 0;">
-          <h3 style="margin-top: 0; color: #fff;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> Cliente HTTP (using http)</h3>
-          <p style="color: var(--soft); font-size: .92rem;">Consume APIs externas directamente: <code>http.get()</code>, <code>http.post()</code> con serialización automática de JSON y cabeceras sin dependencias.</p>
-          <a href="docs.html#mod-http" style="font-size: .85rem;">Ver módulo http →</a>
+
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <h3>Cliente HTTP</h3>
+          <p><code>http.get()</code> y <code>http.post()</code> con JSON automático y cabeceras sin dependencias externas.</p>
+          <a href="docs.html#mod-http">Ver módulo http →</a>
         </div>
-        <div class="doc-section" style="margin-bottom: 0;">
-          <h3 style="margin-top: 0; color: #fff;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg> Persistencia KV (using db)</h3>
-          <p style="color: var(--soft); font-size: .92rem;">Almacén clave-valor embebido persistido a disco en formato JSON atómico para que tus servicios guarden estado con cero configuración.</p>
-          <a href="docs.html#mod-db" style="font-size: .85rem;">Ver módulo db →</a>
+
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+          </div>
+          <h3>Persistencia KV</h3>
+          <p>Almacén clave-valor embebido, persistido a disco en JSON atómico. Cero configuración.</p>
+          <a href="docs.html#mod-db">Ver módulo db →</a>
         </div>
-        <div class="doc-section" style="margin-bottom: 0;">
-          <h3 style="margin-top: 0; color: #fff;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg> F-Strings y Elvis (??)</h3>
-          <p style="color: var(--soft); font-size: .92rem;">Interpolación moderna <code>f"Hola {nombre}"</code>, operador <code>nombre = req.query.nombre ?? "invitado"</code> y cadenas multilínea con triple comillas.</p>
-          <a href="docs.html#fstr-elvis" style="font-size: .85rem;">Ver sintaxis moderna →</a>
+
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+          </div>
+          <h3>F-Strings &amp; Elvis</h3>
+          <p>Interpolación <code>f"Hola {nombre}"</code>, operador <code>??</code> y cadenas multilínea con triple comilla.</p>
+          <a href="docs.html#fstr-elvis">Ver sintaxis →</a>
         </div>
-        <div class="doc-section" style="margin-bottom: 0;">
-          <h3 style="margin-top: 0; color: #fff;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg> Snow CLI Toolkit</h3>
-          <p style="color: var(--soft); font-size: .92rem;">Crea aplicaciones de terminal con cajas cuadradas limpias <code>cli.box</code>, tablas auto-alineadas <code>cli.table</code> y analizador de argumentos.</p>
-          <a href="docs.html#mod-cli" style="font-size: .85rem;">Ver módulo cli →</a>
+
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="4 17 10 11 4 5"/>
+              <line x1="12" y1="19" x2="20" y2="19"/>
+            </svg>
+          </div>
+          <h3>CLI Toolkit</h3>
+          <p>Cajas <code>cli.box</code>, tablas auto-alineadas <code>cli.table</code>, colores, prompts y argumentos.</p>
+          <a href="docs.html#mod-cli">Ver módulo cli →</a>
         </div>
-        <div class="doc-section" style="margin-bottom: 0;">
-          <h3 style="margin-top: 0; color: #fff;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Todo en un binario</h3>
-          <p style="color: var(--soft); font-size: .92rem;">Compilado en Go a un solo binario <code>snowman</code> con REPL interactivo con autocompletado y soporte multiplataforma.</p>
-          <a href="docs.html#instalacion" style="font-size: .85rem;">Instalación y uso →</a>
+
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3>REPL interactivo</h3>
+          <p>Un solo binario <code>snowman</code> con REPL, historial, autocompletado y auto-indentación.</p>
+          <a href="docs.html#instalacion">Instalación →</a>
         </div>
+
       </div>
     </div>
   </section>
@@ -139,64 +181,20 @@ api.serve(8080)</code></pre>
   <!-- Footer -->
   <footer>
     <div class="wrap">
-      <p data-i18n="f_author">Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Libre y gratuito para todo el mundo.</p>
-      <p style="margin-top:.4rem; color: var(--muted);">
-        <a href="https://github.com/JDVA0/snow">github.com/JDVA0/snow</a> · Licencia MIT
+      <p>Hecho por <strong>JDVA0</strong> · Un proyecto por diversión y experimentación.</p>
+      <p class="footer-links">
+        <a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener">github.com/JDVA0/snow</a>
+        <span class="sep">·</span>
+        Licencia MIT
       </p>
     </div>
   </footer>
 
   <script>
-    const i18n = {
-      es: {
-        nav_top_guide: "Documentación",
-        nav_top_lang: "Lenguaje",
-        nav_top_mods: "Módulos",
-        hero_title: "<strong>Snow</strong> — un lenguaje <span class="acc">pequeño y tranquilo</span> para crear APIs web.",
-        hero_desc: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Nada revolucionario, solo para experimentar con APIs y hacer las cosas un poco más fáciles.",
-        btn_install: "Comenzar",
-        btn_docs: "Ver la documentación",
-        h_dark_title: "Un lenguaje pequeño, plano y relajado",
-        p_dark_text_1: "Snow nació del entusiasmo por experimentar y crear un intérprete funcional en Go. No busca ser revolucionario ni competir con otros: su meta es que levantar un microservicio o consultar una API sea tan simple como escribir 5 líneas limpias.",
-        p_dark_text_2: "Sin llaves <code>{}</code>, sin puntos y coma <code>;</code>, con cliente y servidor HTTP integrados, almacenamiento en disco y herramientas de terminal.",
-        badge_humble_text: "Hecho por <strong>JDVA0</strong> · Diversión y experimentación libre",
-        ribbon_text: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación · Libre y abierto para todo el mundo",
-        f_author: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Libre y gratuito para todo el mundo."
-      },
-      en: {
-        nav_top_guide: "Documentation",
-        nav_top_lang: "Language",
-        nav_top_mods: "Modules",
-        hero_title: "<strong>Snow</strong> — a <span class="acc">light & calm</span> language for web APIs.",
-        hero_desc: "Made by <strong>JDVA0</strong> · A project built for fun and experimentation. Nothing revolutionary, just making APIs easier and experimenting with language design.",
-        btn_install: "Get Started",
-        btn_docs: "View Documentation",
-        h_dark_title: "A small, flat and relaxed language",
-        p_dark_text_1: "Snow was born from enthusiasm for language design in Go. It does not aim to be revolutionary or compete with giants: its goal is to make spinning up a microservice or fetching an API as simple as 5 clean lines.",
-        p_dark_text_2: "No braces <code>{}</code>, no semicolons <code>;</code>, with integrated HTTP client and server, disk persistence, and terminal tools.",
-        badge_humble_text: "Made by <strong>JDVA0</strong> · Free experimentation and fun",
-        ribbon_text: "Made by <strong>JDVA0</strong> · A project made for fun and experimentation · Free and open to the entire world",
-        f_author: "Made by <strong>JDVA0</strong> · Created for fun and experimentation. Free and open for everyone."
-      }
-    };
-
-    function setLang(lang) {
-      document.documentElement.lang = lang;
-      document.getElementById('btn-es').classList.toggle('active', lang === 'es');
-      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-      const dict = i18n[lang];
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (dict[key]) el.innerHTML = dict[key];
-      });
-      localStorage.setItem('snow_lang', lang);
-    }
-
     function highlightCode() {
       document.querySelectorAll('pre code').forEach(block => {
         const text = block.textContent;
-        const lines = text.split('
-');
+        const lines = text.split('\n');
         const out = lines.map(line => {
           let comment = '', code = line;
           const hi = line.indexOf('#');
@@ -207,26 +205,19 @@ api.serve(8080)</code></pre>
               comment = '<span class="syn-comment">' + esc(line.substring(hi)) + '</span>';
             }
           }
-          code = code.replace(/(f)?("([^"\]|\.)*")/g, (m, f, s) =>
+          code = code.replace(/(f)?("([^"\\]|\\.)*")/g, (m, f, s) =>
             f ? '<span class="syn-keyword">f</span><span class="syn-string">' + esc(s) + '</span>'
               : '<span class="syn-string">' + esc(m) + '</span>');
-          code = code.replace(/(\d+(\.\d+)?|0x[0-9a-fA-F]+)/g, '<span class="syn-number">$&</span>');
-          code = code.replace(/(using|fn|return|if|elif|else|for|while|break|continue|and|or|not|in)/g, '<span class="syn-keyword">$&</span>');
-          code = code.replace(/(true|false|nil)/g, '<span class="syn-bool">$&</span>');
-          code = code.replace(/(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|str|int|float|type)(?=\()/g, '<span class="syn-func">$&</span>');
-          code = code.replace(/(api|sys|fs|cli|http|db)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword"></span>.<span class="syn-func"></span>');
+          code = code.replace(/\b(\d+(\.\d+)?|0x[0-9a-fA-F]+)\b/g, '<span class="syn-number">$&</span>');
+          code = code.replace(/\b(using|fn|return|if|elif|else|for|while|break|continue|and|or|not|in)\b/g, '<span class="syn-keyword">$&</span>');
+          code = code.replace(/\b(true|false|nil)\b/g, '<span class="syn-bool">$&</span>');
+          code = code.replace(/\b(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|str|int|float|type)\b(?=\()/g, '<span class="syn-func">$&</span>');
           return code + comment;
         });
-        block.innerHTML = out.join('
-');
+        block.innerHTML = out.join('\n');
       });
     }
-
     function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    const saved = localStorage.getItem('snow_lang');
-    if (saved === 'en') setLang('en');
-
     document.addEventListener('DOMContentLoaded', highlightCode);
     highlightCode();
   </script>

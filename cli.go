@@ -221,7 +221,7 @@ func cliDivider(i *Interp, args []Val) ([]Val, error) {
 	}
 	divStr := sb.String()
 	fmt.Fprintln(i.out, divStr)
-	return []Val{Str(divStr)}, nil
+	return []Val{Nil}, nil
 }
 
 func cliBox(i *Interp, args []Val) ([]Val, error) {
@@ -295,7 +295,7 @@ func cliBox(i *Interp, args []Val) ([]Val, error) {
 
 	boxStr := sb.String()
 	fmt.Fprintln(i.out, boxStr)
-	return []Val{Str(boxStr)}, nil
+	return []Val{Nil}, nil
 }
 
 func cliTable(i *Interp, args []Val) ([]Val, error) {
@@ -400,7 +400,7 @@ func cliTable(i *Interp, args []Val) ([]Val, error) {
 
 	tableStr := sb.String()
 	fmt.Fprintln(i.out, tableStr)
-	return []Val{Str(tableStr)}, nil
+	return []Val{Nil}, nil
 }
 
 func cliParse(i *Interp, args []Val) ([]Val, error) {
