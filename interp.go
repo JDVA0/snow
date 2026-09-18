@@ -265,6 +265,15 @@ func (i *Interp) execOps(ops []Op) error {
 				pc = int(op.Num)
 				continue
 			}
+		case OpJumpIfNotNil:
+			v, err := i.pop()
+			if err != nil {
+				return i.opErr(op, err)
+			}
+			if v != Nil {
+				pc = int(op.Num)
+				continue
+			}
 		case OpUse:
 			if err := i.useOp(op); err != nil {
 				return i.opErr(op, err)
@@ -457,7 +466,7 @@ func (i *Interp) useOp(op Op) error {
 		stdMod = path[1]
 	} else if len(path) == 1 {
 		switch path[0] {
-		case "api", "sys", "fs", "cli":
+		case "api", "sys", "fs", "cli", "http", "db":
 			stdMod = path[0]
 		}
 	}
@@ -478,6 +487,10 @@ func (i *Interp) useOp(op Op) error {
 			m = newFSModule(i, op.Name)
 		case "cli":
 			m = newCLIModule(i, op.Name)
+		case "http":
+			m = newHTTPModule(i, op.Name)
+		case "db":
+			m = newDBModule(i, op.Name)
 		default:
 			return fmt.Errorf("unknown standard module snow.%s", stdMod)
 		}

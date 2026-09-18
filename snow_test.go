@@ -318,5 +318,106 @@ api.get("/users/:id", fn(req): {id: req.params.id})
 	}
 }
 
+func TestFStrings(t *testing.T) {
+	check(t, `
+name = "Snow"
+ver = 0.2
+print(f"Welcome to {name} v{ver}!")
+`, "Welcome to Snow v0.2!")
+
+	check(t, `
+a = 10
+b = 20
+print(f"{a} + {b} = {a + b}")
+`, "10 + 20 = 30")
+
+	check(t, `
+print(f"simple string without interpolations")
+`, "simple string without interpolations")
+}
+
+func TestNullCoalesce(t *testing.T) {
+	check(t, `
+x = nil
+print(x ?? "fallback")
+`, "fallback")
+
+	check(t, `
+x = "actual"
+print(x ?? "fallback")
+`, "actual")
+
+	check(t, `
+a = nil
+b = nil
+c = "found"
+print(a ?? b ?? c ?? "never")
+`, "found")
+
+	check(t, `
+# 0 and false are not nil, should be preserved
+print(0 ?? 99)
+print(false ?? true)
+`, "0\nfalse")
+}
+
+func TestMultilineStrings(t *testing.T) {
+	check(t, `
+s = """line 1
+line 2
+line 3"""
+print(s)
+`, "line 1\nline 2\nline 3")
+}
+
+func TestDBModule(t *testing.T) {
+	src := `
+using db
+using fs
+
+tmp = "test_run_db.json"
+if fs.exists(tmp):
+    fs.remove(tmp)
+
+store = db.open(tmp)
+store.set("greeting", "hello")
+store.set("n", 42)
+store.save()
+
+re = db.open(tmp)
+print(re.get("greeting"))
+print(re.get("n"))
+print(re.get("nonexistent", "default"))
+print(re.has("greeting"))
+re.delete("greeting")
+re.save()
+print(re.has("greeting"))
+
+if fs.exists(tmp):
+    fs.remove(tmp)
+`
+	check(t, src, "hello\n42\ndefault\ntrue\nfalse")
+}
+
+func TestCLIBox(t *testing.T) {
+	src := `
+using cli
+cli.box("❄️ SNOW CLI TOOLKIT", "A modern, concise & elegant CLI experience\nPlatform: linux (amd64) | PID: 76365")
+`
+	out := mustRun(t, src)
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(lines) != 4 {
+		t.Fatalf("expected 4 lines in box output, got %d", len(lines))
+	}
+
+	w0 := stringWidth(lines[0])
+	for idx, l := range lines {
+		w := stringWidth(l)
+		if w != w0 {
+			t.Fatalf("line %d width %d != line 0 width %d: %q", idx, w, w0, l)
+		}
+	}
+}
+
 
 

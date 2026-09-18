@@ -20,6 +20,7 @@ const (
 	tInt
 	tFlt
 	tStr
+	tFStr // f-string: Parts holds alternating literal/expr strings
 	tLParen
 	tRParen
 	tLBrack
@@ -48,16 +49,18 @@ const (
 	tLe
 	tGt
 	tGe
+	tQQ // ??
 )
 
 // Tok is a single lexical token.
 type Tok struct {
-	Kind TokKind
-	Text string
-	Num  int64
-	Flt  float64
-	Line int
-	Col  int
+	Kind  TokKind
+	Text  string
+	Num   int64
+	Flt   float64
+	Line  int
+	Col   int
+	Parts []string // for tFStr: [literal, expr, literal, expr, ..., literal]
 }
 
 func (t Tok) String() string {
@@ -126,13 +129,13 @@ func Tokenize(src, name string) ([]Tok, error) {
 			}
 		}
 
-		lineToks, err := tokenizeLine(content, name, ln, &depth)
+		lineToks, err := tokenizeLine(lines, &i, content, lead, name, &depth)
 		if err != nil {
 			return nil, err
 		}
 		toks = append(toks, lineToks...)
 		if depth == 0 && len(lineToks) > 0 {
-			emit(Tok{Kind: tNewline, Line: ln, Col: len(content) + 1})
+			emit(Tok{Kind: tNewline, Line: i + 1, Col: len(lines[i]) + 1})
 		}
 	}
 
@@ -144,19 +147,144 @@ func Tokenize(src, name string) ([]Tok, error) {
 	return toks, nil
 }
 
-func tokenizeLine(s, name string, ln int, depth *int) ([]Tok, error) {
+func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string, depth *int) ([]Tok, error) {
 	var toks []Tok
 	i := 0
-	start := 0
 	for i < len(s) {
+		ln := *lineIdx + 1
 		c := s[i]
 		switch {
 		case c == ' ' || c == '\t':
 			i++
 		case c == '#':
 			return toks, nil
+
+		// f-string: f"..." or f'...'
+		case c == 'f' && i+1 < len(s) && (s[i+1] == '"' || s[i+1] == '\''):
+			quote := s[i+1]
+			tripleStart := i + 1
+			if tripleStart+2 < len(s) && s[tripleStart] == quote && s[tripleStart+1] == quote && s[tripleStart+2] == quote {
+				quote3 := s[tripleStart : tripleStart+3]
+				rest := s[tripleStart+3:]
+				closeIdx := strings.Index(rest, quote3)
+				if closeIdx >= 0 {
+					raw := rest[:closeIdx]
+					parts, err := splitFString(raw, name, ln)
+					if err != nil {
+						return nil, err
+					}
+					toks = append(toks, Tok{Kind: tFStr, Parts: parts, Line: ln, Col: i + 1 + lead})
+					i = tripleStart + 3 + closeIdx + 3
+					continue
+				}
+				// Multi-line f-string
+				var sb strings.Builder
+				sb.WriteString(rest)
+				startLine := ln
+				startCol := i + 1 + lead
+				found := false
+				for *lineIdx+1 < len(lines) {
+					*lineIdx++
+					sb.WriteByte('\n')
+					l := strings.TrimSuffix(lines[*lineIdx], "\r")
+					cIdx := strings.Index(l, quote3)
+					if cIdx >= 0 {
+						sb.WriteString(l[:cIdx])
+						s = l
+						i = cIdx + 3
+						lead = 0
+						found = true
+						break
+					}
+					sb.WriteString(l)
+				}
+				if !found {
+					return nil, &Errat{name, startLine, startCol, fmt.Errorf("unterminated f-string")}
+				}
+				parts, err := splitFString(sb.String(), name, startLine)
+				if err != nil {
+					return nil, err
+				}
+				toks = append(toks, Tok{Kind: tFStr, Parts: parts, Line: startLine, Col: startCol})
+				continue
+			}
+			j := i + 2
+			var sb strings.Builder
+			for j < len(s) && s[j] != quote {
+				if s[j] == '\\' && j+1 < len(s) {
+					k := s[j+1]
+					switch k {
+					case 'n':
+						sb.WriteByte('\n')
+					case 't':
+						sb.WriteByte('\t')
+					case 'r':
+						sb.WriteByte('\r')
+					case '\\':
+						sb.WriteByte('\\')
+					case '"':
+						sb.WriteByte('"')
+					case '\'':
+						sb.WriteByte('\'')
+					default:
+						return nil, &Errat{name, ln, j + 1 + lead, fmt.Errorf("unknown escape sequence \\%c", k)}
+					}
+					j += 2
+					continue
+				}
+				sb.WriteByte(s[j])
+				j++
+			}
+			if j >= len(s) {
+				return nil, &Errat{name, ln, i + 1 + lead, fmt.Errorf("unterminated f-string")}
+			}
+			raw := sb.String()
+			parts, err := splitFString(raw, name, ln)
+			if err != nil {
+				return nil, err
+			}
+			toks = append(toks, Tok{Kind: tFStr, Parts: parts, Line: ln, Col: i + 1 + lead})
+			i = j + 1
+
 		case c == '"' || c == '\'':
 			quote := c
+			// Triple-quote: """...""" or '''...'''
+			if i+2 < len(s) && s[i+1] == quote && s[i+2] == quote {
+				quote3 := s[i : i+3]
+				rest := s[i+3:]
+				closeIdx := strings.Index(rest, quote3)
+				if closeIdx >= 0 {
+					toks = append(toks, Tok{Kind: tStr, Text: rest[:closeIdx], Line: ln, Col: i + 1 + lead})
+					i = i + 3 + closeIdx + 3
+					continue
+				}
+				// Multi-line triple-quoted string spanning multiple lines
+				var sb strings.Builder
+				sb.WriteString(rest)
+				startLine := ln
+				startCol := i + 1 + lead
+				found := false
+				for *lineIdx+1 < len(lines) {
+					*lineIdx++
+					sb.WriteByte('\n')
+					l := strings.TrimSuffix(lines[*lineIdx], "\r")
+					cIdx := strings.Index(l, quote3)
+					if cIdx >= 0 {
+						sb.WriteString(l[:cIdx])
+						s = l
+						i = cIdx + 3
+						lead = 0
+						toks = append(toks, Tok{Kind: tStr, Text: sb.String(), Line: startLine, Col: startCol})
+						found = true
+						break
+					}
+					sb.WriteString(l)
+				}
+				if !found {
+					return nil, &Errat{name, startLine, startCol, fmt.Errorf("unterminated triple-quoted string")}
+				}
+				continue
+			}
 			j := i + 1
 			var sb strings.Builder
 			for j < len(s) && s[j] != quote {
@@ -318,6 +446,8 @@ func tokenizeLine(s, name string, ln int, depth *int) ([]Tok, error) {
 					kind, n = tSlashEq, 2
 				case "%=":
 					kind, n = tPctEq, 2
+				case "??":
+					kind, n = tQQ, 2
 				}
 			}
 			if kind == 0 {
@@ -351,13 +481,67 @@ func tokenizeLine(s, name string, ln int, depth *int) ([]Tok, error) {
 			return nil, &Errat{name, ln, i + 1, fmt.Errorf("unexpected character %q", s[i])}
 		}
 	}
-	_ = start
 	return toks, nil
+}
+
+// splitFString splits an f-string body into alternating [literal, expr, literal, ...] parts.
+// Always starts and ends with a literal (which may be empty).
+func splitFString(s, name string, ln int) ([]string, error) {
+	var parts []string
+	i := 0
+	var lit strings.Builder
+	for i < len(s) {
+		if s[i] == '{' {
+			if i+1 < len(s) && s[i+1] == '{' {
+				// Escaped brace
+				lit.WriteByte('{')
+				i += 2
+				continue
+			}
+			// Start of expression
+			parts = append(parts, lit.String())
+			lit.Reset()
+			i++
+			depth := 1
+			start := i
+			for i < len(s) && depth > 0 {
+				if s[i] == '{' {
+					depth++
+				} else if s[i] == '}' {
+					depth--
+				}
+				if depth > 0 {
+					i++
+				}
+			}
+			if depth != 0 {
+				return nil, &Errat{name, ln, 0, fmt.Errorf("unclosed '{' in f-string")}
+			}
+			expr := strings.TrimSpace(s[start:i])
+			if expr == "" {
+				return nil, &Errat{name, ln, 0, fmt.Errorf("empty expression in f-string")}
+			}
+			parts = append(parts, expr)
+			i++ // skip closing '}'
+		} else if s[i] == '}' {
+			if i+1 < len(s) && s[i+1] == '}' {
+				lit.WriteByte('}')
+				i += 2
+				continue
+			}
+			return nil, &Errat{name, ln, i + 1, fmt.Errorf("unexpected '}' in f-string")}
+		} else {
+			lit.WriteByte(s[i])
+			i++
+		}
+	}
+	parts = append(parts, lit.String())
+	return parts, nil
 }
 
 func isOp(c byte) bool {
 	switch c {
-	case '+', '-', '*', '/', '%', '=', '<', '>', '!':
+	case '+', '-', '*', '/', '%', '=', '<', '>', '!', '?':
 		return true
 	}
 	return false

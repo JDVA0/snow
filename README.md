@@ -17,8 +17,12 @@ Snow es un lenguaje de programación simple, directo y conciso, diseñado espec�
 
 - **Sintaxis limpia por indentación:** Bloques definidos con 4 espacios, sin llaves `{}` ni puntos y comas `;`.
 - **Servidor HTTP integrado (`using api`):** Rutas GET, POST, PUT, DELETE, PATCH, soporte JSON nativo, CORS y middlewares en pocas líneas.
+- **Cliente HTTP integrado (`using http`):** Peticiones GET, POST, PUT, DELETE a APIs externas con parseo JSON automático sin depender de curl.
+- **Base de datos clave-valor embebida (`using db`):** Almacén JSON estructurado y persistente en disco con escritura atómica.
+- **Interpolación F-Strings y Operador Elvis (`??`):** `f"Hola {usuario}"`, cadenas multilínea con `"""` y valor por defecto para nulos.
 - **Acceso a sistema y archivos (`using sys`, `using fs`):** Ejecución de comandos del sistema (`sys.sh`), lectura de entorno, control de procesos y operaciones de archivos.
-- **Herramientas de consola (`using cli`):** Análisis de banderas/argumentos, formateo de tablas y cajas de texto.
+- **Herramientas de consola (`using cli`):** Análisis de banderas/argumentos, tablas alineadas y cajas de texto formateadas.
+- **REPL interactivo avanzado:** Historial persistente en `~/.snow_history`, comandos (`help`, `.exit`, `.history`) y colores por tipo de dato.
 
 ### Instalación
 
@@ -83,8 +87,12 @@ Snow is a simple, straightforward, and concise programming language designed to 
 
 - **Clean indented syntax:** Blocks are structured with 4 spaces—no braces `{}` or semicolons `;`.
 - **Built-in HTTP server (`using api`):** First-class support for GET, POST, PUT, DELETE, PATCH routes, automatic JSON parsing, CORS, and middlewares.
+- **Built-in HTTP client (`using http`):** Make GET, POST, PUT, DELETE requests to external APIs with automatic JSON handling and no external curl dependencies.
+- **Embedded key-value store (`using db`):** Lightweight, atomic, JSON-backed persistent storage on disk for effortless state persistence.
+- **F-Strings and Elvis operator (`??`):** `f"Hello {user}"`, multiline strings (`"""..."""`), and clean fallback default values.
 - **System and file access (`using sys`, `using fs`):** Run shell commands (`sys.sh`), manage environment variables, inspect processes, and handle disk files directly.
 - **CLI toolkit (`using cli`):** Command-line flag parsing, structured text tables, and framed display boxes.
+- **Enhanced REPL:** Persistent command history in `~/.snow_history`, built-in navigation (`help`, `.exit`, `.history`), and colorized output.
 
 ### Installation
 

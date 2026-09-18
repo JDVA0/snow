@@ -106,6 +106,24 @@ func (d *Dict) Clone() *Dict {
 	return n
 }
 
+// Delete removes a key from the dict. No-op if the key doesn't exist.
+func (d *Dict) Delete(k string) {
+	i, ok := d.idx[k]
+	if !ok {
+		return
+	}
+	last := len(d.keys) - 1
+	if i != last {
+		// Swap with last element
+		d.keys[i] = d.keys[last]
+		d.vals[i] = d.vals[last]
+		d.idx[d.keys[i]] = i
+	}
+	d.keys = d.keys[:last]
+	d.vals = d.vals[:last]
+	delete(d.idx, k)
+}
+
 // ---- Formatting ----
 
 // FltStr formats a float without noise.

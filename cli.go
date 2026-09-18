@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"unicode/utf8"
 )
 
 func newCLIModule(i *Interp, name string) *Module {
@@ -40,6 +39,7 @@ func newCLIModule(i *Interp, name string) *Module {
 	// Visual components
 	m.Dict.Set("box", Native(cliBox))
 	m.Dict.Set("table", Native(cliTable))
+	m.Dict.Set("divider", Native(cliDivider))
 	m.Dict.Set("clear", Native(cliClear))
 
 	// Argument parser
@@ -197,6 +197,33 @@ func cliClear(i *Interp, args []Val) ([]Val, error) {
 	return []Val{}, nil
 }
 
+func cliDivider(i *Interp, args []Val) ([]Val, error) {
+	title := ""
+	width := 50
+	if len(args) >= 1 {
+		title = SnowStr(args[0])
+	}
+	if len(args) >= 2 {
+		if n, ok := args[1].(Int); ok && int(n) > 10 {
+			width = int(n)
+		}
+	}
+	var sb strings.Builder
+	if title != "" {
+		tWidth := stringWidth(title)
+		fill := width - tWidth - 4
+		if fill < 2 {
+			fill = 2
+		}
+		sb.WriteString("── \033[1m" + title + "\033[0m " + strings.Repeat("─", fill))
+	} else {
+		sb.WriteString(strings.Repeat("─", width))
+	}
+	divStr := sb.String()
+	fmt.Fprintln(i.out, divStr)
+	return []Val{Str(divStr)}, nil
+}
+
 func cliBox(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("cli.box expects content string")
@@ -211,34 +238,45 @@ func cliBox(i *Interp, args []Val) ([]Val, error) {
 	}
 
 	lines := strings.Split(content, "\n")
-	maxLen := utf8.RuneCountInString(title) + 2
+	titleWidth := 0
+	if title != "" {
+		titleWidth = stringWidth(title)
+	}
+
+	contentWidth := 0
 	for _, l := range lines {
-		cnt := utf8.RuneCountInString(stripAnsi(l))
-		if cnt > maxLen {
-			maxLen = cnt
+		w := stringWidth(l)
+		if w > contentWidth {
+			contentWidth = w
 		}
 	}
-	if maxLen < 20 {
-		maxLen = 20
+
+	// Calculate inner box width
+	innerWidth := contentWidth
+	if title != "" && titleWidth+2 > innerWidth {
+		innerWidth = titleWidth + 2
+	}
+	if innerWidth < 20 {
+		innerWidth = 20
 	}
 
 	var sb strings.Builder
+
 	// Top border
 	if title != "" {
-		tLen := utf8.RuneCountInString(title)
-		fill := maxLen - tLen - 2
+		fill := innerWidth - titleWidth - 1
 		if fill < 0 {
 			fill = 0
 		}
 		sb.WriteString("╭─ " + "\033[1m" + title + "\033[0m" + " " + strings.Repeat("─", fill) + "╮\n")
 	} else {
-		sb.WriteString("╭" + strings.Repeat("─", maxLen+2) + "╮\n")
+		sb.WriteString("╭" + strings.Repeat("─", innerWidth+2) + "╮\n")
 	}
 
 	// Content lines
 	for _, l := range lines {
-		lLen := utf8.RuneCountInString(stripAnsi(l))
-		pad := maxLen - lLen
+		lWidth := stringWidth(l)
+		pad := innerWidth - lWidth
 		if pad < 0 {
 			pad = 0
 		}
@@ -246,7 +284,7 @@ func cliBox(i *Interp, args []Val) ([]Val, error) {
 	}
 
 	// Bottom border
-	sb.WriteString("╰" + strings.Repeat("─", maxLen+2) + "╯")
+	sb.WriteString("╰" + strings.Repeat("─", innerWidth+2) + "╯")
 
 	boxStr := sb.String()
 	fmt.Fprintln(i.out, boxStr)
@@ -273,7 +311,7 @@ func cliTable(i *Interp, args []Val) ([]Val, error) {
 	for c, h := range rawHeaders {
 		s := SnowStr(h)
 		headers[c] = s
-		w := utf8.RuneCountInString(stripAnsi(s))
+		w := stringWidth(s)
 		if w > colWidths[c] {
 			colWidths[c] = w
 		}
@@ -292,7 +330,7 @@ func cliTable(i *Interp, args []Val) ([]Val, error) {
 			} else {
 				rowStrs[c] = ""
 			}
-			w := utf8.RuneCountInString(stripAnsi(rowStrs[c]))
+			w := stringWidth(rowStrs[c])
 			if w > colWidths[c] {
 				colWidths[c] = w
 			}
@@ -315,7 +353,7 @@ func cliTable(i *Interp, args []Val) ([]Val, error) {
 	// Header row: │ col1  │ col2    │
 	sb.WriteString("│")
 	for c, h := range headers {
-		pad := colWidths[c] - utf8.RuneCountInString(stripAnsi(h))
+		pad := colWidths[c] - stringWidth(h)
 		sb.WriteString(" \033[1m" + h + "\033[0m" + strings.Repeat(" ", pad) + " │")
 	}
 	sb.WriteString("\n")
@@ -334,7 +372,10 @@ func cliTable(i *Interp, args []Val) ([]Val, error) {
 	for _, row := range rows {
 		sb.WriteString("│")
 		for c, cell := range row {
-			pad := colWidths[c] - utf8.RuneCountInString(stripAnsi(cell))
+			pad := colWidths[c] - stringWidth(cell)
+			if pad < 0 {
+				pad = 0
+			}
 			sb.WriteString(" " + cell + strings.Repeat(" ", pad) + " │")
 		}
 		sb.WriteString("\n")
@@ -438,19 +479,68 @@ func cliParse(i *Interp, args []Val) ([]Val, error) {
 
 func stripAnsi(str string) string {
 	var sb strings.Builder
-	inEsc := false
 	for i := 0; i < len(str); i++ {
 		if str[i] == '\033' {
-			inEsc = true
-			continue
-		}
-		if inEsc {
-			if str[i] == 'm' {
-				inEsc = false
+			if i+1 < len(str) && str[i+1] == '[' {
+				i += 2
+				for i < len(str) && (str[i] < 0x40 || str[i] > 0x7E) {
+					i++
+				}
+				continue
 			}
 			continue
 		}
 		sb.WriteByte(str[i])
 	}
 	return sb.String()
+}
+
+func runeWidth(r rune) int {
+	// Zero width control characters
+	if r < 32 || (r >= 0x7f && r < 0xa0) {
+		return 0
+	}
+	// Variation selectors (e.g. \uFE0F)
+	if (r >= 0xFE00 && r <= 0xFE0F) || (r >= 0xE0100 && r <= 0xE01EF) {
+		return 0
+	}
+	// Zero-width spaces, joiners, formatting
+	if r == 0x200B || r == 0x200C || r == 0x200D || r == 0x200E || r == 0x200F || r == 0xFEFF || r == 0x00AD {
+		return 0
+	}
+	// Combining diacritical marks
+	if (r >= 0x0300 && r <= 0x036F) || (r >= 0x1AB0 && r <= 0x1AFF) ||
+		(r >= 0x1DC0 && r <= 0x1DFF) || (r >= 0x20D0 && r <= 0x20FF) ||
+		(r >= 0xFE20 && r <= 0xFE2F) {
+		return 0
+	}
+	// Wide characters: CJK, fullwidth
+	if (r >= 0x1100 && r <= 0x115F) || // Hangul Jamo
+		(r >= 0x2E80 && r <= 0xA4CF && r != 0x303F) || // CJK Radicals, Kangxi, Hiragana, Katakana, CJK Ideographs
+		(r >= 0xAC00 && r <= 0xD7A3) || // Hangul Syllables
+		(r >= 0xF900 && r <= 0xFAFF) || // CJK Compatibility Ideographs
+		(r >= 0xFE10 && r <= 0xFE19) || // Vertical forms
+		(r >= 0xFE30 && r <= 0xFE6F) || // CJK Compatibility Forms
+		(r >= 0xFF01 && r <= 0xFF60) || // Fullwidth Forms
+		(r >= 0xFFE0 && r <= 0xFFE6) ||
+		(r >= 0x20000 && r <= 0x2FFFD) ||
+		(r >= 0x30000 && r <= 0x3FFFD) {
+		return 2
+	}
+	// Emoji and pictograph ranges
+	if (r >= 0x1F300 && r <= 0x1F9FF) || // Miscellaneous Symbols & Pictographs, Emoticons, Supplemental
+		(r >= 0x1FA00 && r <= 0x1FAFF) || // Symbols and Pictographs Extended-A
+		(r >= 0x2600 && r <= 0x27BF) {   // Miscellaneous Symbols & Dingbats (including ❄ 0x2744, ⚡ 0x26A1, etc.)
+		return 2
+	}
+	return 1
+}
+
+func stringWidth(s string) int {
+	clean := stripAnsi(s)
+	w := 0
+	for _, r := range clean {
+		w += runeWidth(r)
+	}
+	return w
 }

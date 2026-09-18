@@ -19,6 +19,7 @@ const (
 	OpJump
 	OpJumpIfNot
 	OpJumpIf
+	OpJumpIfNotNil // for ?? operator
 	OpUse
 	OpAssign
 	OpStoreOp
@@ -76,6 +77,10 @@ var binCodes = map[string]byte{
 	"==": boEq, "!=": boNe, "<": boLt, "<=": boLe, ">": boGt, ">=": boGe,
 	"and": boAnd, "or": boOr, "in": boIn,
 }
+
+// boNullCoalesce is not a binVal opcode — it is handled via OpJumpIfNotNil.
+// We set "??" to a sentinel that the compiler detects and handles specially.
+const boDummy byte = 0xFF
 
 type loopFrame struct {
 	top        int
@@ -297,6 +302,21 @@ func (c *compiler) expr(e Expr) error {
 		c.emit(Op{Kind: OpLoad, Name: t.X, Line: t.Line, Col: t.Col})
 	case *BinE:
 		code, ok := binCodes[t.Op]
+		if t.Op == "??" {
+			// Nullish coalescing: left ?? right
+			// Evaluate left, duplicate on stack, jump past right if not nil.
+			if err := c.expr(t.X); err != nil {
+				return err
+			}
+			c.emit(Op{Kind: OpDup, Line: t.Line, Col: t.Col})
+			skip := c.emit(Op{Kind: OpJumpIfNotNil, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpPop, Line: t.Line, Col: t.Col})
+			if err := c.expr(t.Y); err != nil {
+				return err
+			}
+			c.patch(skip, len(c.ops))
+			return nil
+		}
 		if !ok {
 			return c.perr(t.Pos, "unknown operator %q", t.Op)
 		}
@@ -385,6 +405,44 @@ func (c *compiler) expr(e Expr) error {
 			return err
 		}
 		c.emit(Op{Kind: OpMakeFn, Name: "<anon>", Args: t.Params, Body: bc.ops, Line: t.Line, Col: t.Col})
+	case *FStrLit:
+		// Compile f-string as a series of str() calls joined with '+'
+		if len(t.Parts) == 0 {
+			c.emit(Op{Kind: OpPushStr, Str: "", Line: t.Line, Col: t.Col})
+			return nil
+		}
+		// Emit first part
+		first := true
+		for _, part := range t.Parts {
+			var partEmpty bool
+			if !part.IsExpr && part.Lit == "" {
+				if first {
+					c.emit(Op{Kind: OpPushStr, Str: "", Line: t.Line, Col: t.Col})
+					first = false
+				}
+				partEmpty = true
+			}
+			if !partEmpty {
+				if !part.IsExpr {
+					c.emit(Op{Kind: OpPushStr, Str: part.Lit, Line: t.Line, Col: t.Col})
+				} else {
+					// Load str builtin and call it
+					c.emit(Op{Kind: OpLoad, Name: "str", Line: t.Line, Col: t.Col})
+					if err := c.expr(part.Expr); err != nil {
+						return err
+					}
+					c.emit(Op{Kind: OpCall, Num: 1, Line: t.Line, Col: t.Col})
+				}
+				if !first {
+					c.emit(Op{Kind: OpBin, Num: int64(boAdd), Line: t.Line, Col: t.Col})
+				}
+				first = false
+			}
+		}
+		if first {
+			// all parts empty
+			c.emit(Op{Kind: OpPushStr, Str: "", Line: t.Line, Col: t.Col})
+		}
 	default:
 		return c.perr(Pos{}, "unsupported expression")
 	}

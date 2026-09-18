@@ -55,6 +55,8 @@
           <div class="sidebar-heading" data-i18n="nav_mods">Módulos en Detalle</div>
           <ul class="nav flex-column mb-2">
             <li class="nav-item"><a class="nav-link" href="#mod-api">api (Servidor HTTP)</a></li>
+            <li class="nav-item"><a class="nav-link" href="#mod-http">http (Cliente HTTP)</a></li>
+            <li class="nav-item"><a class="nav-link" href="#mod-db">db (Base de Datos KV)</a></li>
             <li class="nav-item"><a class="nav-link" href="#mod-sys">sys (Sistema Operativo)</a></li>
             <li class="nav-item"><a class="nav-link" href="#mod-fs">fs (Archivos en Disco)</a></li>
             <li class="nav-item"><a class="nav-link" href="#mod-cli">cli (Terminal y Argumentos)</a></li>
@@ -260,9 +262,27 @@ config = {
     cors: true
 }
 print(config.puerto)          # 8080
-print(config["modo"])         # produccion
-config.host = "0.0.0.0"       # asignacion de nueva clave
+print(config.host)            # 0.0.0.0
 print(keys(config))           # ["puerto", "modo", "cors", "host"]</code></pre>
+
+          <h3 data-i18n="h_fstr_elvis">F-Strings, Operador Elvis (??) y Cadenas Multilínea</h3>
+          <p data-i18n="p_fstr_desc">Snow soporta interpolación directa de expresiones, valor por defecto para nulos y literales de texto multilínea:</p>
+          <pre><code># 1. F-Strings (interpolacion de expresiones)
+usuario = "Julian"
+edad = 25
+print(f"Hola {usuario}, tienes {edad} años. En 5 años tendrás {edad + 5}.")
+
+# 2. Operador Elvis / Nullish coalescing (??)
+nombre_param = nil
+nombre_final = nombre_param ?? "invitado"
+print(f"Bienvenido, {nombre_final}")
+
+# 3. Cadenas multilínea con triples comillas
+sql = """SELECT id, nombre, email
+FROM usuarios
+WHERE activo = true
+ORDER BY id DESC"""
+print(sql)</code></pre>
         </section>
 
         <!-- Control de Flujo -->
@@ -778,6 +798,119 @@ filas = [
 cli.table(cabeceras, filas)</code></pre>
         </section>
 
+        <!-- Modulo: HTTP -->
+        <section id="mod-http" class="doc-section">
+          <h2>using http</h2>
+          <p data-i18n="p_mod_http_desc">Cliente HTTP integrado para consumir APIs REST externas sin depender de herramientas externas como curl ni librerías adicionales.</p>
+
+          <table class="table-nord">
+            <thead>
+              <tr>
+                <th style="width: 30%;" data-i18n="th_fn">Función</th>
+                <th data-i18n="th_desc">Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>http.get(url, [headers])</code></td>
+                <td data-i18n="http_get">Realiza una petición HTTP GET. Devuelve un objeto con <code>status</code>, <code>ok</code>, <code>body</code>, <code>headers</code>, <code>json()</code> y <code>text()</code>.</td>
+              </tr>
+              <tr>
+                <td><code>http.post(url, [body], [headers])</code></td>
+                <td data-i18n="http_post">Realiza una petición POST. Si <code>body</code> es un diccionario o lista, se serializa automáticamente a JSON y se envía el encabezado <code>application/json</code>.</td>
+              </tr>
+              <tr>
+                <td><code>http.put(url, [body], [headers])</code><br><code>http.patch(...)</code>, <code>http.delete(...)</code></td>
+                <td data-i18n="http_others">Métodos PUT, PATCH y DELETE con las mismas facilidades de serialización de cuerpo y encabezados personalizados.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 data-i18n="h_http_ex">Ejemplo de consumo de API</h3>
+          <pre><code>using http
+
+# Consumir un servicio externo
+resp = http.get("https://httpbin.org/get")
+if resp.ok:
+    datos = resp.json()
+    print(f"IP de origen: {datos['origin']}")
+    print(f"Estado HTTP: {resp.status}")
+else:
+    print(f"Error en peticion: {resp.status}")
+
+# Enviar datos con POST en formato JSON
+nuevo_usuario = {nombre: "Julian", rol: "desarrollador"}
+res_post = http.post("https://httpbin.org/post", nuevo_usuario)
+if res_post.ok:
+    print("Respuesta del servidor:", res_post.json())</code></pre>
+        </section>
+
+        <!-- Modulo: DB -->
+        <section id="mod-db" class="doc-section">
+          <h2>using db</h2>
+          <p data-i18n="p_mod_db_desc">Almacén clave-valor embebido persistente en disco (JSON estructurado) con escritura atómica segura, ideal para APIs y microservicios ligeros.</p>
+
+          <table class="table-nord">
+            <thead>
+              <tr>
+                <th style="width: 30%;" data-i18n="th_fn">Método</th>
+                <th data-i18n="th_desc">Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>db.open(archivo)</code></td>
+                <td data-i18n="db_open">Abre o crea un almacén de datos en la ruta indicada. Devuelve un objeto <code>store</code>.</td>
+              </tr>
+              <tr>
+                <td><code>store.set(clave, valor)</code></td>
+                <td data-i18n="db_set">Guarda un valor (número, cadena, booleano, lista o diccionario) asociado a la clave.</td>
+              </tr>
+              <tr>
+                <td><code>store.get(clave, [por_defecto])</code></td>
+                <td data-i18n="db_get">Obtiene el valor de una clave. Si no existe, retorna <code>por_defecto</code> o <code>nil</code>.</td>
+              </tr>
+              <tr>
+                <td><code>store.has(clave)</code></td>
+                <td data-i18n="db_has">Devuelve <code>true</code> si la clave existe en el almacén.</td>
+              </tr>
+              <tr>
+                <td><code>store.keys()</code></td>
+                <td data-i18n="db_keys">Devuelve una lista con todas las claves registradas.</td>
+              </tr>
+              <tr>
+                <td><code>store.delete(clave)</code></td>
+                <td data-i18n="db_delete">Elimina una clave del almacén.</td>
+              </tr>
+              <tr>
+                <td><code>store.all()</code></td>
+                <td data-i18n="db_all">Devuelve una copia del diccionario completo de datos.</td>
+              </tr>
+              <tr>
+                <td><code>store.save()</code></td>
+                <td data-i18n="db_save">Persiste todos los datos en disco de forma atómica en formato JSON.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 data-i18n="h_db_ex">Ejemplo de uso de db</h3>
+          <pre><code>using db
+
+almacen = db.open("usuarios.json")
+
+# Guardar registros
+almacen.set("u_101", {nombre: "Julian", activo: true, nivel: 5})
+almacen.save()
+
+# Consultar
+usuario = almacen.get("u_101")
+print(f"Usuario cargado: {usuario.nombre}")
+
+# Clave no encontrada con valor por defecto
+rol = almacen.get("rol_invalido", "visitante")
+print(f"Rol asignado: {rol}")</code></pre>
+        </section>
+
         <!-- Ejemplos Completos -->
         <section id="ej-crud" class="doc-section">
           <h2 data-i18n="h_ex_crud">Ejemplo Completo 1: API REST CRUD en Memoria</h2>
@@ -1083,6 +1216,26 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         cli_box: "Dibuja un cuadro delimitador con bordes de línea para resaltar títulos o resúmenes.",
         h_cli_ex: "Ejemplo de uso de cli",
 
+        h_fstr_elvis: "F-Strings, Operador Elvis (??) y Cadenas Multilínea",
+        p_fstr_desc: "Snow soporta interpolación directa de expresiones, valor por defecto para nulos y literales de texto multilínea:",
+
+        p_mod_http_desc: "Cliente HTTP integrado para consumir APIs REST externas sin depender de herramientas externas como curl ni librerías adicionales.",
+        http_get: "Realiza una petición HTTP GET. Devuelve un objeto con <code>status</code>, <code>ok</code>, <code>body</code>, <code>headers</code>, <code>json()</code> y <code>text()</code>.",
+        http_post: "Realiza una petición POST. Si <code>body</code> es un diccionario o lista, se serializa automáticamente a JSON y se envía el encabezado <code>application/json</code>.",
+        http_others: "Métodos PUT, PATCH y DELETE con las mismas facilidades de serialización de cuerpo y encabezados personalizados.",
+        h_http_ex: "Ejemplo de consumo de API",
+
+        p_mod_db_desc: "Almacén clave-valor embebido persistente en disco (JSON estructurado) con escritura atómica segura, ideal para APIs y microservicios ligeros.",
+        db_open: "Abre o crea un almacén de datos en la ruta indicada. Devuelve un objeto <code>store</code>.",
+        db_set: "Guarda un valor (número, cadena, booleano, lista o diccionario) asociado a la clave.",
+        db_get: "Obtiene el valor de una clave. Si no existe, retorna <code>por_defecto</code> o <code>nil</code>.",
+        db_has: "Devuelve <code>true</code> si la clave existe en el almacén.",
+        db_keys: "Devuelve una lista con todas las claves registradas.",
+        db_delete: "Elimina una clave del almacén.",
+        db_all: "Devuelve una copia del diccionario completo de datos.",
+        db_save: "Persiste todos los datos en disco de forma atómica en formato JSON.",
+        h_db_ex: "Ejemplo de uso de db",
+
         h_ex_crud: "Ejemplo Completo 1: API REST CRUD en Memoria",
         p_ex_crud_desc: "Un servicio web completo con listado, consulta por ID y creación con persistencia en lista:",
 
@@ -1158,6 +1311,9 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         td_dict: "Key-value dictionary. Access via dot (d.name) or brackets (d[\"name\"]).",
         h_ops_ex: "Example with lists and dictionaries",
 
+        h_fstr_elvis: "F-Strings, Elvis Operator (??), and Multiline Strings",
+        p_fstr_desc: "Snow supports expression string interpolation, default fallback for nulls, and multiline string literals:",
+
         h_control: "Control Flow",
         h_if: "1. Conditional if / elif / else",
         h_for: "2. for Loop",
@@ -1218,6 +1374,23 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         req_b: "Raw request body as string.",
         req_j: "Automatically decoded body if client sent valid JSON.",
         h_api_mini_ex: "Complete API server example",
+
+        p_mod_http_desc: "Built-in HTTP client to consume external REST APIs without relying on curl or extra libraries.",
+        http_get: "Performs an HTTP GET request. Returns an object with <code>status</code>, <code>ok</code>, <code>body</code>, <code>headers</code>, <code>json()</code>, and <code>text()</code>.",
+        http_post: "Performs a POST request. If <code>body</code> is a dict or list, it is serialized to JSON and the <code>application/json</code> header is set.",
+        http_others: "PUT, PATCH, and DELETE methods with identical body serialization and custom headers.",
+        h_http_ex: "API Consumption Example",
+
+        p_mod_db_desc: "Lightweight embedded key-value store persisted to disk (structured JSON) with atomic writes, ideal for microservices.",
+        db_open: "Opens or creates a data store at the given path. Returns a <code>store</code> object.",
+        db_set: "Stores a value (number, string, boolean, list, or dict) associated with the key.",
+        db_get: "Retrieves a key's value. If absent, returns <code>default</code> or <code>nil</code>.",
+        db_has: "Returns <code>true</code> if the key exists in the store.",
+        db_keys: "Returns a list of all stored keys.",
+        db_delete: "Deletes a key from the store.",
+        db_all: "Returns a copy of the entire data dictionary.",
+        db_save: "Persists all data to disk atomically in JSON format.",
+        h_db_ex: "db usage example",
 
         p_mod_sys_desc: "Inspects runtime environment, runs external commands, and controls the process.",
         sys_plat: "Operating system: \"linux\", \"darwin\" (macOS), or \"windows\".",
@@ -1303,8 +1476,13 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
             }
           }
 
-          // Cadenas
-          codePart = codePart.replace(/"([^"\\]|\\.)*"/g, m => '<span class="syn-string">' + escapeHtml(m) + '</span>');
+          // Cadenas y F-strings
+          codePart = codePart.replace(/(f)?("([^"\\]|\\.)*")/g, (m, f, str) => {
+            if (f) {
+              return '<span class="syn-keyword">f</span><span class="syn-string">' + escapeHtml(str) + '</span>';
+            }
+            return '<span class="syn-string">' + escapeHtml(m) + '</span>';
+          });
 
           // Números
           codePart = codePart.replace(/\b(\d+(\.\d+)?|0x[0-9a-fA-F]+)\b/g, '<span class="syn-number">$&</span>');
@@ -1318,8 +1496,8 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
           // Funciones conocidas o llamadas func(...)
           codePart = codePart.replace(/\b(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|str|int|float|type)\b(?=\()/g, '<span class="syn-func">$&</span>');
 
-          // Métodos de api, sys, fs, cli
-          codePart = codePart.replace(/\b(api|sys|fs|cli)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword">$1</span>.<span class="syn-func">$2</span>');
+          // Métodos de api, sys, fs, cli, http, db
+          codePart = codePart.replace(/\b(api|sys|fs|cli|http|db)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword">$1</span>.<span class="syn-func">$2</span>');
 
           return codePart + comment;
         });

@@ -128,6 +128,18 @@ type FnExpr struct {
 	Body   []Stmt
 }
 
+// FStrLit is an f-string literal: Parts alternates [literal, expr, literal, ...].
+type FStrLit struct {
+	Pos
+	Parts []FStrPart
+}
+
+type FStrPart struct {
+	IsExpr bool
+	Lit    string
+	Expr   Expr
+}
+
 func (*UseStmt) stmt()    {}
 func (*AssignStmt) stmt() {}
 func (*FnStmt) stmt()     {}
@@ -150,6 +162,7 @@ func (*AttrE) expr()      {}
 func (*ListLit) expr()    {}
 func (*DictLit) expr()    {}
 func (*FnExpr) expr()     {}
+func (*FStrLit) expr()    {}
 
 type parser struct {
 	toks       []Tok
@@ -697,17 +710,34 @@ func (p *parser) parseValueList() ([]Expr, error) {
 }
 
 func (p *parser) parseOr() (Expr, error) {
-	l, err := p.parseAnd()
+	l, err := p.parseNullCoalesce()
 	if err != nil {
 		return nil, err
 	}
 	for p.peek().Kind == tIdent && p.peek().Text == "or" {
 		p.next()
-		r, err := p.parseAnd()
+		r, err := p.parseNullCoalesce()
 		if err != nil {
 			return nil, err
 		}
 		l = &BinE{Pos{posLine(l), posCol(l)}, "or", l, r}
+	}
+	return l, nil
+}
+
+// parseNullCoalesce handles the ?? operator (lower precedence than and/or, higher than or).
+func (p *parser) parseNullCoalesce() (Expr, error) {
+	l, err := p.parseAnd()
+	if err != nil {
+		return nil, err
+	}
+	for p.peek().Kind == tQQ {
+		p.next()
+		r, err := p.parseAnd()
+		if err != nil {
+			return nil, err
+		}
+		l = &BinE{Pos{posLine(l), posCol(l)}, "??", l, r}
 	}
 	return l, nil
 }
@@ -946,6 +976,9 @@ func (p *parser) parsePrimary() (Expr, error) {
 	case tStr:
 		p.next()
 		return &StrLit{Pos{k.Line, k.Col}, k.Text}, nil
+	case tFStr:
+		p.next()
+		return p.buildFStr(k)
 	case tIdent:
 		if k.Text == "fn" && p.pos+1 < len(p.toks) && p.toks[p.pos+1].Kind == tLParen {
 			p.next() // consume 'fn'
@@ -1058,11 +1091,36 @@ func (p *parser) parsePrimary() (Expr, error) {
 	return nil, p.errf(k, "expected an expression, got %s", k.String())
 }
 
+// buildFStr converts a tFStr token into an FStrLit AST node by sub-parsing expressions.
+func (p *parser) buildFStr(k Tok) (Expr, error) {
+	var fparts []FStrPart
+	// Parts alternates: [lit, expr, lit, expr, ..., lit]
+	for j, part := range k.Parts {
+		if j%2 == 0 {
+			// Literal segment
+			fparts = append(fparts, FStrPart{IsExpr: false, Lit: part})
+		} else {
+			// Expression segment — sub-parse
+			toks, err := Tokenize(part+"\n", "<fstr>")
+			if err != nil {
+				return nil, &Errat{p.name, k.Line, k.Col, fmt.Errorf("in f-string expression %q: %v", part, err)}
+			}
+			sub := &parser{toks: toks, name: "<fstr>"}
+			expr, err := sub.parseOr()
+			if err != nil {
+				return nil, &Errat{p.name, k.Line, k.Col, fmt.Errorf("in f-string expression %q: %v", part, err)}
+			}
+			fparts = append(fparts, FStrPart{IsExpr: true, Expr: expr})
+		}
+	}
+	return &FStrLit{Pos{k.Line, k.Col}, fparts}, nil
+}
+
 func exprStart(k Tok) bool {
 	switch k.Kind {
 	case tIdent:
 		return !isReserved(k.Text) || k.Text == "true" || k.Text == "false" || k.Text == "nil" || k.Text == "fn"
-	case tInt, tFlt, tStr, tLParen, tLBrack, tLBrace:
+	case tInt, tFlt, tStr, tFStr, tLParen, tLBrack, tLBrace:
 		return true
 	}
 	return false
@@ -1107,6 +1165,8 @@ func posOf(e Expr) Pos {
 	case *DictLit:
 		return x.Pos
 	case *FnExpr:
+		return x.Pos
+	case *FStrLit:
 		return x.Pos
 	}
 	return Pos{}

@@ -23,11 +23,19 @@ Standard modules (use with 'using'):
   fs      file operations: read, write, append, list, stat, mkdir
   cli     terminal colors, tables, boxes, prompts, flag parsing
   api     HTTP server with routing, middleware, static files
+  http    HTTP client: get, post, put, delete, patch — resp.json()
+  db      JSON key-value store persisted to disk
+
+Language features:
+  f-strings     f"Hello {name}, age {age}"
+  ?? operator   value ?? "default"  (returns right side when left is nil)
+  multi-line    """..."""  or  '''...'''
 
 Examples:
   snowman app.snow
   snowman -e 'using sys; print(sys.platform)'
   snowman run server.snow --port 8080
+  snowman -e 'using http; r = http.get("https://httpbin.org/get"); print(r.status)'
 `
 
 func main() {
