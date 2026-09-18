@@ -11,7 +11,7 @@
 
 Snow es un lenguaje de programación simple, directo y conciso, diseñado específicamente para facilitar la creación de APIs web REST y herramientas de línea de comandos sin dependencias externas.
 
-> **Nota:** Hecho por **JDVA0** con asistencia de inteligencia artificial para simplificar el desarrollo de APIs y utilidades de sistema.
+> **Nota:** Hecho por **JDVA0** con asistencia de inteligencia artificial. Creado por diversión y para experimentar, totalmente libre y abierto para que cualquier persona en el mundo lo use, aprenda y cree APIs sin complicaciones.
 
 ### Características
 
@@ -77,7 +77,7 @@ Visita la documentación bilingüe en [https://jdva0.github.io/snow/](https://jd
 
 Snow is a simple, straightforward, and concise programming language designed to make creating REST web APIs and command-line tools fast and effortless, with zero external dependencies.
 
-> **Note:** Made by **JDVA0** with artificial intelligence assistance to simplify and streamline API and system utilities development.
+> **Note:** Made by **JDVA0** with artificial intelligence assistance. Built for fun and experimentation, completely free and open for anyone in the world to use, learn, and create APIs without hassle.
 
 ### Features
 
