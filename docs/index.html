@@ -10,7 +10,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <!-- HTMX (compatible con GitHub Pages / estático) -->
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
 <body>
@@ -50,12 +49,12 @@
         Su sintaxis es limpia y directa: sin llaves <code>{}</code> y sin puntos y coma <code>;</code>.
       </p>
       <p data-i18n="hdr_desc2">
-        Hecho por <strong>JDVA0</strong> · Un proyecto creado por diversión y experimentación.
-        Diseñado para prototipar APIs web y scripts de sistema de forma sencilla y sin complicaciones.
+        Hecho por <strong>JDVA0</strong> · Un proyecto por diversión y experimentación.
+        Para prototipar APIs web y scripts sin complicaciones.
       </p>
     </header>
 
-    <!-- Quick install / command strip (calm, terminal-like) -->
+    <!-- Quick install strip -->
     <section class="doc-install" aria-label="Instalación rápida">
       <div class="doc-install-cmd">
         <span class="prompt">$</span>
@@ -64,7 +63,7 @@
       <a href="docs.html#instalacion" class="doc-install-action" data-i18n="btn_install">Guía de instalación</a>
     </section>
 
-    <!-- Documentation 2-Column Grid (go.dev-style) -->
+    <!-- 2-Column Grid -->
     <div class="doc-grid">
 
       <!-- Card: Primeros pasos -->
@@ -97,7 +96,7 @@
         </div>
         <div class="doc-card-entry">
           <a href="docs.html#tipos" data-i18n="link_types">Tipos y operadores</a>
-          <p data-i18n="desc_types">Enteros, flotantes, cadenas, booleanos, listas, mapas y operador ternario <code>??</code>.</p>
+          <p data-i18n="desc_types">Enteros, flotantes, cadenas, booleanos, listas, mapas y operador <code>??</code>.</p>
         </div>
         <div class="doc-card-entry">
           <a href="docs.html#funciones" data-i18n="link_funcs">Funciones y closures</a>
@@ -109,7 +108,7 @@
         </div>
       </section>
 
-      <!-- Card: Módulos estándar -->
+      <!-- Card: Módulos -->
       <section class="doc-card">
         <div class="doc-card-title" data-i18n="card_mods_title">Módulos integrados</div>
         <div class="doc-card-entry">
@@ -122,11 +121,11 @@
         </div>
         <div class="doc-card-entry">
           <a href="docs.html#mod-db" data-i18n="link_mod_db">db — Almacén clave-valor</a>
-          <p data-i18n="desc_mod_db">Persistencia local en disco embebida sin necesidad de instalar bases de datos externas.</p>
+          <p data-i18n="desc_mod_db">Persistencia local en disco embebida sin necesidad de bases de datos externas.</p>
         </div>
         <div class="doc-card-entry">
           <a href="docs.html#mod-sys" data-i18n="link_mod_sys">sys &amp; fs — Sistema y archivos</a>
-          <p data-i18n="desc_mod_sys">Lectura y escritura segura de archivos, variables de entorno y utilidades de entorno.</p>
+          <p data-i18n="desc_mod_sys">Lectura y escritura segura de archivos, variables de entorno y utilidades del sistema.</p>
         </div>
       </section>
 
@@ -166,7 +165,7 @@
           <p data-i18n="desc_errors">Reporte claro de errores sintácticos y de ejecución con número de línea.</p>
         </div>
         <div class="doc-card-entry">
-          <a href="docs.html#ejemplos" data-i18n="link_examples">Ejemplos completos</a>
+          <a href="docs.html#ej-crud" data-i18n="link_examples">Ejemplos completos</a>
           <p data-i18n="desc_examples">Proyectos de muestra en el repositorio: CRUD REST, CLI tools y procesadores de texto.</p>
         </div>
         <div class="doc-card-entry">
@@ -178,7 +177,7 @@
 
   </main>
 
-  <!-- Site Footer -->
+  <!-- Footer -->
   <footer class="site-footer">
     <div class="footer-inner">
       <span data-i18n="footer_credits">Hecho por <strong>JDVA0</strong> · Proyecto por diversión y experimentación</span>
@@ -190,118 +189,71 @@
     </div>
   </footer>
 
-  <!-- Internationalization (ES / EN) -->
   <script>
     const i18n = {
       es: {
-        nav_home: "Inicio",
-        nav_doc: "Documentación",
-        nav_lang: "Lenguaje",
-        nav_mods: "Módulos",
+        nav_home: "Inicio", nav_doc: "Documentación", nav_lang: "Lenguaje", nav_mods: "Módulos",
         hdr_desc1: 'Snow es un lenguaje de programación interpretado, ligero y minimalista, desarrollado en Go. Su sintaxis es limpia y directa: sin llaves <code>{}</code> y sin puntos y coma <code>;</code>.',
-        hdr_desc2: 'Hecho por <strong>JDVA0</strong> · Un proyecto creado por diversión y experimentación. Diseñado para prototipar APIs web y scripts de sistema de forma sencilla y sin complicaciones.',
+        hdr_desc2: 'Hecho por <strong>JDVA0</strong> · Un proyecto por diversión y experimentación. Para prototipar APIs web y scripts sin complicaciones.',
         btn_install: "Guía de instalación",
         card_start_title: "Primeros pasos",
-        link_inst: "Instalación",
-        desc_inst: "Instrucciones para compilar desde el código fuente o usar el binario snowman.",
-        link_repl: "REPL interactivo",
-        desc_repl: "Consola interactiva con historial de comandos, autocompletado y bloques indentados.",
-        link_script: "Tu primer script",
-        desc_script: 'Escribe <code>print("hola mundo")</code> y ejecútalo directamente con <code>snowman app.snow</code>.',
-        link_api5: "API en 5 líneas",
-        desc_api5: "Levanta un servidor HTTP funcional con endpoints y respuesta JSON en segundos.",
+        link_inst: "Instalación", desc_inst: "Instrucciones para compilar desde el código fuente o usar el binario snowman.",
+        link_repl: "REPL interactivo", desc_repl: "Consola interactiva con historial de comandos, autocompletado y bloques indentados.",
+        link_script: "Tu primer script", desc_script: 'Escribe <code>print("hola mundo")</code> y ejecútalo directamente con <code>snowman app.snow</code>.',
+        link_api5: "API en 5 líneas", desc_api5: "Levanta un servidor HTTP funcional con endpoints y respuesta JSON en segundos.",
         card_lang_title: "El lenguaje",
-        link_syntax: "Sintaxis e indentación",
-        desc_syntax: "Bloques basados en indentación consistente de 2 o 4 espacios sin llaves.",
-        link_types: "Tipos y operadores",
-        desc_types: "Enteros, flotantes, cadenas, booleanos, listas, mapas y operador ternario <code>??</code>.",
-        link_funcs: "Funciones y closures",
-        desc_funcs: "Definición con <code>fn</code>, retorno de valores y soporte para funciones de primera clase.",
-        link_fstrings: "F-strings e interpolación",
-        desc_fstrings: 'Interpolación limpia de variables y expresiones usando la sintaxis <code>f"..."</code>.',
+        link_syntax: "Sintaxis e indentación", desc_syntax: "Bloques basados en indentación consistente de 2 o 4 espacios sin llaves.",
+        link_types: "Tipos y operadores", desc_types: "Enteros, flotantes, cadenas, booleanos, listas, mapas y operador <code>??</code>.",
+        link_funcs: "Funciones y closures", desc_funcs: "Definición con <code>fn</code>, retorno de valores y soporte para funciones de primera clase.",
+        link_fstrings: "F-strings e interpolación", desc_fstrings: 'Interpolación limpia de variables y expresiones usando la sintaxis <code>f"..."</code>.',
         card_mods_title: "Módulos integrados",
-        link_mod_api: "api — Servidor HTTP",
-        desc_mod_api: "Rutas GET, POST, PUT, DELETE, soporte CORS nativo y manejo JSON automático.",
-        link_mod_http: "http — Cliente HTTP",
-        desc_mod_http: "Consumo de APIs REST externas con <code>http.get()</code> y <code>http.post()</code>.",
-        link_mod_db: "db — Almacén clave-valor",
-        desc_mod_db: "Persistencia local en disco embebida sin necesidad de instalar bases de datos externas.",
-        link_mod_sys: "sys & fs — Sistema y archivos",
-        desc_mod_sys: "Lectura y escritura segura de archivos, variables de entorno y utilidades de entorno.",
+        link_mod_api: "api — Servidor HTTP", desc_mod_api: "Rutas GET, POST, PUT, DELETE, soporte CORS nativo y manejo JSON automático.",
+        link_mod_http: "http — Cliente HTTP", desc_mod_http: "Consumo de APIs REST externas con <code>http.get()</code> y <code>http.post()</code>.",
+        link_mod_db: "db — Almacén clave-valor", desc_mod_db: "Persistencia local en disco embebida sin necesidad de bases de datos externas.",
+        link_mod_sys: "sys &amp; fs — Sistema y archivos", desc_mod_sys: "Lectura y escritura segura de archivos, variables de entorno y utilidades del sistema.",
         card_cli_title: "CLI Toolkit",
-        link_cli_boxes: "cli.box y cli.table",
-        desc_cli_boxes: "Cajas y tablas formateadas con cálculo exacto de ancho dinámico para la terminal.",
-        link_cli_colors: "Colores y estilos ANSI",
-        desc_cli_colors: "Formateo de texto en consola sin dependencias complejas ni configuración.",
-        link_cli_args: "Parseo de argumentos",
-        desc_cli_args: "<code>cli.parse()</code> para construir utilidades de línea de comandos con flags y comandos.",
-        link_cli_prompts: "Prompts interactivos",
-        desc_cli_prompts: "Pide datos al usuario con <code>cli.ask()</code> o confirmaciones con <code>cli.confirm()</code>.",
+        link_cli_boxes: "cli.box y cli.table", desc_cli_boxes: "Cajas y tablas formateadas con cálculo exacto de ancho dinámico para la terminal.",
+        link_cli_colors: "Colores y estilos ANSI", desc_cli_colors: "Formateo de texto en consola sin dependencias complejas ni configuración.",
+        link_cli_args: "Parseo de argumentos", desc_cli_args: "<code>cli.parse()</code> para construir utilidades de línea de comandos con flags y comandos.",
+        link_cli_prompts: "Prompts interactivos", desc_cli_prompts: "Pide datos al usuario con <code>cli.ask()</code> o confirmaciones con <code>cli.confirm()</code>.",
         card_ref_title: "Referencia rápida",
-        link_builtins: "Funciones nativas",
-        desc_builtins: "<code>print</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>range</code>, <code>keys</code>, <code>values</code>...",
-        link_errors: "Manejo de errores",
-        desc_errors: "Reporte claro de errores sintácticos y de ejecución con número de línea.",
-        link_examples: "Ejemplos completos",
-        desc_examples: "Proyectos de muestra en el repositorio: CRUD REST, CLI tools y procesadores de texto.",
-        link_source: "Código fuente",
-        desc_source: "Repositorio oficial en GitHub, código abierto bajo la licencia MIT.",
+        link_builtins: "Funciones nativas", desc_builtins: "<code>print</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>range</code>, <code>keys</code>, <code>values</code>...",
+        link_errors: "Manejo de errores", desc_errors: "Reporte claro de errores sintácticos y de ejecución con número de línea.",
+        link_examples: "Ejemplos completos", desc_examples: "Proyectos de muestra en el repositorio: CRUD REST, CLI tools y procesadores de texto.",
+        link_source: "Código fuente", desc_source: "Repositorio oficial en GitHub, código abierto bajo la licencia MIT.",
         footer_credits: "Hecho por <strong>JDVA0</strong> · Proyecto por diversión y experimentación",
         footer_license: "Licencia MIT"
       },
       en: {
-        nav_home: "Home",
-        nav_doc: "Documentation",
-        nav_lang: "Language",
-        nav_mods: "Modules",
-        hdr_desc1: 'Snow is a lightweight, interpreted programming language built in Go. Clean, noise-free syntax: no curly braces <code>{}</code> and no semicolons <code>;</code>.',
-        hdr_desc2: 'Made by <strong>JDVA0</strong> · A personal project for fun and experimentation. Designed to prototype web APIs and system scripts easily and without hassle.',
+        nav_home: "Home", nav_doc: "Documentation", nav_lang: "Language", nav_mods: "Modules",
+        hdr_desc1: 'Snow is a lightweight, interpreted programming language built in Go. Clean syntax: no curly braces <code>{}</code> and no semicolons <code>;</code>.',
+        hdr_desc2: 'Made by <strong>JDVA0</strong> · A personal project for fun and experimentation. Designed to prototype web APIs and scripts without hassle.',
         btn_install: "Installation guide",
         card_start_title: "Getting Started",
-        link_inst: "Installation",
-        desc_inst: "Instructions to compile from source code or use the snowman binary.",
-        link_repl: "Interactive REPL",
-        desc_repl: "Interactive shell featuring history, auto-completion, and indented block support.",
-        link_script: "Your first script",
-        desc_script: 'Write <code>print("hello world")</code> and run it directly with <code>snowman app.snow</code>.',
-        link_api5: "5-line HTTP API",
-        desc_api5: "Spin up a functional HTTP server with routes and JSON responses in seconds.",
+        link_inst: "Installation", desc_inst: "Instructions to compile from source code or use the snowman binary.",
+        link_repl: "Interactive REPL", desc_repl: "Interactive shell with command history, auto-completion, and indented block support.",
+        link_script: "Your first script", desc_script: 'Write <code>print("hello world")</code> and run it directly with <code>snowman app.snow</code>.',
+        link_api5: "5-line HTTP API", desc_api5: "Spin up a functional HTTP server with routes and JSON responses in seconds.",
         card_lang_title: "The Language",
-        link_syntax: "Syntax & Indentation",
-        desc_syntax: "Block indentation based on 2 or 4 spaces without curly braces.",
-        link_types: "Types & Operators",
-        desc_types: "Integers, floats, strings, booleans, lists, maps, and the Elvis <code>??</code> fallback.",
-        link_funcs: "Functions & Closures",
-        desc_funcs: "Define functions with <code>fn</code>, return values, and first-class function support.",
-        link_fstrings: "F-strings & Interpolation",
-        desc_fstrings: 'Clean variable and expression string interpolation via <code>f"..."</code> syntax.',
+        link_syntax: "Syntax & Indentation", desc_syntax: "Block indentation based on 2 or 4 spaces without curly braces.",
+        link_types: "Types & Operators", desc_types: "Integers, floats, strings, booleans, lists, maps, and the Elvis <code>??</code> fallback.",
+        link_funcs: "Functions & Closures", desc_funcs: "Define functions with <code>fn</code>, return values, first-class function support.",
+        link_fstrings: "F-strings & Interpolation", desc_fstrings: 'Clean variable and expression interpolation via <code>f"..."</code> syntax.',
         card_mods_title: "Built-in Modules",
-        link_mod_api: "api — HTTP Server",
-        desc_mod_api: "GET, POST, PUT, DELETE routing, native CORS support, and automatic JSON encoding.",
-        link_mod_http: "http — HTTP Client",
-        desc_mod_http: "Consume external REST APIs with <code>http.get()</code> and <code>http.post()</code>.",
-        link_mod_db: "db — Key-Value Store",
-        desc_mod_db: "Embedded on-disk persistence without needing any external database servers.",
-        link_mod_sys: "sys & fs — System & Files",
-        desc_mod_sys: "Safe file I/O operations, environment variables, and OS process utilities.",
+        link_mod_api: "api — HTTP Server", desc_mod_api: "GET, POST, PUT, DELETE routing, native CORS support, automatic JSON encoding.",
+        link_mod_http: "http — HTTP Client", desc_mod_http: "Consume external REST APIs with <code>http.get()</code> and <code>http.post()</code>.",
+        link_mod_db: "db — Key-Value Store", desc_mod_db: "Embedded on-disk persistence without needing any external database servers.",
+        link_mod_sys: "sys &amp; fs — System & Files", desc_mod_sys: "Safe file I/O, environment variables, and OS process utilities.",
         card_cli_title: "CLI Toolkit",
-        link_cli_boxes: "cli.box & cli.table",
-        desc_cli_boxes: "Dynamic width formatted boxes and auto-aligned tables for terminal output.",
-        link_cli_colors: "ANSI Colors & Styles",
-        desc_cli_colors: "Terminal text styling with single-line helpers and no extra dependencies.",
-        link_cli_args: "Argument Parsing",
-        desc_cli_args: "<code>cli.parse()</code> to build command-line applications with flags and positional args.",
-        link_cli_prompts: "Interactive Prompts",
-        desc_cli_prompts: "Prompt user input with <code>cli.ask()</code> or confirmations with <code>cli.confirm()</code>.",
+        link_cli_boxes: "cli.box & cli.table", desc_cli_boxes: "Dynamic width formatted boxes and auto-aligned tables for terminal output.",
+        link_cli_colors: "ANSI Colors & Styles", desc_cli_colors: "Terminal text styling with single-line helpers and no extra dependencies.",
+        link_cli_args: "Argument Parsing", desc_cli_args: "<code>cli.parse()</code> to build command-line applications with flags and positional args.",
+        link_cli_prompts: "Interactive Prompts", desc_cli_prompts: "Prompt user input with <code>cli.ask()</code> or confirmations with <code>cli.confirm()</code>.",
         card_ref_title: "Quick Reference",
-        link_builtins: "Built-in Functions",
-        desc_builtins: "<code>print</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>range</code>, <code>keys</code>, <code>values</code>...",
-        link_errors: "Error Handling",
-        desc_errors: "Clear reporting of syntax and runtime errors with exact line locations.",
-        link_examples: "Complete Examples",
-        desc_examples: "Sample scripts in repository: REST CRUD, CLI diagnostics, and file processors.",
-        link_source: "Source Code",
-        desc_source: "Official repository on GitHub, open source under the MIT license.",
+        link_builtins: "Built-in Functions", desc_builtins: "<code>print</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>range</code>, <code>keys</code>, <code>values</code>...",
+        link_errors: "Error Handling", desc_errors: "Clear reporting of syntax and runtime errors with exact line locations.",
+        link_examples: "Complete Examples", desc_examples: "Sample scripts: REST CRUD, CLI diagnostics, and file processors.",
+        link_source: "Source Code", desc_source: "Official repository on GitHub, open source under the MIT license.",
         footer_credits: "Made by <strong>JDVA0</strong> · Project for fun and experimentation",
         footer_license: "MIT License"
       }
@@ -313,25 +265,17 @@
       const btnEn = document.getElementById('btn-en');
       if (btnEs) btnEs.classList.toggle('active', lang === 'es');
       if (btnEn) btnEn.classList.toggle('active', lang === 'en');
-
       const dict = i18n[lang];
       if (!dict) return;
-
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (dict[key]) {
-          el.innerHTML = dict[key];
-        }
+        if (dict[key]) el.innerHTML = dict[key];
       });
-
       localStorage.setItem('snow_lang', lang);
     }
 
-    // Load persisted language or default
     const saved = localStorage.getItem('snow_lang');
-    if (saved === 'en') {
-      setLang('en');
-    }
+    if (saved === 'en') setLang('en');
   </script>
 </body>
 </html>

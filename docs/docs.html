@@ -44,31 +44,39 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-sticky">
-        <div class="sidebar-heading" data-i18n="nav_start">Guía de Inicio</div>
+        <div class="sidebar-heading" data-i18n="nav_start">Primeros Pasos</div>
         <ul class="sidebar-nav">
           <li><a href="#descripcion" data-i18n="nav_desc">Descripción</a></li>
           <li><a href="#instalacion" data-i18n="nav_inst">Instalación</a></li>
           <li><a href="#ejecucion" data-i18n="nav_run">Ejecución y CLI</a></li>
+          <li><a href="#repl" data-i18n="nav_repl">REPL Interactivo</a></li>
+          <li><a href="#primer-script" data-i18n="nav_script">Tu Primer Script</a></li>
+          <li><a href="#api-en-5-lineas" data-i18n="nav_api5">API en 5 Líneas</a></li>
         </ul>
 
         <div class="sidebar-heading" data-i18n="nav_lang">El Lenguaje</div>
         <ul class="sidebar-nav">
           <li><a href="#sintaxis" data-i18n="nav_syntax">Sintaxis e Indentación</a></li>
           <li><a href="#tipos" data-i18n="nav_types">Tipos y Operadores</a></li>
+          <li><a href="#fstr-elvis" data-i18n="nav_fstr">F-Strings y Elvis (??)</a></li>
           <li><a href="#control" data-i18n="nav_control">Control de Flujo</a></li>
-          <li><a href="#funciones" data-i18n="nav_funcs">Funciones y Lambdas</a></li>
+          <li><a href="#funciones" data-i18n="nav_funcs">Funciones y Closures</a></li>
           <li><a href="#nativas" data-i18n="nav_builtins">Funciones Nativas</a></li>
+          <li><a href="#errores" data-i18n="nav_errors">Manejo de Errores</a></li>
         </ul>
 
-        <div class="sidebar-heading" data-i18n="nav_mods">Módulos</div>
+        <div class="sidebar-heading" data-i18n="nav_mods">Módulos Integrados</div>
         <ul class="sidebar-nav">
           <li><a href="#mod-api">api (Servidor HTTP)</a></li>
           <li><a href="#mod-http">http (Cliente HTTP)</a></li>
           <li><a href="#mod-db">db (Base de Datos KV)</a></li>
           <li><a href="#mod-sys">sys (Sistema)</a></li>
           <li><a href="#mod-fs">fs (Archivos)</a></li>
-          <li><a href="#mod-cli">cli (Terminal)</a></li>
-          <li><a href="#mod-time">time (Tiempo y Pausas)</a></li>
+          <li><a href="#mod-cli">cli (Terminal Toolkit)</a></li>
+          <li><a href="#cli-colores" style="padding-left:1.5rem; font-size:.82rem;">Colores ANSI</a></li>
+          <li><a href="#cli-args" style="padding-left:1.5rem; font-size:.82rem;">Parseo Argumentos</a></li>
+          <li><a href="#cli-prompts" style="padding-left:1.5rem; font-size:.82rem;">Prompts (ask/confirm)</a></li>
+          <li><a href="#mod-time">time (Fechas y Pausas)</a></li>
           <li><a href="#mod-json">json (Parse y Stringify)</a></li>
           <li><a href="#mod-crypto">crypto (Hashes y JWT)</a></li>
           <li><a href="#mod-task">task (Tareas y Cron)</a></li>
@@ -121,7 +129,7 @@ go build -o snowman ./cmd/snowman
 sudo mv snowman /usr/local/bin/</code></pre>
       </section>
 
-      <!-- Ejecucion -->
+      <!-- Ejecucion & REPL -->
       <section id="ejecucion" class="doc-section">
         <h2 data-i18n="h_run">Ejecución y CLI</h2>
         <p data-i18n="p_run_desc">El ejecutable <code>snowman</code> corre programas Snow y ofrece un modo interactivo:</p>
@@ -140,8 +148,12 @@ sudo mv snowman /usr/local/bin/</code></pre>
             <tr><td><code>snowman --help</code></td><td data-i18n="c_run_4">Muestra la ayuda con los módulos disponibles.</td></tr>
           </tbody>
         </table>
+      </section>
 
-        <h3 data-i18n="h_repl_ex">Ejemplo de uso del REPL</h3>
+      <!-- REPL interactivo -->
+      <section id="repl" class="doc-section">
+        <h2 data-i18n="h_repl_title">REPL interactivo</h2>
+        <p data-i18n="p_repl_desc">Consola interactiva con historial de comandos, autocompletado y soporte para bloques indentados en vivo:</p>
         <pre><code>$ snowman repl
 Snow 0.1 REPL
 Type ".exit" to quit, ".help" for commands.
@@ -150,7 +162,45 @@ snow> a = [1, 2, 3]
 snow> a = append(a, 4)
 snow> print(len(a))
 4
+snow> if len(a) > 2:
+...       print("la lista tiene más de 2 elementos")
+... 
+la lista tiene más de 2 elementos
 snow> .exit</code></pre>
+      </section>
+
+      <!-- Tu primer script -->
+      <section id="primer-script" class="doc-section">
+        <h2 data-i18n="h_script_title">Tu primer script</h2>
+        <p data-i18n="p_script_desc">Escribe <code>print("hola mundo")</code> y ejecútalo directamente con <code>snowman app.snow</code>:</p>
+        <pre><code># app.snow
+print("hola mundo")
+
+nombre = "Snow"
+año = 2026
+print(f"Bienvenido a {nombre} ({año})")</code></pre>
+        <p data-i18n="p_script_run">Ejecución en la terminal:</p>
+        <pre><code>$ snowman app.snow
+hola mundo
+Bienvenido a Snow (2026)</code></pre>
+      </section>
+
+      <!-- API en 5 líneas -->
+      <section id="api-en-5-lineas" class="doc-section">
+        <h2 data-i18n="h_api5_title">API en 5 líneas</h2>
+        <p data-i18n="p_api5_desc">Levanta un servidor HTTP funcional con endpoints y respuesta JSON en segundos:</p>
+        <pre><code>using api
+
+api.cors()
+api.get("/", fn(req): api.json({status: "ok", mensaje: "API lista"}))
+api.get("/saludo/:nombre", fn(req): api.json({saludo: f"Hola, {req.params.nombre}"}))
+api.serve(8080)</code></pre>
+        <p data-i18n="p_api5_test">Pruébalo con <code>curl</code> o tu navegador:</p>
+        <pre><code>$ curl http://localhost:8080/
+{"status":"ok","mensaje":"API lista"}
+
+$ curl http://localhost:8080/saludo/Julian
+{"saludo":"Hola, Julian"}</code></pre>
       </section>
 
       <!-- Sintaxis -->
@@ -228,7 +278,7 @@ config = {
 print(config.puerto)          # 8080
 print(keys(config))           # ["puerto", "modo", "cors"]</code></pre>
 
-        <h3 data-i18n="h_fstr_elvis">F-Strings, Operador Elvis (??) y Cadenas Multilínea</h3>
+        <h3 id="fstr-elvis" data-i18n="h_fstr_elvis">F-Strings, Operador Elvis (??) y Cadenas Multilínea</h3>
         <p data-i18n="p_fstr_desc">Snow soporta interpolación directa de expresiones, valor por defecto para nulos y literales de texto multilínea:</p>
         <pre><code># 1. F-Strings (interpolacion de expresiones)
 usuario = "Julian"
@@ -342,6 +392,23 @@ print(mayores)       # [3, 4]</code></pre>
             <tr><td><code>exit([codigo])</code></td><td data-i18n="b_exit">Termina la ejecución del programa inmediatamente con el código dado (0 por defecto).</td><td><code>exit(1)</code></td></tr>
           </tbody>
         </table>
+      </section>
+
+      <!-- Manejo de errores -->
+      <section id="errores" class="doc-section">
+        <h2 data-i18n="h_errors_title">Manejo de Errores</h2>
+        <p data-i18n="p_errors_desc">Snow proporciona un reporte claro de errores sintácticos y de ejecución con número exacto de línea y contexto:</p>
+        <pre><code># Ejemplo de error por variable no definida:
+$ snowman run app.snow
+Error en app.snow (línea 14):
+    resultado = procesar(datos)
+    ^-- nombre no definido: "procesar"
+
+# Ejemplo de error de tipo en tiempo de ejecución:
+Error en app.snow (línea 8):
+    total = "100" + 25
+    ^-- error de tipo: no se puede sumar 'str' e 'int' (usa int() o str())</code></pre>
+        <p data-i18n="p_errors_flow">En servidores <code>api</code>, las excepciones y fallos no controlados son capturados automáticamente, respondiendo con un error HTTP 500 en formato JSON sin tumbar el proceso del servidor.</p>
       </section>
 
       <!-- Módulo: API -->
@@ -621,29 +688,71 @@ if fs.exists(archivo):
             </tr>
           </thead>
           <tbody>
-            <tr><td><code>cli.parse([args])</code></td><td data-i18n="cli_parse">Analiza los argumentos pasados en la terminal. Devuelve un diccionario <code>{flags: {...}, args: [...]}</code>. Ejemplo: <code>--puerto 8080 --activo run</code> genera <code>flags.puerto = "8080"</code>, <code>flags.activo = true</code> y <code>args = ["run"]</code>.</td></tr>
+            <tr><td><code>cli.parse([args])</code></td><td data-i18n="cli_parse">Analiza los argumentos pasados en la terminal. Devuelve un diccionario <code>{flags: {...}, args: [...]}</code>.</td></tr>
             <tr><td><code>cli.info(s)</code>, <code>cli.success(s)</code><br><code>cli.warn(s)</code>, <code>cli.error(s)</code></td><td data-i18n="cli_logs">Muestra mensajes en consola con etiquetas limpias: <code>[INFO]</code>, <code>[OK]</code>, <code>[WARN]</code>, <code>[ERR]</code>.</td></tr>
             <tr><td><code>cli.table(cabeceras, filas)</code></td><td data-i18n="cli_table">Dibuja una tabla con columnas alineadas automáticamente según el ancho de los datos.</td></tr>
             <tr><td><code>cli.box(titulo, contenido)</code></td><td data-i18n="cli_box">Dibuja un cuadro delimitador con bordes de línea para resaltar títulos o resúmenes.</td></tr>
+            <tr><td><code>cli.red(s)</code>, <code>cli.green(s)</code>, <code>cli.yellow(s)</code>, <code>cli.bold(s)</code>...</td><td data-i18n="cli_colors_desc">Colores y estilos ANSI rápidos para texto en terminal.</td></tr>
+            <tr><td><code>cli.ask(prompt, [defecto])</code></td><td data-i18n="cli_ask_desc">Solicita una entrada de texto interactiva al usuario en stdin con valor por defecto opcional.</td></tr>
+            <tr><td><code>cli.confirm(prompt, [defectoBool])</code></td><td data-i18n="cli_confirm_desc">Muestra un prompt interactivo de confirmación sí/no (retorna <code>true</code> o <code>false</code>).</td></tr>
           </tbody>
         </table>
 
-        <h3 data-i18n="h_cli_ex">Ejemplo de uso de cli</h3>
+        <!-- cli.box y cli.table -->
+        <h3 id="cli-boxes" data-i18n="h_cli_boxes_title">cli.box y cli.table</h3>
+        <p data-i18n="p_cli_boxes_desc">Cajas y tablas formateadas con cálculo exacto de ancho dinámico para la consola:</p>
         <pre><code>using cli
 
-cli.box("MONITOR", "Estado del sistema")
-
-cli.info("Verificando servicios...")
-cli.success("Base de datos conectada")
-cli.warn("Memoria al 75%")
+cli.box("MONITOR", "Estado del sistema en tiempo real")
 
 cabeceras = ["SERVICIO", "ESTADO", "PUERTO"]
 filas = [
     ["API Web", "Activo", "8080"],
-    ["Cache", "Activo", "6379"],
-    ["Auth", "Activo", "9000"]
+    ["Base de Datos", "Activo", "5432"],
+    ["Cache", "Activo", "6379"]
 ]
 cli.table(cabeceras, filas)</code></pre>
+
+        <!-- Colores y estilos ANSI -->
+        <h3 id="cli-colores" data-i18n="h_cli_colors_title">Colores y estilos ANSI</h3>
+        <p data-i18n="p_cli_colors_p">Formateo directo de cadenas con secuencias de escape ANSI sin configuración compleja:</p>
+        <pre><code>using cli
+
+print(cli.green("Operación completada con éxito"))
+print(cli.red("Error crítico en la conexión"))
+print(cli.yellow("Advertencia: memoria elevada"))
+print(cli.bold(cli.cyan("Título resaltado")))
+
+# Función genérica de color
+print(cli.color("magenta", "Texto personalizado"))</code></pre>
+
+        <!-- Parseo de argumentos -->
+        <h3 id="cli-args" data-i18n="h_cli_args_title">Parseo de argumentos</h3>
+        <p data-i18n="p_cli_args_p"><code>cli.parse()</code> procesa banderas y comandos recibidos en la terminal:</p>
+        <pre><code>using cli
+
+# Invocación: snowman run app.snow --puerto 9000 --debug serve
+opts = cli.parse()
+
+flags = opts.flags  # {puerto: "9000", debug: true}
+args = opts.args    # ["serve"]
+
+puerto = int(flags.puerto ?? "8080")
+cli.info(f"Iniciando servicio en puerto {puerto}")</code></pre>
+
+        <!-- Prompts interactivos -->
+        <h3 id="cli-prompts" data-i18n="h_cli_prompts_title">Prompts interactivos</h3>
+        <p data-i18n="p_cli_prompts_p">Solicita información o confirma acciones con el usuario de manera interactiva:</p>
+        <pre><code>using cli
+
+nombre = cli.ask("¿Cuál es tu nombre?", "Anónimo")
+cli.info(f"Hola, {nombre}!")
+
+continuar = cli.confirm("¿Deseas aplicar los cambios?", false)
+if continuar:
+    cli.success("Cambios aplicados exitosamente.")
+else:
+    cli.warn("Operación cancelada.")</code></pre>
       </section>
 
       <!-- Módulo time -->
@@ -908,11 +1017,27 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         p_dark_text_2: "Sin llaves <code>{}</code>, sin puntos y coma <code>;</code>, con cliente y servidor HTTP integrados, almacenamiento en disco y herramientas de terminal.",
         badge_humble_text: "Hecho por <strong>JDVA0</strong> · Diversión y experimentación libre",
         ribbon_text: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación · Libre y abierto para todo el mundo",
-        nav_start: "Guía de Inicio", nav_desc: "Descripción", nav_inst: "Instalación", nav_run: "Ejecución y CLI",
+        nav_start: "Primeros Pasos", nav_desc: "Descripción", nav_inst: "Instalación", nav_run: "Ejecución y CLI",
+        nav_repl: "REPL Interactivo", nav_script: "Tu Primer Script", nav_api5: "API en 5 Líneas",
         nav_lang: "El Lenguaje", nav_syntax: "Sintaxis e Indentación", nav_types: "Tipos y Operadores",
-        nav_control: "Control de Flujo", nav_funcs: "Funciones y Lambdas", nav_builtins: "Funciones Nativas",
-        nav_mods: "Módulos", nav_ex: "Ejemplos",
+        nav_fstr: "F-Strings y Elvis (??)", nav_control: "Control de Flujo", nav_funcs: "Funciones y Closures", nav_builtins: "Funciones Nativas",
+        nav_errors: "Manejo de Errores",
+        nav_mods: "Módulos Integrados", nav_ex: "Ejemplos",
         nav_ex_crud: "API REST CRUD", nav_ex_cli: "Herramienta CLI", nav_ex_fs: "Procesador de Archivos",
+        h_repl_title: "REPL interactivo", p_repl_desc: "Consola interactiva con historial de comandos, autocompletado y bloques indentados en vivo:",
+        h_script_title: "Tu primer script", p_script_desc: "Escribe <code>print(\"hola mundo\")</code> y ejecútalo directamente con <code>snowman app.snow</code>:",
+        p_script_run: "Ejecución en la terminal:",
+        h_api5_title: "API en 5 líneas", p_api5_desc: "Levanta un servidor HTTP funcional con endpoints y respuesta JSON en segundos:",
+        p_api5_test: "Pruébalo con <code>curl</code> o tu navegador:",
+        h_errors_title: "Manejo de Errores", p_errors_desc: "Snow proporciona un reporte claro de errores sintácticos y de ejecución con número exacto de línea y contexto:",
+        p_errors_flow: "En servidores <code>api</code>, las excepciones y fallos no controlados son capturados automáticamente, respondiendo con un error HTTP 500 en formato JSON sin tumbar el proceso del servidor.",
+        h_cli_boxes_title: "cli.box y cli.table", p_cli_boxes_desc: "Cajas y tablas formateadas con cálculo exacto de ancho dinámico para la consola:",
+        h_cli_colors_title: "Colores y estilos ANSI", p_cli_colors_p: "Formateo directo de cadenas con secuencias de escape ANSI sin configuración compleja:",
+        h_cli_args_title: "Parseo de argumentos", p_cli_args_p: "<code>cli.parse()</code> procesa banderas y comandos recibidos en la terminal:",
+        h_cli_prompts_title: "Prompts interactivos", p_cli_prompts_p: "Solicita información o confirma acciones con el usuario de manera interactiva:",
+        cli_colors_desc: "Colores y estilos ANSI rápidos para texto en terminal.",
+        cli_ask_desc: "Solicita una entrada de texto interactiva al usuario en stdin con valor por defecto opcional.",
+        cli_confirm_desc: "Muestra un prompt interactivo de confirmación sí/no (retorna <code>true</code> o <code>false</code>).",
         p_intro: "Snow es un lenguaje de programación simple y plano, diseñado específicamente para facilitar la creación de APIs web y scripts de sistema sin dependencias externas complejas.",
         notice_credit: "Proyecto creado por <strong>JDVA0</strong> con asistencia de inteligencia artificial. Hecho por diversión y para experimentar, totalmente libre y abierto para que cualquier persona en el mundo lo use, aprenda y cree APIs sin complicaciones.",
         h_features: "Puntos clave",
@@ -1044,10 +1169,26 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         badge_humble_text: "Made by <strong>JDVA0</strong> · Fun and free experimentation",
         ribbon_text: "Made by <strong>JDVA0</strong> · A project built for fun and experimentation · Free and open for everyone",
         nav_start: "Getting Started", nav_desc: "Overview", nav_inst: "Installation", nav_run: "Running & CLI",
+        nav_repl: "Interactive REPL", nav_script: "Your First Script", nav_api5: "API in 5 Lines",
         nav_lang: "The Language", nav_syntax: "Syntax & Indentation", nav_types: "Types & Operators",
-        nav_control: "Control Flow", nav_funcs: "Functions & Lambdas", nav_builtins: "Built-in Functions",
-        nav_mods: "Modules", nav_ex: "Examples",
+        nav_fstr: "F-Strings & Elvis (??)", nav_control: "Control Flow", nav_funcs: "Functions & Closures", nav_builtins: "Built-in Functions",
+        nav_errors: "Error Handling",
+        nav_mods: "Built-in Modules", nav_ex: "Examples",
         nav_ex_crud: "REST CRUD API", nav_ex_cli: "CLI Tool", nav_ex_fs: "File Processor",
+        h_repl_title: "Interactive REPL", p_repl_desc: "Interactive console with command history, autocompletion, and live indented blocks support:",
+        h_script_title: "Your First Script", p_script_desc: "Write <code>print(\"hello world\")</code> and run it directly with <code>snowman app.snow</code>:",
+        p_script_run: "Terminal execution:",
+        h_api5_title: "API in 5 Lines", p_api5_desc: "Spin up a working HTTP server with endpoints and JSON responses in seconds:",
+        p_api5_test: "Test it with <code>curl</code> or your browser:",
+        h_errors_title: "Error Handling", p_errors_desc: "Snow provides clear syntax and runtime error reports with exact line numbers and context:",
+        p_errors_flow: "In <code>api</code> servers, uncaught exceptions are safely captured and returned as HTTP 500 JSON without crashing the server process.",
+        h_cli_boxes_title: "cli.box and cli.table", p_cli_boxes_desc: "Formatted terminal boxes and tables with exact dynamic width calculation:",
+        h_cli_colors_title: "ANSI Colors and Styles", p_cli_colors_p: "Direct string styling with ANSI escape codes without complex configuration:",
+        h_cli_args_title: "Argument Parsing", p_cli_args_p: "<code>cli.parse()</code> handles flags and command arguments received from the terminal:",
+        h_cli_prompts_title: "Interactive Prompts", p_cli_prompts_p: "Prompt user for input or confirm actions interactively:",
+        cli_colors_desc: "Fast ANSI colors and styles for terminal text.",
+        cli_ask_desc: "Prompts user for interactive text input via stdin with optional default value.",
+        cli_confirm_desc: "Interactive yes/no confirmation prompt (returns <code>true</code> or <code>false</code>).",
         p_intro: "Snow is a simple, flat programming language designed to make building web APIs and system scripts easy without complex external dependencies.",
         notice_credit: "Project created by <strong>JDVA0</strong> with AI assistance. Made for fun and experimentation, completely free and open for everyone to use, learn, and build APIs without friction.",
         h_features: "Key features",
