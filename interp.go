@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"unicode/utf8"
 )
 
@@ -82,6 +83,7 @@ type Interp struct {
 	frameBase int
 	api       *APIServer
 	modules   map[string]Val
+	mu        sync.Mutex
 }
 
 const maxDepth = 10000
@@ -167,6 +169,16 @@ func (i *Interp) lookup(name string) (Val, bool) {
 		}
 	}
 	return nil, false
+}
+
+func (i *Interp) setVar(name string, val Val) {
+	for e := i.env; e != nil; e = e.parent {
+		if _, ok := e.vars[name]; ok {
+			e.vars[name] = val
+			return
+		}
+	}
+	i.env.vars[name] = val
 }
 
 func (i *Interp) opErr(op Op, err error) error {
@@ -288,7 +300,7 @@ func (i *Interp) execOps(ops []Op) error {
 				vals[k], _ = i.pop()
 			}
 			for k, name := range op.Args {
-				i.env.vars[name] = vals[k]
+				i.setVar(name, vals[k])
 			}
 		case OpStoreOp:
 			v, err := i.pop()
@@ -303,7 +315,7 @@ func (i *Interp) execOps(ops []Op) error {
 			if err != nil {
 				return i.opErr(op, err)
 			}
-			i.env.vars[op.Name] = res
+			i.setVar(op.Name, res)
 		case OpMakeList:
 			n := int(op.Num)
 			if len(i.stack) < n {
@@ -459,14 +471,24 @@ func (i *Interp) invoke(callable Val, args []Val) ([]Val, error) {
 	}
 }
 
+// InvokeSafe executes a callable thread-safely using the interpreter mutex.
+func (i *Interp) InvokeSafe(callable Val, args []Val) ([]Val, error) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	return i.invoke(callable, args)
+}
+
 func (i *Interp) useOp(op Op) error {
 	path := op.Args
 	stdMod := ""
 	if len(path) == 2 && path[0] == "snow" {
-		stdMod = path[1]
+		switch path[1] {
+		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task":
+			stdMod = path[1]
+		}
 	} else if len(path) == 1 {
 		switch path[0] {
-		case "api", "sys", "fs", "cli", "http", "db":
+		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task":
 			stdMod = path[0]
 		}
 	}
@@ -491,6 +513,14 @@ func (i *Interp) useOp(op Op) error {
 			m = newHTTPModule(i, op.Name)
 		case "db":
 			m = newDBModule(i, op.Name)
+		case "time":
+			m = newTimeModule(i, op.Name)
+		case "json":
+			m = newJSONModule(i, op.Name)
+		case "crypto":
+			m = newCryptoModule(i, op.Name)
+		case "task":
+			m = newTaskModule(i, op.Name)
 		default:
 			return fmt.Errorf("unknown standard module snow.%s", stdMod)
 		}

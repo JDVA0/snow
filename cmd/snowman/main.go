@@ -25,6 +25,10 @@ Standard modules (use with 'using'):
   api     HTTP server with routing, middleware, static files
   http    HTTP client: get, post, put, delete, patch — resp.json()
   db      JSON key-value store persisted to disk
+  time    sleep, timestamps, date formatting (time.now, time.sleep)
+  json    parse, stringify with indent, valid validation
+  crypto  sha256, md5, random_token, jwt_sign, jwt_verify
+  task    scheduled and delayed background jobs (task.every, task.after)
 
 Language features:
   f-strings     f"Hello {name}, age {age}"

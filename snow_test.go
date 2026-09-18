@@ -435,5 +435,126 @@ cli.box("TITULO MUY LARGO", "corto")
 	}
 }
 
+func TestTimeModule(t *testing.T) {
+	src := `
+using time
+t0 = time.unix()
+time.sleep("20ms")
+iso = time.iso()
+now = time.now("%Y")
+print(len(now) == 4)
+print(time.unix_ms() > 0)
+`
+	check(t, src, "true\ntrue")
+}
+
+func TestJSONModule(t *testing.T) {
+	src := `
+using json
+obj = json.parse('{"name": "snow", "count": 10, "active": true}')
+print(obj.name)
+print(obj.count)
+print(obj.active)
+s = json.stringify(obj)
+print(json.valid(s))
+print(json.valid("invalid json"))
+`
+	check(t, src, "snow\n10\ntrue\ntrue\nfalse")
+}
+
+func TestCryptoModule(t *testing.T) {
+	src := `
+using crypto
+h = crypto.sha256("hello")
+print(h == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
+tok = crypto.random_token(16)
+print(len(tok) == 16)
+
+# JWT
+token = crypto.jwt_sign({"user": "snow", "role": "admin"}, "secret123")
+payload = crypto.jwt_verify(token, "secret123")
+print(payload.user)
+print(payload.role)
+
+# Bad secret returns nil
+bad = crypto.jwt_verify(token, "wrong_secret")
+print(bad == nil)
+`
+	check(t, src, "true\ntrue\nsnow\nadmin\ntrue")
+}
+
+func TestTaskModule(t *testing.T) {
+	src := `
+using task
+using time
+
+count = 0
+fn tick():
+    count = count + 1
+
+job = task.every("10ms", tick)
+time.sleep("35ms")
+job.stop()
+c1 = count
+time.sleep("25ms")
+print(c1 >= 2)
+print(count == c1)
+`
+	check(t, src, "true\ntrue")
+}
+
+func TestAPIStatusReturn(t *testing.T) {
+	i := New()
+	src := `
+using api
+
+fn handle_ok(req):
+    return 200, {status: "ok"}
+
+fn handle_nf(req):
+    return 404, {error: "missing"}
+
+fn handle_del(req):
+    return 204
+
+api.get("/ok", handle_ok)
+api.get("/notfound", handle_nf)
+api.delete("/item", handle_del)
+`
+	if err := i.Run(src, "<test_api_status>"); err != nil {
+		t.Fatalf("api status run error: %v", err)
+	}
+	s := i.api
+	if s == nil {
+		t.Fatal("api server is nil")
+	}
+
+	// 1. Test 200 with body
+	req := httptest.NewRequest("GET", "/ok", nil)
+	w := httptest.NewRecorder()
+	s.handle(w, req)
+	if w.Code != 200 || !strings.Contains(w.Body.String(), `"status":"ok"`) {
+		t.Fatalf("unexpected GET /ok: code %d, body %q", w.Code, w.Body.String())
+	}
+
+	// 2. Test 404 with body
+	req = httptest.NewRequest("GET", "/notfound", nil)
+	w = httptest.NewRecorder()
+	s.handle(w, req)
+	if w.Code != 404 || !strings.Contains(w.Body.String(), `"error":"missing"`) {
+		t.Fatalf("unexpected GET /notfound: code %d, body %q", w.Code, w.Body.String())
+	}
+
+	// 3. Test 204 No Content
+	req = httptest.NewRequest("DELETE", "/item", nil)
+	w = httptest.NewRecorder()
+	s.handle(w, req)
+	if w.Code != 204 || w.Body.String() != "" {
+		t.Fatalf("unexpected DELETE /item: code %d, body %q", w.Code, w.Body.String())
+	}
+}
+
+
+
 
 

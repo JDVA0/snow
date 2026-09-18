@@ -44,6 +44,7 @@ func newAPIModule(i *Interp, name string) *Module {
 	i.api = s
 	m := &Module{Name: name, Dict: NewDict(20)}
 	m.Dict.Set("listen", Native(apiListen))
+	m.Dict.Set("start", Native(apiListen))
 	m.Dict.Set("route", Native(apiRouteAdd))
 	m.Dict.Set("get", Native(apiMethodRoute("GET")))
 	m.Dict.Set("post", Native(apiMethodRoute("POST")))
@@ -487,7 +488,34 @@ func writeReply(w http.ResponseWriter, vals []Val) error {
 		w.WriteHeader(http.StatusOK)
 		return nil
 	}
-	switch b := vals[0].(type) {
+
+	// 1. Multiple returns: return 404, {"error": "not found"}
+	if len(vals) >= 2 {
+		if st, ok := vals[0].(Int); ok && st >= 100 && st <= 599 {
+			return writeBodyWithStatus(w, int(st), vals[1])
+		}
+	}
+
+	// 2. Single return that is a tuple/list: return [404, {"error": "not found"}]
+	if len(vals) == 1 {
+		if list, ok := vals[0].(List); ok && len(list) == 2 {
+			if st, isInt := list[0].(Int); isInt && st >= 100 && st <= 599 {
+				return writeBodyWithStatus(w, int(st), list[1])
+			}
+		}
+		// 3. Status code only: return 204
+		if st, ok := vals[0].(Int); ok && st >= 100 && st <= 599 {
+			w.WriteHeader(int(st))
+			return nil
+		}
+	}
+
+	// Default: 200 OK with first returned value
+	return writeBodyWithStatus(w, http.StatusOK, vals[0])
+}
+
+func writeBodyWithStatus(w http.ResponseWriter, status int, body Val) error {
+	switch b := body.(type) {
 	case *Resp:
 		for hk, hv := range b.Headers {
 			w.Header().Set(hk, hv)
@@ -495,24 +523,38 @@ func writeReply(w http.ResponseWriter, vals []Val) error {
 		if b.CType != "" {
 			w.Header().Set("Content-Type", b.CType)
 		}
-		w.WriteHeader(b.Status)
-		if b.Body != "" && b.Status >= 200 {
+		st := b.Status
+		if status != http.StatusOK || st == 0 {
+			st = status
+		}
+		w.WriteHeader(st)
+		if b.Body != "" && st != http.StatusNoContent {
 			fmt.Fprint(w, b.Body)
 		}
 	case Str:
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, string(b))
+		s := string(b)
+		trimmed := strings.TrimSpace(s)
+		if strings.HasPrefix(trimmed, "<") && strings.HasSuffix(trimmed, ">") {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		} else {
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		}
+		w.WriteHeader(status)
+		if status != http.StatusNoContent {
+			fmt.Fprint(w, s)
+		}
 	case NilT:
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(status)
 	case Int, Float, Bool, *Dict, List:
 		s, err := EncodeJSON(b)
 		if err != nil {
 			return err
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, s)
+		w.WriteHeader(status)
+		if status != http.StatusNoContent {
+			fmt.Fprint(w, s)
+		}
 	default:
 		return fmt.Errorf("handler must return a string, list, dict or response; got %s", TypeName(b))
 	}

@@ -68,6 +68,10 @@
           <li><a href="#mod-sys">sys (Sistema)</a></li>
           <li><a href="#mod-fs">fs (Archivos)</a></li>
           <li><a href="#mod-cli">cli (Terminal)</a></li>
+          <li><a href="#mod-time">time (Tiempo y Pausas)</a></li>
+          <li><a href="#mod-json">json (Parse y Stringify)</a></li>
+          <li><a href="#mod-crypto">crypto (Hashes y JWT)</a></li>
+          <li><a href="#mod-task">task (Tareas y Cron)</a></li>
         </ul>
 
         <div class="sidebar-heading" data-i18n="nav_ex">Ejemplos</div>
@@ -371,6 +375,11 @@ print(mayores)       # [3, 4]</code></pre>
           </tbody>
         </table>
 
+        <div class="notice-box">
+          <strong data-i18n="api_sc_title">Atajo de código de estado directo:</strong>
+          <span data-i18n="api_sc_desc">En cualquier ruta puedes retornar directamente un par <code>return codigo, datos</code> o un código numérico como <code>return 204</code> sin envolverlo en <code>api.json()</code>. Por ejemplo: <code>return 404, {"error": "no encontrado"}</code>.</span>
+        </div>
+
         <h3 data-i18n="h_req_detail">Estructura del objeto <code>req</code></h3>
         <p data-i18n="p_req_desc">Cada función de ruta recibe un único argumento con la información de la solicitud:</p>
         <table class="table-nord">
@@ -635,6 +644,115 @@ filas = [
     ["Auth", "Activo", "9000"]
 ]
 cli.table(cabeceras, filas)</code></pre>
+      </section>
+
+      <!-- Módulo time -->
+      <section id="mod-time" class="doc-section">
+        <h2>using time &mdash; Fechas, Pausas y Timestamps</h2>
+        <p data-i18n="p_mod_time_desc">Manejo de tiempo, pausas de ejecución, formateo de fechas y marcas temporales unix sin complicaciones.</p>
+        <table class="table-nord">
+          <thead>
+            <tr>
+              <th style="width: 32%;">Función</th>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>time.sleep(duracion)</code></td><td data-i18n="time_sleep_desc">Pausa el script durante el tiempo indicado. Acepta segundos (<code>2</code> o <code>0.5</code>) o texto (<code>"500ms"</code>, <code>"2s"</code>, <code>"1m"</code>).</td></tr>
+            <tr><td><code>time.now([formato])</code></td><td data-i18n="time_now_desc">Retorna la fecha y hora actual en texto. Soporta sintaxis strftime (<code>"%Y-%m-%d %H:%M:%S"</code>) o formato Go.</td></tr>
+            <tr><td><code>time.unix()</code></td><td data-i18n="time_unix_desc">Retorna la marca de tiempo Unix actual en segundos como un entero (<code>int</code>).</td></tr>
+            <tr><td><code>time.unix_ms()</code></td><td data-i18n="time_unixms_desc">Retorna la marca de tiempo Unix actual en milisegundos como un entero (<code>int</code>).</td></tr>
+            <tr><td><code>time.iso()</code></td><td data-i18n="time_iso_desc">Retorna la fecha y hora actual en formato estándar RFC3339 / ISO-8601.</td></tr>
+            <tr><td><code>time.since(t0)</code></td><td data-i18n="time_since_desc">Calcula los segundos transcurridos desde la marca de tiempo <code>t0</code> como número decimal (<code>float</code>).</td></tr>
+          </tbody>
+        </table>
+        <pre><code>using time
+
+t0 = time.unix()
+time.sleep("250ms")
+print(f"Fecha actual: {time.now()}")
+print(f"Transcurrido: {time.since(t0)} seg")</code></pre>
+      </section>
+
+      <!-- Módulo json -->
+      <section id="mod-json" class="doc-section">
+        <h2>using json &mdash; Parseo y Serialización</h2>
+        <p data-i18n="p_mod_json_desc">Conversión bidireccional entre texto JSON y estructuras de datos nativas de Snow (listas y diccionarios).</p>
+        <table class="table-nord">
+          <thead>
+            <tr>
+              <th style="width: 32%;">Función</th>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>json.parse(cadena)</code></td><td data-i18n="json_parse_desc">Decodifica una cadena JSON y la convierte en diccionario, lista o valor primitivo. Lanza error si el JSON es inválido.</td></tr>
+            <tr><td><code>json.stringify(valor, [indent])</code></td><td data-i18n="json_stringify_desc">Serializa cualquier valor de Snow a texto JSON. Si se especifica indentación (número o <code>true</code>), genera formato legible.</td></tr>
+            <tr><td><code>json.valid(cadena)</code></td><td data-i18n="json_valid_desc">Valida si una cadena de texto contiene JSON bien formado sin lanzar excepciones (retorna <code>true</code> o <code>false</code>).</td></tr>
+          </tbody>
+        </table>
+        <pre><code>using json
+using fs
+
+contenido = fs.read("config.json")
+if json.valid(contenido):
+    config = json.parse(contenido)
+    config["version"] = "1.0.1"
+    fs.write("config.json", json.stringify(config, true))</code></pre>
+      </section>
+
+      <!-- Módulo crypto -->
+      <section id="mod-crypto" class="doc-section">
+        <h2>using crypto &mdash; Hashes, Tokens y JWT</h2>
+        <p data-i18n="p_mod_crypto_desc">Funciones criptográficas esenciales para autenticación y seguridad en APIs sin dependencias externas.</p>
+        <table class="table-nord">
+          <thead>
+            <tr>
+              <th style="width: 32%;">Función</th>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>crypto.sha256(texto)</code></td><td data-i18n="crypto_sha256_desc">Calcula el hash SHA-256 del texto y lo devuelve como cadena hexadecimal.</td></tr>
+            <tr><td><code>crypto.sha1(texto)</code></td><td data-i18n="crypto_sha1_desc">Calcula el hash SHA-1 del texto y lo devuelve como cadena hexadecimal.</td></tr>
+            <tr><td><code>crypto.md5(texto)</code></td><td data-i18n="crypto_md5_desc">Calcula el hash MD5 del texto y lo devuelve como cadena hexadecimal.</td></tr>
+            <tr><td><code>crypto.random_token([longitud])</code></td><td data-i18n="crypto_token_desc">Genera una cadena hexadecimal aleatoria y segura criptográficamente (32 caracteres por defecto).</td></tr>
+            <tr><td><code>crypto.jwt_sign(payload, clave)</code></td><td data-i18n="crypto_jwtsign_desc">Genera un token JWT firmado con HMAC-SHA256 para el diccionario de datos indicado.</td></tr>
+            <tr><td><code>crypto.jwt_verify(token, clave)</code></td><td data-i18n="crypto_jwtver_desc">Verifica la firma del token JWT y su expiración. Retorna el diccionario de datos o <code>nil</code> si no es válido.</td></tr>
+          </tbody>
+        </table>
+        <pre><code>using crypto
+
+token = crypto.jwt_sign({usuario: "julian", rol: "admin"}, "mi_secreto")
+datos = crypto.jwt_verify(token, "mi_secreto")
+if datos != nil:
+    print(f"Sesion valida para {datos.usuario}")</code></pre>
+      </section>
+
+      <!-- Módulo task -->
+      <section id="mod-task" class="doc-section">
+        <h2>using task &mdash; Tareas Programadas y Fondo</h2>
+        <p data-i18n="p_mod_task_desc">Ejecución periódica y diferida de tareas en segundo plano dentro del propio runtime.</p>
+        <table class="table-nord">
+          <thead>
+            <tr>
+              <th style="width: 32%;">Función</th>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>task.every(intervalo, funcion)</code></td><td data-i18n="task_every_desc">Ejecuta la función en segundo plano cada intervalo de tiempo (ej. <code>"5s"</code>, <code>"1m"</code>, <code>10</code>). Retorna un control con <code>.stop()</code>.</td></tr>
+            <tr><td><code>task.after(espera, funcion)</code></td><td data-i18n="task_after_desc">Ejecuta la función una sola vez en segundo plano trascurridos los segundos o duración indicada. Retorna un control con <code>.stop()</code>.</td></tr>
+          </tbody>
+        </table>
+        <pre><code>using task
+using time
+
+fn verificar():
+    print("Comprobando conexiones...")
+
+control = task.every("10s", verificar)
+task.after("1m", fn(): control.stop())</code></pre>
       </section>
 
       <!-- Ejemplos completos -->

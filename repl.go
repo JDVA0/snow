@@ -195,9 +195,9 @@ func replTerminal(i *Interp, fd int) {
 			if lastWord != "" {
 				candidates := []string{
 					"using", "fn", "return", "if", "elif", "else", "for", "while", "break",
-					"api", "http", "db", "sys", "fs", "cli", "print", "len", "str", "int",
-					"float", "bool", "type", "range", "append", "keys", "values", "trim",
-					"split", "join", "contains", "help", "exit", "clear",
+					"api", "http", "db", "sys", "fs", "cli", "time", "json", "crypto", "task",
+					"print", "len", "str", "int", "float", "bool", "type", "range", "append",
+					"keys", "values", "trim", "split", "join", "contains", "help", "exit", "clear",
 				}
 				for _, c := range candidates {
 					if strings.HasPrefix(c, lastWord) && len(c) > len(lastWord) {
