@@ -50,7 +50,7 @@ type Op struct {
 
 // Binary op codes.
 const (
-	boAdd byte = iota
+	boAdd byte = 1 + iota
 	boSub
 	boMul
 	boDiv

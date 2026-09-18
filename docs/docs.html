@@ -1009,7 +1009,10 @@ cli.success("Diagnostico finalizado con exito.")</code></pre>
 
       <section id="ej-archivos" class="doc-section">
         <h2 data-i18n="h_ex_fs">Ejemplo Completo 3: Lector y Procesador de Archivos</h2>
-        <p data-i18n="p_ex_fs_desc">Script que procesa líneas de texto, cuenta registros y exporta resultados limpios:</p>
+        <p data-i18n="p_ex_fs_desc">Procesamiento de líneas de texto, validación de registros y reporte en tablas:</p>
+
+        <h3 data-i18n="h_ex_fs_v1">Versión 1: Parseo directo básico</h3>
+        <p data-i18n="p_ex_fs_v1_desc">Lectura directa e iteración simple sobre líneas con formato conocido:</p>
         <pre><code>using fs
 using cli
 
@@ -1038,6 +1041,44 @@ for l in lineas:
 
 cli.table(["SERVIDOR", "ESTADO"], filas)
 cli.info("Servidores activos: " + str(activos))</code></pre>
+
+        <h3 data-i18n="h_ex_fs_v2">Versión 2: Parseo robusto con función dedicada y mapas</h3>
+        <p data-i18n="p_ex_fs_v2_desc">Desacopla la validación en una función <code>procesar_linea</code> que devuelve un diccionario semántico o <code>nil</code> en caso de datos inválidos:</p>
+        <pre><code>using fs
+using cli
+
+# Función dedicada: valida la estructura y retorna un mapa { servidor, estado } o nil
+fn procesar_linea(linea):
+    partes = split(trim(linea), ",")
+    if len(partes) != 2:
+        return nil
+
+    return {
+        servidor: trim(partes[0]),
+        estado: trim(partes[1])
+    }
+
+archivo_origen = "registro.txt"
+
+# Archivo con líneas válidas e inválidas para verificar tolerancia
+if not fs.exists(archivo_origen):
+    fs.write(archivo_origen, "servidor_1,activo\nservidor_2,inactivo\nlinea_invalida_sin_formato\nservidor_3,activo\n")
+
+contenido = fs.read(archivo_origen)
+lineas = split(contenido, "\n")
+
+filas = []
+activos = 0
+
+for l in lineas:
+    item = procesar_linea(l)
+    if item != nil:
+        if item.estado == "activo":
+            activos += 1
+        filas = append(filas, [item.servidor, item.estado])
+
+cli.table(["SERVIDOR", "ESTADO"], filas)
+cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " validos")</code></pre>
       </section>
 
     </main>
@@ -1193,7 +1234,9 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         cli_box: "Dibuja un cuadro delimitador con bordes de línea para resaltar títulos o resúmenes.", h_cli_ex: "Ejemplo de uso de cli",
         h_ex_crud: "Ejemplo Completo 1: API REST CRUD en Memoria", p_ex_crud_desc: "Un servicio web completo con listado, consulta por ID y creación con persistencia en lista:",
         h_ex_cli: "Ejemplo Completo 2: Herramienta de Diagnóstico de Sistema", p_ex_cli_desc: "Un programa de línea de comandos que acepta flags y analiza el estado de la computadora:",
-        h_ex_fs: "Ejemplo Completo 3: Lector y Procesador de Archivos", p_ex_fs_desc: "Script que procesa líneas de texto, cuenta registros y exporta resultados limpios:",
+        h_ex_fs: "Ejemplo Completo 3: Lector y Procesador de Archivos", p_ex_fs_desc: "Procesamiento de líneas de texto, validación de registros y reporte en tablas:",
+        h_ex_fs_v1: "Versión 1: Parseo directo básico", p_ex_fs_v1_desc: "Lectura directa e iteración simple sobre líneas con formato conocido:",
+        h_ex_fs_v2: "Versión 2: Parseo robusto con función dedicada y mapas", p_ex_fs_v2_desc: "Desacopla la validación en una función <code>procesar_linea</code> que devuelve un diccionario semántico o <code>nil</code> en caso de datos inválidos:",
         p_mod_input_desc: "Lectura limpia de datos desde la consola estándar con conversión automática al tipo deseado y valores por defecto opcionales.",
         input_str_desc: "Lee una línea de texto desde stdin. Si no se ingresa nada o se pulsa enter, retorna el valor por defecto o texto vacío.",
         input_int_desc: "Solicita y convierte la entrada a un entero (<code>int</code>). Si el valor ingresado no es válido, vuelve a solicitarlo.",
@@ -1346,7 +1389,9 @@ cli.info("Servidores activos: " + str(activos))</code></pre>
         cli_box: "Draws a line-bordered box to highlight titles or summaries.", h_cli_ex: "cli usage example",
         h_ex_crud: "Full Example 1: In-Memory REST CRUD API", p_ex_crud_desc: "A complete web service with listing, lookup by ID, and creation with persistence in list:",
         h_ex_cli: "Full Example 2: System Diagnostic CLI Tool", p_ex_cli_desc: "A command-line tool that parses flags and inspects computer state:",
-        h_ex_fs: "Full Example 3: File Reader and Processor", p_ex_fs_desc: "Script that processes text lines, counts records, and outputs formatted results:",
+        h_ex_fs: "Full Example 3: File Reader and Processor", p_ex_fs_desc: "Text line processing, record validation, and table reporting:",
+        h_ex_fs_v1: "Version 1: Simple direct parsing", p_ex_fs_v1_desc: "Direct file reading and iteration over lines with fixed format:",
+        h_ex_fs_v2: "Version 2: Modular parsing with dedicated function and maps", p_ex_fs_v2_desc: "Decouples validation into a dedicated <code>procesar_linea</code> function returning a semantic map or <code>nil</code> for invalid lines:",
         p_mod_input_desc: "Clean console input reading with automatic type conversion and optional default values.",
         input_str_desc: "Reads a text line from stdin. If empty or user hits enter, returns default value or empty string.",
         input_int_desc: "Prompts and converts input to integer (<code>int</code>). Re-prompts if input is not valid integer.",

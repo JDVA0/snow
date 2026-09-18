@@ -43,6 +43,11 @@ func TestArithmetic(t *testing.T) {
 	check(t, `print(2 * 3 - 4)`, "2")
 	check(t, `print((1 + 2) * 3)`, "9")
 	check(t, `print(-(3 + 4))`, "-7")
+	check(t, `x = 10
+x += 5
+x -= 2
+x *= 2
+print(x)`, "26")
 }
 
 func TestStringsAndLists(t *testing.T) {
