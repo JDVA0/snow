@@ -400,21 +400,37 @@ if fs.exists(tmp):
 }
 
 func TestCLIBox(t *testing.T) {
-	src := `
+	testCases := []string{
+		`
 using cli
 cli.box("❄️ SNOW CLI TOOLKIT", "A modern, concise & elegant CLI experience\nPlatform: linux (amd64) | PID: 76365")
-`
-	out := mustRun(t, src)
-	lines := strings.Split(strings.TrimSpace(out), "\n")
-	if len(lines) != 4 {
-		t.Fatalf("expected 4 lines in box output, got %d", len(lines))
+`,
+		`
+using cli
+cli.box("hola", "mundo")
+`,
+		`
+using cli
+cli.box("solo_contenido")
+`,
+		`
+using cli
+cli.box("TITULO MUY LARGO", "corto")
+`,
 	}
 
-	w0 := stringWidth(lines[0])
-	for idx, l := range lines {
-		w := stringWidth(l)
-		if w != w0 {
-			t.Fatalf("line %d width %d != line 0 width %d: %q", idx, w, w0, l)
+	for _, src := range testCases {
+		out := mustRun(t, src)
+		lines := strings.Split(strings.TrimSpace(out), "\n")
+		if len(lines) < 3 {
+			t.Fatalf("expected at least 3 lines in box output, got %d", len(lines))
+		}
+		w0 := stringWidth(lines[0])
+		for idx, l := range lines {
+			w := stringWidth(l)
+			if w != w0 {
+				t.Fatalf("line %d width %d != line 0 width %d: %q\nFull output:\n%s", idx, w, w0, l, out)
+			}
 		}
 	}
 }

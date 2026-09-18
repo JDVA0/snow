@@ -251,37 +251,39 @@ func cliBox(i *Interp, args []Val) ([]Val, error) {
 		}
 	}
 
-	// Calculate inner box width with comfortable breathing room (+4 extra)
-	innerWidth := contentWidth + 4
-	if title != "" && titleWidth+6 > innerWidth {
-		innerWidth = titleWidth + 6
-	}
-	if innerWidth < 26 {
-		innerWidth = 26
-	}
-
+	// Lateral padding: 2 spaces on the left, 2 spaces on the right
 	const padH = 2
 	padStr := strings.Repeat(" ", padH)
-	totalInner := innerWidth + 2*padH
+
+	// Inner width between the left '│' and right '│'
+	// Must accommodate the widest content line + left & right padding.
+	totalInner := contentWidth + 2*padH
+
+	// If there is a title, top border has format: "┌── " + title + " " + "─"*fill + "┐"
+	// The runes inside top border are: 3 ("── ") + titleWidth + 1 (" ") + fill
+	// This must equal totalInner, so fill = totalInner - titleWidth - 4.
+	// We require at least 2 dashes after the title ("──"), so totalInner >= titleWidth + 6.
+	if title != "" {
+		minInnerForTitle := titleWidth + 6
+		if minInnerForTitle > totalInner {
+			totalInner = minInnerForTitle
+		}
+	}
 
 	var sb strings.Builder
 
 	// Top border (square: ┌ ┐)
 	if title != "" {
-		// "┌── " (3 chars after ┌) + title + " " (1 char) -> 4 chars + titleWidth inside borders
 		fill := totalInner - titleWidth - 4
-		if fill < 2 {
-			fill = 2
-		}
 		sb.WriteString("┌── " + "\033[1m" + title + "\033[0m" + " " + strings.Repeat("─", fill) + "┐\n")
 	} else {
 		sb.WriteString("┌" + strings.Repeat("─", totalInner) + "┐\n")
 	}
 
-	// Content lines
+	// Content lines: │ + padStr + line + rem + padStr + │
 	for _, l := range lines {
 		lWidth := stringWidth(l)
-		rem := innerWidth - lWidth
+		rem := totalInner - 2*padH - lWidth
 		if rem < 0 {
 			rem = 0
 		}
