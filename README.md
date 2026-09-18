@@ -1,4 +1,4 @@
-# Snow 0.1
+# <img src="docs/snowflake.svg" width="36" height="36" alt="Snow icon" style="vertical-align: middle;"> Snow 0.1
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/JDVA0/snow)](https://goreportcard.com/report/github.com/JDVA0/snow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
