@@ -191,6 +191,10 @@ func stmtPos(s Stmt) Pos {
 		return t.Pos
 	case *WithStmt:
 		return t.Pos
+	case *SetAttrStmt:
+		return t.Pos
+	case *SetIndexStmt:
+		return t.Pos
 	}
 	return Pos{}
 }
@@ -208,6 +212,25 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 		}
 		for _, n := range t.Names {
 			c.define(n, t.Pos)
+		}
+
+	case *SetAttrStmt:
+		if err := c.walkExpr(t.Container); err != nil {
+			return err
+		}
+		if err := c.walkExpr(t.Val); err != nil {
+			return err
+		}
+
+	case *SetIndexStmt:
+		if err := c.walkExpr(t.Container); err != nil {
+			return err
+		}
+		if err := c.walkExpr(t.Key); err != nil {
+			return err
+		}
+		if err := c.walkExpr(t.Val); err != nil {
+			return err
 		}
 
 	case *FnStmt:
@@ -463,6 +486,13 @@ func (c *checker) markStmt(s Stmt) {
 		for _, v := range t.Vals {
 			c.markExpr(v)
 		}
+	case *SetAttrStmt:
+		c.markExpr(t.Container)
+		c.markExpr(t.Val)
+	case *SetIndexStmt:
+		c.markExpr(t.Container)
+		c.markExpr(t.Key)
+		c.markExpr(t.Val)
 	case *ReturnStmt:
 		for _, v := range t.Vals {
 			c.markExpr(v)

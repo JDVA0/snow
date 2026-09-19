@@ -20,11 +20,14 @@ make_resource = fn(name, data):
             state.opened = false
             cli.ok("   ✅ Recurso '" + name + "' cerrado automáticamente.")
 
+    read_fn = fn():
+        return data
+
     return {
         "name": name,
         "data": data,
         "state": state,
-        "read": fn(): return data,
+        "read": read_fn,
         "close": close_fn,
     }
 

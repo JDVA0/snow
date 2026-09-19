@@ -1306,6 +1306,27 @@ match command:
     case _:
         print("Unknown command")
 `, "Unknown command")
+
+	for _, src := range []string{
+		`match 1:
+    case _, 1:
+        print("invalid")
+`,
+		`match 1:
+    case _:
+        print("default")
+    case 1:
+        print("invalid")
+`,
+		`match 1:
+    else:
+        print("invalid")
+`,
+	} {
+		if _, err := Parse(src, "test.snow"); err == nil {
+			t.Fatalf("expected invalid match syntax to fail parsing:\n%s", src)
+		}
+	}
 }
 
 func TestTypedListNil(t *testing.T) {

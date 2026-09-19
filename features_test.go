@@ -208,6 +208,22 @@ print("ok")
 		t.Errorf("missing expected output for pub symbols, got:\n%s", got)
 	}
 
+	// Import without an alias uses the module filename as its binding.
+	mainNoAlias := `
+import lib
+print(lib.add(3, 4))
+`
+	iNoAlias := New()
+	bufNoAlias := &bytes.Buffer{}
+	iNoAlias.Out(bufNoAlias)
+	iNoAlias.dir = tmp
+	if err := iNoAlias.Run(mainNoAlias, mainPath); err != nil {
+		t.Fatalf("expected unaliased import to work, got: %v", err)
+	}
+	if got := strings.TrimSpace(bufNoAlias.String()); got != "7" {
+		t.Errorf("unaliased import: got %q, want %q", got, "7")
+	}
+
 	// Ahora probamos que acceder a priv symbols da error runtime (attribute not found)
 	mainBadPriv := `
 import lib as lib

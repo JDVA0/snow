@@ -12,3 +12,5 @@ snowman.exe
 *~
 .idea/
 .vscode/
+.trae/
+*.txt

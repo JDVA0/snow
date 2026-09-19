@@ -105,6 +105,7 @@ match command:
         stop()
     case "status":
         status()
+    # El comodín solo puede aparecer una vez y debe ser el último caso.
     case _:
         print("Unknown command")
 ```
@@ -140,13 +141,13 @@ Importar y usar desde otro archivo. Los símbolos se acceden con **sintaxis punt
 # ========= main.snow =========
 import math_utils as m
 
-print(m.VERSION)        # 1.0.0   (✅ pub, funciona)
-print(m.add(2, 3))      # 5       (✅ pub, funciona)
-print(m.multiply(4, 5)) # 20      (✅ sin modificador = pub, funciona)
+print(m.VERSION)        # 1.0.0   (pub, funciona)
+print(m.add(2, 3))      # 5       (pub, funciona)
+print(m.multiply(4, 5)) # 20      (sin modificador = pub, funciona)
 
 # Los símbolos priv NO están en el módulo → error RUNTIME (no de parseo)
-print(m._SAL)           # ❌ attribute not found: _SAL
-print(m._helper(1, 2))  # ❌ attribute not found: _helper
+print(m._SAL)           # error: attribute not found: _SAL
+print(m._helper(1, 2))  # error: attribute not found: _helper
 ```
 
 Comportamiento clave:
@@ -154,7 +155,7 @@ Comportamiento clave:
 - **Al acceder a `foo.no_existe`** se lanza un error en runtime: `attribute not found: no_existe` (no es `nil`).
 - **`priv` es encapsulación, no seguridad**: el valor sigue existiendo en memoria del submódulo; solo no se exporta.
 
-Ejemplos completos: `examples/math_utils.snow` + `examples/import_demo.snow`.
+Ejemplos completos: `examples/math_utils.snow`, `examples/string_utils.snow` y `examples/modules_demo.snow`. Este último prueba imports con y sin alias, y comprueba que los símbolos privados no se exportan.
 
 ---
 
@@ -343,6 +344,7 @@ match command:
         stop()
     case "status":
         status()
+    # The wildcard may appear only once and must be the final case.
     case _:
         print("Unknown command")
 ```
@@ -378,13 +380,13 @@ Import and use from another file with **dot-access syntax** `module.symbol`:
 # ========= main.snow =========
 import math_utils as m
 
-print(m.VERSION)        # 1.0.0   (✅ pub, works)
-print(m.add(2, 3))      # 5       (✅ pub, works)
-print(m.multiply(4, 5)) # 20      (✅ no modifier = pub, works)
+print(m.VERSION)        # 1.0.0   (pub, works)
+print(m.add(2, 3))      # 5       (pub, works)
+print(m.multiply(4, 5)) # 20      (no modifier = pub, works)
 
 # Priv symbols are NOT in the exported module → runtime error (not a parse error)
-print(m._SECRET)        # ❌ attribute not found: _SECRET
-print(m._helper(1, 2))  # ❌ attribute not found: _helper
+print(m._SECRET)        # error: attribute not found: _SECRET
+print(m._helper(1, 2))  # error: attribute not found: _helper
 ```
 
 Key behavior:
@@ -392,7 +394,7 @@ Key behavior:
 - **Accessing `foo.does_not_exist`** throws a runtime error: `attribute not found: does_not_exist` (it doesn't silently become `nil`).
 - **`priv` = encapsulation, not security**: the value still lives in the sub-interpreter memory; it's just not reachable via the module surface.
 
-Complete examples: `examples/math_utils.snow` + `examples/import_demo.snow`.
+Complete examples: `examples/math_utils.snow`, `examples/string_utils.snow`, and `examples/modules_demo.snow`. The last one tests aliased and unaliased imports, and verifies that private symbols are not exported.
 
 ---
 

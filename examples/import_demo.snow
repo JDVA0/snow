@@ -27,12 +27,12 @@ cli.warn("Intentando acceder a símbolos PRIVADOS desde fuera... (debe dar error
 try:
     print("  _secret_key = " + m._secret_key)
 catch e:
-    cli.error("  ✅ Como se esperaba: " + str(e))
+    cli.ok("  [OK] Como se esperaba: " + str(e))
 
 try:
     print("  _double(5)  = " + str(m._double(5)))
 catch e:
-    cli.error("  ✅ Como se esperaba: " + str(e))
+    cli.ok("  [OK] Como se esperaba: " + str(e))
 
 print()
 cli.success("Demo completada. pub = exportado, priv = encapsulado en el módulo.")

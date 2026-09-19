@@ -727,6 +727,43 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 				}
 			}
 		}
+	case OpSetIndex:
+		val, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		key, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		box, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		switch c := box.(type) {
+		case *Dict:
+			ks, ok := key.(Str)
+			if !ok {
+				return i.opErr(op, fmt.Errorf("dict key must be a string, got %s", TypeName(key)))
+			}
+			c.Set(string(ks), val)
+		case List:
+			idx, ok := key.(Int)
+			if !ok {
+				return i.opErr(op, fmt.Errorf("list index must be an int, got %s", TypeName(key)))
+			}
+			n := int64(len(c))
+			i2 := int64(idx)
+			if i2 < 0 {
+				i2 += n
+			}
+			if i2 < 0 || i2 >= n {
+				return i.opErr(op, fmt.Errorf("list index out of range: %d (len %d)", int64(idx), n))
+			}
+			c[i2] = val
+		default:
+			return i.opErr(op, fmt.Errorf("cannot index-assign to %s", TypeName(box)))
+		}
 	default:
 		return i.opErr(op, errors.New("unknown opcode"))
 	}

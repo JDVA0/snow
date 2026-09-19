@@ -42,6 +42,7 @@ const (
 	OpTrySetup
 	OpTryEnd
 	OpClose
+	OpSetIndex
 )
 
 // Op is a single VM instruction.
@@ -200,6 +201,26 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 		} else {
 			c.emit(Op{Kind: OpStoreOp, Name: t.Names[0], Num: int64(t.Op), Line: t.Line, Col: t.Col})
 		}
+	case *SetAttrStmt:
+		if err := c.expr(t.Container); err != nil {
+			return err
+		}
+		c.emit(Op{Kind: OpPushStr, Str: t.Name, Line: t.Line, Col: t.Col})
+		if err := c.expr(t.Val); err != nil {
+			return err
+		}
+		c.emit(Op{Kind: OpSetIndex, Line: t.Line, Col: t.Col})
+	case *SetIndexStmt:
+		if err := c.expr(t.Container); err != nil {
+			return err
+		}
+		if err := c.expr(t.Key); err != nil {
+			return err
+		}
+		if err := c.expr(t.Val); err != nil {
+			return err
+		}
+		c.emit(Op{Kind: OpSetIndex, Line: t.Line, Col: t.Col})
 	case *FnStmt:
 		bc := &compiler{}
 		if err := bc.stmts(t.Body, false); err != nil {

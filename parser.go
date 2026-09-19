@@ -35,6 +35,20 @@ type AssignStmt struct {
 	Type  string // list element type, e.g. "str[]" when declared typed; "" otherwise
 	Vis   string // "pub", "priv" or "" (default: pub)
 }
+type SetAttrStmt struct {
+	Pos
+	Container Expr
+	Name      string
+	Op        byte // 0 for '=', otherwise the binary op code
+	Val       Expr
+}
+type SetIndexStmt struct {
+	Pos
+	Container Expr
+	Key       Expr
+	Op        byte // 0 for '=', otherwise the binary op code
+	Val       Expr
+}
 type FnStmt struct {
 	Pos
 	Name       string
@@ -216,36 +230,38 @@ type FStrPart struct {
 	Expr   Expr
 }
 
-func (*UseStmt) stmt()    {}
-func (*AssignStmt) stmt() {}
-func (*FnStmt) stmt()     {}
-func (*ReturnStmt) stmt() {}
-func (*IfStmt) stmt()     {}
-func (*ForStmt) stmt()    {}
-func (*WhileStmt) stmt()  {}
-func (*LoopStmt) stmt()   {}
-func (*TryStmt) stmt()    {}
-func (*MatchStmt) stmt()  {}
-func (*ExprStmt) stmt()   {}
-func (*WithStmt) stmt()   {}
-func (*NumLit) expr()     {}
-func (*StrLit) expr()     {}
-func (*BoolLit) expr()    {}
-func (*NilLit) expr()     {}
-func (*NameE) expr()      {}
-func (*BinE) expr()       {}
-func (*UnE) expr()        {}
-func (*CallE) expr()      {}
-func (*IndexE) expr()     {}
-func (*SafeIndexE) expr() {}
-func (*AttrE) expr()      {}
-func (*SafeAttrE) expr()  {}
-func (*SliceE) expr()     {}
-func (*SafeChainE) expr() {}
-func (*ListLit) expr()    {}
-func (*DictLit) expr()    {}
-func (*FnExpr) expr()     {}
-func (*FStrLit) expr()    {}
+func (*UseStmt) stmt()      {}
+func (*AssignStmt) stmt()   {}
+func (*SetAttrStmt) stmt()  {}
+func (*SetIndexStmt) stmt() {}
+func (*FnStmt) stmt()       {}
+func (*ReturnStmt) stmt()   {}
+func (*IfStmt) stmt()       {}
+func (*ForStmt) stmt()      {}
+func (*WhileStmt) stmt()    {}
+func (*LoopStmt) stmt()     {}
+func (*TryStmt) stmt()      {}
+func (*MatchStmt) stmt()    {}
+func (*ExprStmt) stmt()     {}
+func (*WithStmt) stmt()     {}
+func (*NumLit) expr()       {}
+func (*StrLit) expr()       {}
+func (*BoolLit) expr()      {}
+func (*NilLit) expr()       {}
+func (*NameE) expr()        {}
+func (*BinE) expr()         {}
+func (*UnE) expr()          {}
+func (*CallE) expr()        {}
+func (*IndexE) expr()       {}
+func (*SafeIndexE) expr()   {}
+func (*AttrE) expr()        {}
+func (*SafeAttrE) expr()    {}
+func (*SliceE) expr()       {}
+func (*SafeChainE) expr()   {}
+func (*ListLit) expr()      {}
+func (*DictLit) expr()      {}
+func (*FnExpr) expr()       {}
+func (*FStrLit) expr()      {}
 
 type parser struct {
 	toks       []Tok
@@ -435,6 +451,24 @@ var assignTokens = map[TokKind]byte{
 	tQQEq:         boQQEq,
 }
 
+func boToStr(op byte) string {
+	switch op {
+	case boAdd:
+		return "+"
+	case boSub:
+		return "-"
+	case boMul:
+		return "*"
+	case boDiv:
+		return "/"
+	case boFloorDiv:
+		return "//"
+	case boMod:
+		return "%"
+	}
+	return ""
+}
+
 func (p *parser) parseSimple() (Stmt, error) {
 	vals, err := p.parseExprList()
 	if err != nil {
@@ -445,6 +479,42 @@ func (p *parser) parseSimple() (Stmt, error) {
 	}
 	if op, ok := assignTokens[p.peek().Kind]; ok {
 		eq := p.next()
+		if len(vals) == 1 {
+			switch tgt := vals[0].(type) {
+			case *AttrE:
+				rhs, err := p.parseValueList()
+				if err != nil {
+					return nil, err
+				}
+				if len(rhs) != 1 {
+					return nil, p.errf(eq, "attribute assignment expects a single value")
+				}
+				val := rhs[0]
+				if op != 0 {
+					val = &BinE{Pos: Pos{eq.Line, eq.Col}, Op: boToStr(op), X: tgt, Y: rhs[0]}
+				}
+				if err := p.lineEnd(); err != nil {
+					return nil, err
+				}
+				return &SetAttrStmt{Pos: Pos{eq.Line, eq.Col}, Container: tgt.X, Name: tgt.Name, Op: 0, Val: val}, nil
+			case *IndexE:
+				rhs, err := p.parseValueList()
+				if err != nil {
+					return nil, err
+				}
+				if len(rhs) != 1 {
+					return nil, p.errf(eq, "index assignment expects a single value")
+				}
+				val := rhs[0]
+				if op != 0 {
+					val = &BinE{Pos: Pos{eq.Line, eq.Col}, Op: boToStr(op), X: tgt, Y: rhs[0]}
+				}
+				if err := p.lineEnd(); err != nil {
+					return nil, err
+				}
+				return &SetIndexStmt{Pos: Pos{eq.Line, eq.Col}, Container: tgt.X, Key: tgt.Key, Op: 0, Val: val}, nil
+			}
+		}
 		names := make([]string, len(vals))
 		for i, v := range vals {
 			n, ok := v.(*NameE)
@@ -950,6 +1020,7 @@ func (p *parser) parseMatch() (Stmt, error) {
 	}
 	p.next()
 	ms := &MatchStmt{Pos: posOf(target), Target: target}
+	seenWildcard := false
 	for {
 		k := p.peek()
 		switch k.Kind {
@@ -966,9 +1037,15 @@ func (p *parser) parseMatch() (Stmt, error) {
 			return ms, nil
 		default:
 			if k.Kind != tIdent || k.Text != "case" {
+				if k.Kind == tIdent && k.Text == "else" {
+					return nil, p.errf(k, "'else' is not allowed in match; use 'case _:' for the default branch")
+				}
 				return nil, p.errf(k, "expected 'case' in match")
 			}
 			p.next()
+			if seenWildcard {
+				return nil, p.errf(k, "'case _' must be the last case in match")
+			}
 			var vals []Expr
 			for {
 				v, err := p.parseOr()
@@ -981,6 +1058,14 @@ func (p *parser) parseMatch() (Stmt, error) {
 					continue
 				}
 				break
+			}
+			for _, v := range vals {
+				if name, ok := v.(*NameE); ok && name.X == "_" {
+					if len(vals) != 1 {
+						return nil, p.errf(k, "'_' wildcard must be the only value in a case")
+					}
+					seenWildcard = true
+				}
 			}
 			if _, err := p.expectColon(); err != nil {
 				return nil, err

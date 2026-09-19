@@ -61,7 +61,11 @@
           <li><a href="#safe-index" data-i18n="nav_safe_index">Acceso seguro <code>?[]</code></a></li>
           <li><a href="#encadenamiento" data-i18n="nav_chain">Encadenado seguro <code>?. </code></a></li>
           <li><a href="#control" data-i18n="nav_control">Control de Flujo</a></li>
+          <li><a href="#where-clause" style="padding-left:1.5rem; font-size:.82rem;">Cláusula <code>where</code> en <code>for</code></a></li>
+          <li><a href="#with-statement" style="padding-left:1.5rem; font-size:.82rem;">Gestión de recursos <code>with</code></a></li>
           <li><a href="#funciones" data-i18n="nav_funcs">Funciones y Closures</a></li>
+          <li><a href="#visibilidad" style="padding-left:1.5rem; font-size:.82rem;"><code>pub</code> / <code>priv</code> e <code>import</code></a></li>
+          <li><a href="#asign-campos" style="padding-left:1.5rem; font-size:.82rem;">Asignación de campos <code>x.y = v</code></a></li>
           <li><a href="#nativas" data-i18n="nav_builtins">Funciones Nativas</a></li>
           <li><a href="#errores" data-i18n="nav_errors">Manejo de Errores</a></li>
         </ul>
@@ -442,8 +446,86 @@ for clave, valor in config:
 for k, v in ["a", "b"]:
     print(k, v)                     # 0 a, 1 b  (índice y elemento)</code></pre>
 
-        <h3 data-i18n="h_match">4. Sentencia match</h3>
-        <p data-i18n="p_match_desc">Compara un valor contra varios casos en un solo bloque. El primer caso que coincida ejecuta su cuerpo, <code>case _</code> es el comodín que atrapa todo lo demás:</p>
+        <h3 id="where-clause">3. Cláusula <code>where</code> en bucles <code>for</code></h3>
+        <p>Filtra elementos directamente dentro del encabezado del <code>for</code>. La condición se evalúa <em>después</em> de asignar la variable de iteración, de modo que puedes usarla directamente. Es el equivalente a un <code>if</code> anidado en la primera línea del cuerpo:</p>
+        <pre><code>nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# Números mayores a 3
+mayores = []
+for x in nums where x > 3:
+    mayores = append(mayores, x)
+print(mayores)  # [4, 5, 6, 7, 8, 9, 10]
+
+# Pares del 1 al 20
+pares = []
+for x in range(1, 21) where (x % 2) == 0:
+    pares = append(pares, x)
+
+# Filtrado de diccionarios por atributo
+users = [
+    {name: "Alice", active: true},
+    {name: "Bob",   active: false},
+    {name: "Charlie", active: true}
+]
+for u in users where u.active:
+    print("Usuario activo:", u.name)   # Alice, Charlie
+
+# Combinando varias condiciones
+for u in users where u.active and len(u.name) > 4:
+    print(u.name)  # Charlie
+</code></pre>
+        <p class="notice-box"><span class="notice-icon" aria-hidden="true">i</span> El <code>where</code> se evalúa en cada iteración justo después de asignar la variable. Si la condición es falsa, el cuerpo del bucle se omite para ese elemento. Puedes combinarlo con <code>for k, v in</code> y con cualquier expresión booleana de Snow.</p>
+
+        <h3 data-i18n="h_while">4. Bucle while con break y continue</h3>
+        <pre><code>cuenta = 0
+while cuenta < 10:
+    cuenta += 1
+    if cuenta == 3:
+        continue
+    if cuenta == 6:
+        break
+    print("Numero:", cuenta)</code></pre>
+
+        <h3 id="with-statement">5. Gestión automática de recursos: <code>with</code></h3>
+        <p>El <code>with</code> recibe una expresión que devuelve un <em>recurso</em> (normalmente un diccionario con un método <code>close()</code>). Al entrar en el bloque, opcionalmente le asigna un nombre con <code>as</code>. Al salir (por cualquier camino: fin normal, <code>return</code>, <code>break</code> o error), Snow invoca automáticamente <code>.close()</code> sobre el recurso, si existe.</p>
+        <pre><code># Helper que crea un "recurso" con estado
+make_db = fn(name):
+    state = {opened: true, closed: false}
+
+    close_fn = fn():
+        if not state.closed:
+            state.closed = true
+            state.opened = false
+            print("✅ BD '" + name + "' cerrada.")
+
+    return {
+        name: name,
+        state: state,
+        query: fn(sql): return "filas de " + sql,
+        close: close_fn
+    }
+
+# Bloque with: al finalizar cierra automáticamente
+with make_db("usuarios") as db:
+    print("Dentro del with:", db.state.opened)  # true
+    filas = db.query("SELECT * FROM users")
+
+print("Fuera del with:", db_state.closed)  # ✅ BD cerrada. true
+
+# También puedes usar "with" sin "as" si no necesitas el binding
+with make_db("temporal"):
+    print("Bloque ejecutado; sin binding as")
+# Aquí ya se llamó a close()
+
+# Si el recurso NO tiene método close(), no pasa nada: es un no-op
+objeto_sin_close = {msg: "soy un dict normal"}
+with objeto_sin_close:
+    print("Sin close: nada ocurre")
+</code></pre>
+        <p class="notice-box"><span class="notice-icon" aria-hidden="true">+</span> <strong>Garantía de <code>close()</code>:</strong> el método se invoca incluso si el cuerpo lanza un error (el <code>catch</code> externo lo recibe después del cierre). Si el recurso no define <code>close</code>, <code>with</code> se comporta como un bloque normal sin error adicional.</p>
+
+        <h3 data-i18n="h_match">6. Sentencia match</h3>
+        <p data-i18n="p_match_desc">Compara un valor contra varios casos en un solo bloque. El primer caso que coincida ejecuta su cuerpo. <code>case _</code> es el comodín, debe ser el único valor del caso y debe ir al final:</p>
         <pre><code>match command:
     case "start":
         start()
@@ -453,16 +535,6 @@ for k, v in ["a", "b"]:
         status()
     case _:
         print("Unknown command")</code></pre>
-
-        <h3 data-i18n="h_while">3. Bucle while con break y continue</h3>
-        <pre><code>cuenta = 0
-while cuenta < 10:
-    cuenta += 1
-    if cuenta == 3:
-        continue
-    if cuenta == 6:
-        break
-    print("Numero:", cuenta)</code></pre>
       </section>
 
       <!-- Funciones -->
@@ -510,6 +582,133 @@ try:
     sumar("x", 1)
 catch err:
     print(err)   # parameter 'a': expected int, got str</code></pre>
+      </section>
+
+      <!-- Visibilidad pub/priv -->
+      <section id="visibilidad" class="doc-section">
+        <h2>Visibilidad de símbolos: <code>pub</code>, <code>priv</code> e <code>import</code></h2>
+
+        <h3>1. Regla de visibilidad: <code>pub</code> por defecto</h3>
+        <p>En Snow, <strong>todos los símbolos son públicos por defecto</strong>. Cualquier <code>fn</code> o variable declarada en un archivo se exporta cuando otro archivo lo <code>import</code>. Si quieres ocultar un símbolo y que <em>solo</em> sea visible dentro del mismo archivo (y nunca se exporte), márcalo con <code>priv</code>. El modificador <code>pub</code> existe para ser explícito, pero es el comportamiento por defecto.</p>
+        <pre><code># ============ math_utils.snow ============
+
+# Público (implícito): se exporta
+version = "1.2.0"
+
+# Público (explícito con pub): se exporta
+pub fn add(a, b):
+    return a + b
+
+# Público: se exporta (pub es el default)
+pub fn subtract(a, b):
+    return a - b
+
+# Privado: NO se exporta. Solo visible DENTRO de math_utils.snow
+priv _secret_key = "abc-123-xyz-789"
+
+# Privado: no se exporta
+priv fn _helper(x):
+    return x * 2
+
+# Esta fn SÍ se exporta (es pública por defecto)
+# y PERO puede usar _helper y _secret_key internamente
+fn double(x):
+    return _helper(x)
+</code></pre>
+
+        <h3>2. Importar módulos con <code>import</code> y alias con <code>as</code></h3>
+        <p>Para cargar un archivo <code>.snow</code> como módulo, usa <code>import</code>. Snow busca el archivo relativo al directorio del programa importador. Opcionalmente puedes darle un alias con <code>as</code>:</p>
+        <pre><code># ============ app.snow ============
+
+# Importa math_utils.snow con alias "math"
+import math_utils as math
+
+print(math.version)        # "1.2.0"
+print(math.add(3, 4))      # 7
+print(math.subtract(8, 3)) # 5
+print(math.double(10))     # 20 (usa _helper internamente, pero no podemos llamarlo)
+
+# Intentar acceder a símbolos privados → error en runtime
+try:
+    print(math._secret_key)
+catch e:
+    print("Esperado:", e)   # attribute not found: _secret_key
+
+try:
+    print(math._helper(5))
+catch e:
+    print("Esperado:", e)   # attribute not found: _helper
+</code></pre>
+
+        <p class="notice-box"><span class="notice-icon" aria-hidden="true">#</span> <strong>Semántica de <code>priv</code>:</strong> el modificador <code>priv</code> se trata como una herramienta de organización de código, no como un mecanismo de seguridad fuerte. Marca símbolos como "detalles internos" y Snow simplemente los <em>omite del diccionario exportado</em> del módulo durante el <code>import</code>. Dentro del mismo archivo, un símbolo <code>priv</code> es accesible normalmente por cualquier función.</p>
+      </section>
+
+      <!-- Asignación de campos -->
+      <section id="asign-campos" class="doc-section">
+        <h2>Asignación de campos y elementos: <code>x.y = v</code> y <code>x[k] = v</code></h2>
+
+        <h3>1. Asignar atributos a diccionarios (<code>dict.campo = valor</code>)</h3>
+        <p>Además de crear diccionarios con literales, puedes agregar o sobrescribir claves usando la notación de punto. Es exactamente equivalente a acceder con corchetes usando una cadena:</p>
+        <pre><code>config = {puerto: 8080, modo: "dev"}
+
+# Sobrescribir un campo existente
+config.puerto = 9090
+config.modo   = "produccion"
+
+# Agregar un campo NUEVO que no estaba en el literal
+config.debug = false
+config.rutas = ["/", "/api", "/admin"]
+
+print(config.puerto)  # 9090
+print(config.debug)   # false
+print(config.rutas)   # [/, /api, /admin]
+
+# Dentro de closures — común para "recursos" con estado:
+make_counter = fn():
+    state = {valor: 0}
+
+    inc = fn():
+        state.valor = state.valor + 1   # ✅ asignación sobre campo capturado
+
+    get = fn():
+        return state.valor
+
+    return {inc: inc, get: get}
+
+c = make_counter()
+c.inc()
+c.inc()
+print(c.get())   # 2
+</code></pre>
+
+        <h3>2. Asignar elementos de listas y cadenas (<code>lista[k] = valor</code>)</h3>
+        <p>Para listas puedes sobrescribir elementos por índice. Los índices negativos cuentan desde el final (<code>-1</code> es el último elemento). Asignar fuera de rango es un error capturable:</p>
+        <pre><code>nums = [10, 20, 30, 40]
+
+nums[0]  = 100     # primer elemento
+nums[-1] = 999     # último elemento
+print(nums)        # [100, 20, 30, 999]
+
+# Índice fuera de rango → error
+try:
+    nums[10] = 500
+catch e:
+    print("Esperado:", e)   # list index out of range: 10 (len 4)
+</code></pre>
+
+        <h3>3. Operadores compuestos (<code>+=</code>, <code>-=</code>, etc.)</h3>
+        <p>La asignación de campos también admite los operadores compuestos habituales. Internamente Snow desugariza <code>x.y += n</code> → <code>x.y = x.y + n</code>, de modo que funciona para cualquier operador binario compatible:</p>
+        <pre><code>stats = {visitas: 0, total: 100.5}
+
+stats.visitas += 1      # stats.visitas = stats.visitas + 1
+stats.visitas += 1
+stats.total   *= 2      # stats.total = stats.total * 2
+
+print(stats.visitas)   # 2
+print(stats.total)     # 201.0
+</code></pre>
+
+        <p class="notice-box">ℹ️ <strong>Soportados en asignación compuesta:</strong> <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>//=</code>, <code>%=</code> y <code>??=</code>. Se pueden usar tanto en asignación de atributos como de índice.</p>
       </section>
 
       <!-- Nativas -->
@@ -879,7 +1078,7 @@ if fs.exists(archivo):
           </thead>
           <tbody>
             <tr><td><code>cli.parse([args])</code></td><td data-i18n="cli_parse">Analiza los argumentos pasados en la terminal. Devuelve un diccionario <code>{flags: {...}, args: [...]}</code>.</td></tr>
-            <tr><td><code>cli.info(s)</code>, <code>cli.success(s)</code><br><code>cli.warn(s)</code>, <code>cli.error(s)</code></td><td data-i18n="cli_logs">Muestra mensajes en consola con etiquetas limpias: <code>[INFO]</code>, <code>[OK]</code>, <code>[WARN]</code>, <code>[ERR]</code>.</td></tr>
+            <tr><td><code>cli.info(s)</code>, <code>cli.success(s)</code>, <code>cli.ok(s)</code><br><code>cli.warn(s)</code>, <code>cli.error(s)</code></td><td data-i18n="cli_logs">Muestra mensajes en consola con etiquetas limpias: <code>[INFO]</code>, <code>[OK]</code>, <code>[WARN]</code>, <code>[ERR]</code>.</td></tr>
             <tr><td><code>cli.table(cabeceras, filas)</code></td><td data-i18n="cli_table">Dibuja una tabla con columnas alineadas automáticamente según el ancho de los datos.</td></tr>
             <tr><td><code>cli.box(titulo, contenido)</code></td><td data-i18n="cli_box">Dibuja un cuadro delimitador con bordes de línea para resaltar títulos o resúmenes.</td></tr>
             <tr><td><code>cli.red(s)</code>, <code>cli.green(s)</code>, <code>cli.yellow(s)</code>, <code>cli.bold(s)</code>...</td><td data-i18n="cli_colors_desc">Colores y estilos ANSI rápidos para texto en terminal.</td></tr>
@@ -1503,7 +1702,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         fs_mkdir: "Crea un directorio (incluyendo directorios padres si no existen).", h_fs_ex: "Ejemplo de uso de fs",
         p_mod_cli_desc: "Herramientas para escribir aplicaciones de terminal, analizar argumentos y mostrar datos en tablas.",
         cli_parse: "Analiza los argumentos pasados en la terminal. Devuelve un diccionario <code>{flags: {...}, args: [...]}</code>. Ejemplo: <code>--puerto 8080 --activo run</code> genera <code>flags.puerto = \"8080\"</code>, <code>flags.activo = true</code> y <code>args = [\"run\"]</code>.",
-        cli_logs: "Muestra mensajes en consola con etiquetas limpias: <code>[INFO]</code>, <code>[OK]</code>, <code>[WARN]</code>, <code>[ERR]</code>.",
+        cli_logs: "Muestra mensajes en consola con etiquetas limpias: <code>cli.info</code> ⇒ <code>[INFO]</code>, <code>cli.success</code> ⇒ <code>[OK]</code>, <code>cli.ok</code> ⇒ verde sin prefijo, <code>cli.warn</code> ⇒ <code>[WARN]</code>, <code>cli.error</code> ⇒ <code>[ERR]</code>.",
         cli_table: "Dibuja una tabla con columnas alineadas automáticamente según el ancho de los datos.",
         cli_box: "Dibuja un cuadro delimitador con bordes de línea para resaltar títulos o resúmenes.", h_cli_ex: "Ejemplo de uso de cli",
         h_ex_crud: "Ejemplo Completo 1: API REST CRUD en Memoria", p_ex_crud_desc: "Un servicio web completo con listado, consulta por ID y creación con persistencia en lista:",
@@ -1628,7 +1827,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         h_control: "Control Flow", h_if: "1. Conditional if / elif / else",
         h_for: "2. for Loop", p_for_desc: "Iterates through items in a list:",
         p_for_dict_desc: "With one variable it iterates a dict's keys (or a string's characters). With two variables it gets key and value:",
-        h_match: "4. match statement", p_match_desc: "Compares a value against several cases in a single block. The first case that matches runs its body, and <code>case _</code> is the wildcard that catches everything else:",
+        h_match: "4. match statement", p_match_desc: "Compares a value against several cases in a single block. The first case that matches runs its body. <code>case _</code> is the wildcard; it must be the only case value and must be last:",
         h_while: "3. while Loop with break and continue",
         h_funcs: "Functions & Lambdas",
         h_fn_std: "1. Standard functions with blocks (<code>fn</code>)",
@@ -1704,7 +1903,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         fs_mkdir: "Creates a directory (including parent directories).", h_fs_ex: "fs usage example",
         p_mod_cli_desc: "Utilities to write terminal applications, parse arguments, and display tables.",
         cli_parse: "Parses arguments passed in terminal. Returns <code>{flags: {...}, args: [...]}</code>. Example: <code>--port 8080 --active run</code> produces <code>flags.port = \"8080\"</code>, <code>flags.active = true</code>, and <code>args = [\"run\"]</code>.",
-        cli_logs: "Outputs messages with clean tags: <code>[INFO]</code>, <code>[OK]</code>, <code>[WARN]</code>, <code>[ERR]</code>.",
+        cli_logs: "Outputs messages with clean tags: <code>cli.info</code> ⇒ <code>[INFO]</code>, <code>cli.success</code> ⇒ <code>[OK]</code>, <code>cli.ok</code> ⇒ green without prefix, <code>cli.warn</code> ⇒ <code>[WARN]</code>, <code>cli.error</code> ⇒ <code>[ERR]</code>.",
         cli_table: "Renders a text table with columns automatically aligned to data width.",
         cli_box: "Draws a line-bordered box to highlight titles or summaries.", h_cli_ex: "cli usage example",
         h_ex_crud: "Full Example 1: In-Memory REST CRUD API", p_ex_crud_desc: "A complete web service with listing, lookup by ID, and creation with persistence in list:",
@@ -1735,6 +1934,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         const key = el.getAttribute('data-i18n-ph');
         if (dict[key]) el.placeholder = dict[key];
       });
+      if (typeof highlightCode === 'function') highlightCode();
       localStorage.setItem('snow_lang', lang);
     }
 
@@ -1770,7 +1970,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
             f ? '<span class="syn-keyword">f</span><span class="syn-string">' + esc(s) + '</span>'
               : '<span class="syn-string">' + esc(m) + '</span>');
           code = code.replace(/\b(\d+(\.\d+)?|0x[0-9a-fA-F]+|0b[01]+|0o[0-7]+)\b/g, '<span class="syn-number">$&</span>');
-          code = code.replace(/\b(using|fn|return|if|elif|else|for|while|break|continue|try|catch|match|case|and|or|not|in)\b/g, '<span class="syn-keyword">$&</span>');
+          code = code.replace(/\b(using|import|pub|priv|as|fn|return|if|elif|else|for|while|break|continue|try|catch|match|case|and|or|not|in)\b/g, '<span class="syn-keyword">$&</span>');
           code = code.replace(/\b(true|false|nil)\b/g, '<span class="syn-bool">$&</span>');
           code = code.replace(/\b(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|fail|str|int|float|type)\b(?=\()/g, '<span class="syn-func">$&</span>');
           code = code.replace(/\b(api|sys|fs|cli|http|db|env|csv|json|time|crypto|task|input)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword">$1</span>.<span class="syn-func">$2</span>');

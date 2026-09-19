@@ -136,6 +136,12 @@ func stmtLine(s Stmt) int {
 		return t.Line
 	case *ExprStmt:
 		return t.Line
+	case *WithStmt:
+		return t.Line
+	case *SetAttrStmt:
+		return t.Line
+	case *SetIndexStmt:
+		return t.Line
 	}
 	return 0
 }
@@ -170,6 +176,26 @@ func (f *formatter) stmt(s Stmt, indent int) {
 			}
 			f.expr(v, 0)
 		}
+		f.b.WriteByte('\n')
+	case *SetAttrStmt:
+		f.ind(indent)
+		f.expr(t.Container, 0)
+		f.b.WriteByte('.')
+		f.b.WriteString(t.Name)
+		f.b.WriteByte(' ')
+		f.b.WriteString(assignOp(t.Op))
+		f.b.WriteByte(' ')
+		f.expr(t.Val, 0)
+		f.b.WriteByte('\n')
+	case *SetIndexStmt:
+		f.ind(indent)
+		f.expr(t.Container, 0)
+		f.b.WriteByte('[')
+		f.expr(t.Key, 0)
+		f.b.WriteString("] ")
+		f.b.WriteString(assignOp(t.Op))
+		f.b.WriteByte(' ')
+		f.expr(t.Val, 0)
 		f.b.WriteByte('\n')
 	case *FnStmt:
 		f.ind(indent)

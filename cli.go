@@ -29,6 +29,7 @@ func newCLIModule(i *Interp, name string) *Module {
 	// Status messages
 	m.Dict.Set("info", Native(cliInfo))
 	m.Dict.Set("success", Native(cliSuccess))
+	m.Dict.Set("ok", Native(cliOk))
 	m.Dict.Set("warn", Native(cliWarn))
 	m.Dict.Set("error", Native(cliError))
 
@@ -114,6 +115,15 @@ func cliSuccess(i *Interp, args []Val) ([]Val, error) {
 		parts[k] = SnowStr(a)
 	}
 	fmt.Fprintf(i.out, "\033[32;1m[OK]\033[0m %s\n", strings.Join(parts, " "))
+	return []Val{}, nil
+}
+
+func cliOk(i *Interp, args []Val) ([]Val, error) {
+	parts := make([]string, len(args))
+	for k, a := range args {
+		parts[k] = SnowStr(a)
+	}
+	fmt.Fprintf(i.out, "\033[32m%s\033[0m\n", strings.Join(parts, " "))
 	return []Val{}, nil
 }
 
