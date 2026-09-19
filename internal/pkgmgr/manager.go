@@ -3,6 +3,7 @@ package pkgmgr
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,7 +16,7 @@ import (
 	"golang.org/x/term"
 )
 
-const officialRepoURL = "https://raw.githubusercontent.com/JDVA0/snow/main/repo"
+const officialAPIURL = "https://api.github.com/repos/JDVA0/snow/commits/main"
 
 type Package struct {
 	ID, Name, Version, Description, License, Repository, Keywords, Entry, Path string
@@ -233,9 +234,19 @@ func status(label, message, color string) {
 }
 
 func fetch(path string) ([]byte, error) {
-	url := officialRepoURL + "/" + strings.TrimPrefix(path, "/")
+	revision, err := currentRevision()
+	if err != nil {
+		return nil, err
+	}
+	url := "https://raw.githubusercontent.com/JDVA0/snow/" + revision + "/repo/" + strings.TrimPrefix(path, "/") + fmt.Sprintf("?v=%d", time.Now().UnixNano())
 	client := &http.Client{Timeout: 20 * time.Second}
-	resp, err := client.Get(url)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("download %s: %w", url, err)
+	}
+	request.Header.Set("Cache-Control", "no-cache")
+	request.Header.Set("User-Agent", "snowman-package-manager")
+	resp, err := client.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("download %s: %w", url, err)
 	}
@@ -244,6 +255,34 @@ func fetch(path string) ([]byte, error) {
 		return nil, fmt.Errorf("download %s: %s", url, resp.Status)
 	}
 	return io.ReadAll(resp.Body)
+}
+
+func currentRevision() (string, error) {
+	client := &http.Client{Timeout: 20 * time.Second}
+	request, err := http.NewRequest(http.MethodGet, officialAPIURL, nil)
+	if err != nil {
+		return "", err
+	}
+	request.Header.Set("Accept", "application/vnd.github+json")
+	request.Header.Set("User-Agent", "snowman-package-manager")
+	resp, err := client.Do(request)
+	if err != nil {
+		return "", fmt.Errorf("resolve official repository revision: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("resolve official repository revision: %s", resp.Status)
+	}
+	var commit struct {
+		SHA string `json:"sha"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&commit); err != nil {
+		return "", fmt.Errorf("decode official repository revision: %w", err)
+	}
+	if commit.SHA == "" {
+		return "", fmt.Errorf("official repository returned an empty revision")
+	}
+	return commit.SHA, nil
 }
 
 func localRead(path string) ([]byte, error) {
