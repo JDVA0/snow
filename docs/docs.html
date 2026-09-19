@@ -150,6 +150,59 @@ go build -o snowman ./cmd/snowman
 sudo mv snowman /usr/local/bin/</code></pre>
       </section>
 
+      <section id="lsp" class="doc-section">
+        <h2>LSP y extensión de VS Code</h2>
+        <p>El servidor LSP de Snow usa JSON-RPC estándar sobre stdin/stdout con
+          cabeceras <code>Content-Length</code>. Publica diagnósticos de sintaxis
+          y del analizador estático, y ofrece autocompletado para palabras clave,
+          funciones, módulos y miembros de módulos.</p>
+        <p>Por ejemplo, después de <code>using http</code>, escribir
+          <code>http.</code> sugiere <code>get</code>, <code>post</code>,
+          <code>put</code>, <code>delete</code>, <code>patch</code> y
+          <code>request</code>.</p>
+        <pre><code>cd LSP
+go build -o snow-lsp ./server
+cd vscode_extension
+pnpm install
+pnpm run compile
+npx @vscode/vsce package --no-dependencies
+code --install-extension snow-0.1.0.vsix --force</code></pre>
+        <p>La extensión usa <code>LSP/snow-lsp</code> relativo al workspace por
+          defecto. Puedes configurar <code>snow.lsp.path</code> para usar otro
+          ejecutable y <code>snow.lsp.enabled</code> para desactivar el cliente.</p>
+        <p>La documentación técnica completa está en
+          <a href="../LSP/README.md">LSP/README.md</a> y
+          <a href="../LSP/USAGE.md">LSP/USAGE.md</a>.</p>
+      </section>
+
+      <section id="features-recientes" class="doc-section">
+        <h2>Funciones recientes del lenguaje</h2>
+        <p><code>const</code> define constantes inmutables. Si se intenta
+          reasignar una constante, Snow informa un error en tiempo de ejecución.</p>
+        <pre><code>const PORT = 8080
+# PORT = 9000  # error: cannot reassign constant "PORT"</code></pre>
+        <p>El bloque <code>always</code> se ejecuta después del camino normal de
+          <code>try</code> o después de <code>catch</code>:</p>
+        <pre><code>try:
+    fail("request failed")
+catch err:
+    print(err)
+always:
+    print("cleanup")</code></pre>
+        <p>Las expresiones ternarias tienen la forma
+          <code>value if condition else other_value</code>. También puedes usar
+          <code>enumerate()</code> para obtener índice y valor, y
+          <code>zip()</code> para combinar dos listas:</p>
+        <pre><code>label = "open" if enabled else "closed"
+for index, value in enumerate(items):
+    print(index, value)
+for left, right in zip(ids, names):
+    print(left, right)</code></pre>
+        <p>Para revisar paquetes instalados que tienen versiones más nuevas en
+          el índice oficial:</p>
+        <pre><code>snowball outdated</code></pre>
+      </section>
+
       <!-- Ejecucion & REPL -->
       <section id="ejecucion" class="doc-section">
         <h2 data-i18n="h_run">Ejecución y CLI</h2>

@@ -1,121 +1,69 @@
-# How to Use the Snow LSP Server
+# Using the Snow LSP
 
-## What is an LSP Server?
+The Snow LSP is a long-running editor service. An editor starts `snow-lsp` as
+a subprocess and exchanges JSON-RPC messages over stdin/stdout using standard
+`Content-Length` framing.
 
-The Snow LSP Server is not a standalone executable that you run directly on files. Instead, it's a **Language Server Protocol** server that communicates with editor clients (like VS Code, Neovim, IntelliJ, etc.) through JSON-RPC over stdin/stdout.
+## Recommended setup: VS Code
 
-## Correct Usage
-
-### 1. With Editor Clients (Recommended)
-
-The LSP server is designed to be used with editor clients that support LSP:
-
-#### VS Code
-You would need to create a VS Code extension that:
-1. Starts the `snow-lsp` server as a subprocess
-2. Sends LSP requests (initialize, textDocument/didOpen, etc.)
-3. Receives and displays diagnostics, completions, etc.
-
-#### Neovim
-With `nvim-lspconfig`, you would configure:
-```lua
-require('lspconfig').snow_lsp.setup {
-  cmd = { "/path/to/snow-lsp" },
-  filetypes = { "snow" },
-  root_dir = function() return vim.loop.cwd() end,
-}
-```
-
-#### Other Editors
-Similar configurations exist for:
-- Emacs (with `lsp-mode`)
-- Sublime Text (with LSP package)
-- IntelliJ (with plugin development)
-
-### 2. For Testing
-
-#### Manual Testing
-Run the provided example client:
-```bash
-cd LSP
-go run client_example.go
-```
-
-This demonstrates the LSP protocol communication flow.
-
-#### Unit Tests
-Run the test suite:
-```bash
-cd LSP
-go test ./test
-```
-
-## How It Works
-
-1. **Editor starts the LSP server** as a subprocess
-2. **Editor sends initialization request** to the server
-3. **Server responds with capabilities** (what features it supports)
-4. **Editor sends document events** (didOpen, didChange, didClose)
-5. **Server analyzes the code** and sends back diagnostics
-6. **Editor displays the diagnostics** to the user
-
-## Example Communication Flow
-
-```
-Editor                    LSP Server
-  |                           |
-  |--- initialize --------->  |
-  |<-- capabilities ---------|
-  |                           |
-  |--- textDocument/didOpen ->|
-  |   (sends file content)    |
-  |                           |
-  |                           |
-  |--- textDocument/didChange->|
-  |   (sends updated content) |
-  |                           |
-  |<-- diagnostics -----------|
-  |   (errors, warnings)      |
-  |                           |
-  |--- shutdown ------------>|
-  |--- exit ----------------->|
-```
-
-## Current Capabilities (Phase 1)
-
-The current implementation supports:
-- Document synchronization (open, change, close)
-- Basic syntax error detection
-- Static analysis (undefined variables, unused variables)
-- Diagnostic reporting
-
-## Next Steps
-
-To make this usable in practice, you would need to:
-
-1. **Create editor extensions** for your preferred editor
-2. **Implement more LSP features** (completion, hover, go-to-definition)
-3. **Add language syntax highlighting** to editors
-4. **Test with real projects**
-
-## Testing with Real Files
-
-To test the LSP server with real Snow files, use the provided client example and modify the `textDocument.content` in `client_example.go` to point to your actual files.
-
-## Building the Server
+From the repository root:
 
 ```bash
 cd LSP
 go build -o snow-lsp ./server
+
+cd vscode_extension
+pnpm install
+pnpm run compile
+npx @vscode/vsce package --no-dependencies
+code --install-extension snow-0.1.0.vsix --force
 ```
 
-The resulting `snow-lsp` binary is what editor clients would execute.
+Open a `.snow` file and reload VS Code if the extension was already installed.
+The extension starts `LSP/snow-lsp` relative to the workspace by default. For
+another location, set `snow.lsp.path` to an executable file. Set
+`snow.lsp.enabled` to `false` to disable the client.
 
-## Note on Direct Execution
+## Completion
 
-Running `./snow-lsp file.snow` directly won't work because:
-- LSP servers communicate via JSON-RPC, not command-line arguments
-- They expect to receive structured JSON requests over stdin
-- They need to run continuously as a background process
+Completion is requested automatically after `.`, `:`, or a space. For example:
 
-The LSP server is designed to be a **service** that editors connect to, not a **tool** that you run directly on files.
+```snow
+using http
+
+response = http.
+```
+
+Typing `http.` offers `get`, `post`, `put`, `delete`, `patch`, and `request`.
+The server also offers members for the other built-in modules, plus language
+keywords, built-ins, and constants.
+
+## Diagnostics
+
+Diagnostics are published after `didOpen` and `didChange`. They include parser
+errors and static checker findings such as undefined names, unused variables,
+unreachable code, and unknown modules.
+
+## Build and test the server
+
+```bash
+cd LSP
+go test ./analyzer ./protocol ./server ./test
+go build -o snow-lsp ./server
+```
+
+The root project can be tested with:
+
+```bash
+go test ./...
+```
+
+Do not run `./snow-lsp file.snow`: LSP servers receive document text from the
+editor, not source filenames as positional arguments.
+
+## Other editors
+
+Editors that support custom LSP commands can launch the binary with no
+arguments, use language/file type `snow`, and send full document synchronization
+(`openClose: true`, `change: 1`). The server currently supports completion and
+diagnostics; hover, navigation, formatting, and rename are not implemented.

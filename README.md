@@ -46,6 +46,23 @@ Snow es un lenguaje de programación simple, directo y conciso, diseñado espec�
 - **Gestión automática de recursos (`with`):** `with abrir_recurso() as r:` libera el recurso (llama `r.close()`) automáticamente al salir del bloque.
 - **Composición:** Los bloques `with`, filtros `where` y `import` de módulos con `pub/priv` funcionan juntos de forma natural.
 
+### Funciones recientes
+
+- **Constantes con `const`:** `const PORT = 8080` marca un valor como inmutable y una reasignación produce un error en tiempo de ejecución.
+- **Bloque `always`:** puede seguir a `try` / `catch` y se ejecuta tanto después del camino normal como después del bloque de captura.
+- **Expresión ternaria:** `estado = "open" if activo else "closed"` devuelve uno de dos valores sin un bloque `if`.
+- **`enumerate()` y `zip()`:** `enumerate(lista)` produce pares índice-valor y `zip(a, b)` combina dos listas hasta la más corta.
+- **`snowball outdated`:** muestra paquetes bloqueados que tienen una versión más nueva en el índice oficial.
+
+```python
+const LIMIT = 2
+for index, value in enumerate(["a", "b"]):
+    print(index, value)
+
+pairs = zip([1, 2], ["one", "two"])
+label = "ready" if len(pairs) == LIMIT else "empty"
+```
+
 ### Instalación
 
 #### Módulo en Go
@@ -60,6 +77,28 @@ cd snow
 go build -o snowman ./cmd/snowman
 sudo mv snowman /usr/local/bin/
 ```
+
+#### LSP y extensión de VS Code
+
+Snow incluye un servidor LSP con diagnósticos de sintaxis y análisis estático,
+autocompletado de palabras clave, funciones y módulos. También reconoce los
+miembros de módulos: después de `using http`, escribir `http.` sugiere
+`get`, `post`, `put`, `delete`, `patch` y `request`.
+
+```bash
+cd LSP
+go build -o snow-lsp ./server
+cd vscode_extension
+pnpm install
+pnpm run compile
+npx @vscode/vsce package --no-dependencies
+code --install-extension snow-0.1.0.vsix --force
+```
+
+La extensión usa `LSP/snow-lsp` relativo al workspace por defecto. Se puede
+configurar otra ruta con `snow.lsp.path` y desactivar el cliente con
+`snow.lsp.enabled`. La documentación completa está en [LSP/README.md](LSP/README.md)
+y [LSP/USAGE.md](LSP/USAGE.md).
 
 ### Ejemplo rápido: Servidor API (`api.snow`)
 
@@ -116,6 +155,20 @@ match command:
 Ejecutar:
 ```bash
 snowman app.snow
+```
+
+### Destructuring y acceso seguro
+
+Las listas y diccionarios se pueden desempaquetar directamente:
+
+```python
+values = [10, 20]
+[first, second] = values
+
+person = {name: "Ada", age: 36}
+{name, age} = person
+
+display_name = person?.name ?? "anonymous"
 ```
 
 ### Visibilidad `pub` / `priv` en módulos
@@ -375,6 +428,8 @@ Snow is a simple, straightforward, and concise programming language designed to 
 - **`where` filter inside `for`:** `for x in list where cond:` filters elements inline without a nested `if`.
 - **Automatic resource management (`with`):** `with open_resource() as r:` calls `r.close()` automatically at block end (cleanup guaranteed, even if block returns).
 - **Composable:** `with` blocks, `where` filters and `pub`/`priv` modules work together seamlessly out of the box.
+- **Recent language features:** `const` immutable bindings, `always` cleanup blocks after `try`/`catch`, ternary expressions (`value if condition else other_value`), and `enumerate()` / `zip()` list helpers.
+- **Package updates:** `snowball outdated` reports locked packages with newer versions in the official registry.
 
 ### Installation
 
