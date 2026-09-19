@@ -35,6 +35,7 @@ type AssignStmt struct {
 	Vals  []Expr
 	Type  string // declared type, e.g. "str", "str[]"; "" keeps the variable dynamic
 	Vis   string // "pub", "priv" or "" (default: pub)
+	Const bool
 }
 type SetAttrStmt struct {
 	Pos
@@ -97,6 +98,7 @@ type TryStmt struct {
 	TryBody   []Stmt
 	CatchVar  string
 	CatchBody []Stmt
+	Always    []Stmt
 }
 type MatchStmt struct {
 	Pos
@@ -110,6 +112,10 @@ type MatchCase struct {
 type ExprStmt struct {
 	Pos
 	X Expr
+}
+type CondE struct {
+	Pos
+	Yes, Cond, No Expr
 }
 
 type NumLit struct {
@@ -244,6 +250,7 @@ func (*LoopStmt) stmt()     {}
 func (*TryStmt) stmt()      {}
 func (*MatchStmt) stmt()    {}
 func (*ExprStmt) stmt()     {}
+func (*CondE) expr()        {}
 func (*WithStmt) stmt()     {}
 func (*NumLit) expr()       {}
 func (*StrLit) expr()       {}
@@ -412,6 +419,18 @@ func (p *parser) parseStmt() (Stmt, error) {
 			return p.parseImport()
 		case "pub", "priv":
 			return p.parseVisStmt(k.Text)
+		case "const":
+			p.next()
+			s, err := p.parseSimple()
+			if err != nil {
+				return nil, err
+			}
+			a, ok := s.(*AssignStmt)
+			if !ok || a.Op != 0 {
+				return nil, p.errf(k, "const requires a simple assignment")
+			}
+			a.Const = true
+			return a, nil
 		case "fn":
 			return p.parseFn()
 		case "return":
@@ -1119,7 +1138,18 @@ func (p *parser) parseTry() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &TryStmt{Pos{st.Line, st.Col}, tryBody, catchVar, catchBody}, nil
+	var always []Stmt
+	if p.peek().Kind == tIdent && p.peek().Text == "always" {
+		p.next()
+		if _, err := p.expectColon(); err != nil {
+			return nil, err
+		}
+		always, err = p.parseSuite()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &TryStmt{Pos: Pos{st.Line, st.Col}, TryBody: tryBody, CatchVar: catchVar, CatchBody: catchBody, Always: always}, nil
 }
 
 func (p *parser) parseWith() (Stmt, error) {
@@ -1217,6 +1247,22 @@ func (p *parser) parseOr() (Expr, error) {
 			return nil, err
 		}
 		l = &BinE{Pos{posLine(l), posCol(l)}, "or", l, r}
+	}
+	if p.peek().Kind == tIdent && p.peek().Text == "if" {
+		p.next()
+		cond, err := p.parseOr()
+		if err != nil {
+			return nil, err
+		}
+		if p.peek().Kind != tIdent || p.peek().Text != "else" {
+			return nil, p.errf(p.peek(), "ternary expression expects 'else'")
+		}
+		p.next()
+		no, err := p.parseOr()
+		if err != nil {
+			return nil, err
+		}
+		return &CondE{Pos: Pos{posLine(l), posCol(l)}, Yes: l, Cond: cond, No: no}, nil
 	}
 	return l, nil
 }
@@ -1610,7 +1656,7 @@ func (p *parser) parsePrimary() (Expr, error) {
 		case "nil":
 			p.next()
 			return &NilLit{Pos{k.Line, k.Col}}, nil
-		case "and", "or", "not", "in", "using", "import", "pub", "priv", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue", "try", "catch", "match", "case", "where", "with":
+		case "and", "or", "not", "in", "using", "import", "pub", "priv", "const", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue", "try", "catch", "always", "match", "case", "where", "with":
 			return nil, p.errf(k, "unexpected %q", k.Text)
 		}
 		p.next()
@@ -1718,7 +1764,7 @@ func exprStart(k Tok) bool {
 
 func isReserved(w string) bool {
 	switch w {
-	case "using", "import", "pub", "priv", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not", "try", "catch", "match", "case", "where", "with":
+	case "using", "import", "pub", "priv", "const", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not", "try", "catch", "always", "match", "case", "where", "with":
 		return true
 	}
 	return false

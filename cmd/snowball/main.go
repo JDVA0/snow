@@ -24,6 +24,7 @@ Usage:
   snowball search [query]            search the official package index
   snowball index                     generate repo/index.toml and the web catalog index
   snowball update [package]          update locked official package(s)
+	  snowball outdated                  show locked packages with newer registry versions
   snowball info snow/file.snow       show installed library metadata
   snowball remove <name>     remove a dependency
   snowball list              list dependencies
@@ -93,6 +94,12 @@ func main() {
 				id = os.Args[2]
 			}
 			err = updatePackages(id)
+		}
+	case "outdated":
+		if len(os.Args) != 2 {
+			err = fmt.Errorf("outdated does not accept arguments")
+		} else {
+			err = outdatedPackages()
 		}
 	case "remove":
 		if len(os.Args) != 3 {
@@ -415,7 +422,9 @@ func generateIndex() error {
 }
 
 func searchPackages(query string) error {
-	packages, err := registry(false)
+	// A configured local registry is useful for package authors before a push;
+	// normal users continue to compare against the GitHub registry.
+	packages, err := registry(os.Getenv("SNOW_REPO") != "")
 	if err != nil {
 		return err
 	}
@@ -485,6 +494,55 @@ func updatePackages(id string) error {
 		if err := getLibrary(item, false); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func outdatedPackages() error {
+	b, err := os.ReadFile("snow.lock")
+	if err != nil {
+		return fmt.Errorf("read snow.lock: %w", err)
+	}
+	locked := map[string]string{}
+	var id string
+	for _, raw := range strings.Split(string(b), "\n") {
+		line := strings.TrimSpace(raw)
+		if strings.HasPrefix(line, "id = ") {
+			id = strings.Trim(strings.TrimSpace(strings.TrimPrefix(line, "id = ")), "\"")
+		}
+		if strings.HasPrefix(line, "version = ") && id != "" {
+			locked[id] = strings.Trim(strings.TrimSpace(strings.TrimPrefix(line, "version = ")), "\"")
+			id = ""
+		}
+	}
+	if len(locked) == 0 {
+		fmt.Println("no official packages are locked")
+		return nil
+	}
+	packages, err := registry(os.Getenv("SNOW_REPO") != "")
+	if err != nil {
+		return err
+	}
+	var ids []string
+	for packageID := range locked {
+		ids = append(ids, packageID)
+	}
+	sort.Strings(ids)
+	changes := 0
+	for _, packageID := range ids {
+		remote, ok := packages[packageID]
+		if !ok {
+			fmt.Printf("%s %s -> unavailable\n", packageID, locked[packageID])
+			changes++
+			continue
+		}
+		if remote.Version != locked[packageID] {
+			fmt.Printf("%s %s -> %s\n", remote.Name, locked[packageID], remote.Version)
+			changes++
+		}
+	}
+	if changes == 0 {
+		fmt.Println("all official packages are up to date")
 	}
 	return nil
 }

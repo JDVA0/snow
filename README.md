@@ -217,6 +217,7 @@ snowball get snow/math.snow
 snowball get snow/arrays.snow@^0.1.0
 snowball get-local snow/text.snow
 snowball search pagination
+snowball outdated
 snowball index
 snowball update
 ```
@@ -247,6 +248,22 @@ for user in users where user.active:
 ```
 
 Funciona con cualquier tipo de iterable (listas, rangos, resultado de llamadas) y acepta cualquier expresión booleana:
+
+### Pequeñas expresiones y limpieza
+
+```python
+const PORT = 8080
+estado = "open" if "port" in {port: PORT} else "closed"
+
+try:
+    fail("request failed")
+catch err:
+    print(err)
+always:
+    print("cleanup runs")
+```
+
+`in` sobre un diccionario comprueba sus claves. `always` se ejecuta tanto después del bloque normal como después de `catch`.
 
 ```python
 # Números pares del 1 al 20
@@ -530,6 +547,7 @@ snowball get snow/math.snow
 snowball get snow/arrays.snow@^0.1.0
 snowball get-local snow/text.snow
 snowball search pagination
+snowball outdated
 snowball index
 snowball update
 ```

@@ -1373,6 +1373,34 @@ print(value)
 	}
 }
 
+func TestEnumerateAndZip(t *testing.T) {
+	check(t, `
+for index, value in enumerate(["a", "b"]):
+    print(index, value)
+for left, right in zip([1, 2, 3], ["a", "b"]):
+    print(left, right)
+`, "0 [0, a]\n1 [1, b]\n0 [1, a]\n1 [2, b]")
+	if _, err := run(t, `enumerate("snow")`); err == nil || !strings.Contains(err.Error(), "enumerate expects a list") {
+		t.Fatalf("expected enumerate type error, got %v", err)
+	}
+}
+
+func TestConstAlwaysTernaryAndDictIn(t *testing.T) {
+	check(t, `
+const PORT = 8080
+print("open" if "port" in {port: PORT} else "closed")
+try:
+    fail("boom")
+catch err:
+    print(err)
+always:
+    print("clean")
+`, "open\nboom\nclean")
+	if _, err := run(t, "const PORT = 8080\nPORT = 9000"); err == nil || !strings.Contains(err.Error(), `cannot reassign constant "PORT"`) {
+		t.Fatalf("expected constant reassignment error, got %v", err)
+	}
+}
+
 func TestTypeDiagnosticsNameAndElement(t *testing.T) {
 	if _, err := run(t, `age: int = 1
 age = "old"`); err == nil || !strings.Contains(err.Error(), `type mismatch for "age": expected int, received str`) {

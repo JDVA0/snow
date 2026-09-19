@@ -41,6 +41,8 @@ func stdBuiltins() map[string]bfunc {
 		"keys":        bKeys,
 		"values":      bValues,
 		"append":      bAppend,
+		"enumerate":   bEnumerate,
+		"zip":         bZip,
 		"reverse":     bReverse,
 		"sort":        bSort,
 		"map":         bMap,
@@ -471,6 +473,46 @@ func bAppend(i *Interp, args []Val) ([]Val, error) {
 	out := make(List, len(l)+1)
 	copy(out, l)
 	out[len(l)] = args[1]
+	return []Val{out}, nil
+}
+
+// bEnumerate returns [index, value] pairs suitable for a two-variable for loop.
+func bEnumerate(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "enumerate", 1); err != nil {
+		return nil, err
+	}
+	l, ok := args[0].(List)
+	if !ok {
+		return nil, fmt.Errorf("enumerate expects a list, got %s", TypeName(args[0]))
+	}
+	out := make(List, len(l))
+	for n, value := range l {
+		out[n] = List{Int(n), value}
+	}
+	return []Val{out}, nil
+}
+
+// bZip combines two lists into [left, right] pairs, stopping at the shortest.
+func bZip(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "zip", 2); err != nil {
+		return nil, err
+	}
+	left, ok := args[0].(List)
+	if !ok {
+		return nil, fmt.Errorf("zip expects a list as first argument, got %s", TypeName(args[0]))
+	}
+	right, ok := args[1].(List)
+	if !ok {
+		return nil, fmt.Errorf("zip expects a list as second argument, got %s", TypeName(args[1]))
+	}
+	count := len(left)
+	if len(right) < count {
+		count = len(right)
+	}
+	out := make(List, count)
+	for n := 0; n < count; n++ {
+		out[n] = List{left[n], right[n]}
+	}
 	return []Val{out}, nil
 }
 

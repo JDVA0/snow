@@ -896,6 +896,8 @@ print(stats.total)     # 201.0
             <tr><td><code>contains(a, b)</code></td><td data-i18n="b_contains">Comprueba si una cadena contiene a otra o si un elemento está en una lista.</td><td><code>contains("lenguaje", "guaje")</code></td></tr>
             <tr><td><code>keys(d) / values(d)</code></td><td data-i18n="b_kv">Devuelve las claves o los valores de un diccionario en una lista.</td><td><code>keys({a: 1, b: 2})</code></td></tr>
             <tr><td><code>sort(lista)</code></td><td data-i18n="b_sort">Ordena una lista de números o cadenas de menor a mayor.</td><td><code>sort([3, 1, 2])  # [1, 2, 3]</code></td></tr>
+			<tr><td><code>enumerate(lista)</code></td><td data-i18n="b_enumerate">Devuelve pares <code>[índice, valor]</code> para iterar con dos variables.</td><td><code>for i, v in enumerate(["a"]):</code></td></tr>
+			<tr><td><code>zip(a, b)</code></td><td data-i18n="b_zip">Combina dos listas en pares y se detiene en la más corta.</td><td><code>zip([1, 2], ["a"])</code></td></tr>
             <tr><td><code>map(fn, lista)</code></td><td data-i18n="b_map">Aplica una función a cada elemento de una lista.</td><td><code>map(fn(x): x+1, [1, 2])</code></td></tr>
             <tr><td><code>filter(fn, lista)</code></td><td data-i18n="b_filter">Filtra una lista conservando los elementos donde la función devuelve true.</td><td><code>filter(fn(x): x>0, [-1, 2])</code></td></tr>
             <tr><td><code>exit([codigo])</code></td><td data-i18n="b_exit">Termina la ejecución del programa inmediatamente con el código dado (0 por defecto).</td><td><code>exit(1)</code></td></tr>
@@ -1806,6 +1808,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         b_contains: "Comprueba si una cadena contiene a otra o si un elemento está en una lista.",
         b_kv: "Devuelve las claves o los valores de un diccionario en una lista.",
         b_sort: "Ordena una lista de números o cadenas de menor a mayor.",
+		b_enumerate: "Devuelve pares <code>[índice, valor]</code> para iterar con dos variables.", b_zip: "Combina dos listas en pares y se detiene en la más corta.",
         b_map: "Aplica una función a cada elemento de una lista.",
         b_filter: "Filtra una lista conservando los elementos donde la función devuelve true.",
         b_exit: "Termina la ejecución del programa inmediatamente con el código dado (0 por defecto).",
@@ -2040,6 +2043,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         b_contains: "Checks if a string contains another or if an item is in a list.",
         b_kv: "Returns dictionary keys or values as a list.",
         b_sort: "Sorts a list of numbers or strings in ascending order.",
+		b_enumerate: "Returns <code>[index, value]</code> pairs for iteration with two variables.", b_zip: "Combines two lists into pairs and stops at the shortest one.",
         b_map: "Applies a function to each item in a list.",
         b_filter: "Filters a list keeping items where the function returns true.",
         b_exit: "Terminates program execution immediately with the given exit code (0 by default).",
@@ -2207,7 +2211,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
           code = code.replace(/\b(\d+(\.\d+)?|0x[0-9a-fA-F]+|0b[01]+|0o[0-7]+)\b/g, '<span class="syn-number">$&</span>');
           code = code.replace(/\b(using|import|pub|priv|as|fn|return|if|elif|else|for|while|break|continue|try|catch|match|case|and|or|not|in)\b/g, '<span class="syn-keyword">$&</span>');
           code = code.replace(/\b(true|false|nil)\b/g, '<span class="syn-bool">$&</span>');
-          code = code.replace(/\b(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|fail|str|int|float|type)\b(?=\()/g, '<span class="syn-func">$&</span>');
+          code = code.replace(/\b(print|len|append|enumerate|zip|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|fail|str|int|float|type)\b(?=\()/g, '<span class="syn-func">$&</span>');
           code = code.replace(/\b(api|sys|fs|cli|http|db|env|csv|json|time|crypto|task|input)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword">$1</span>.<span class="syn-func">$2</span>');
           return code + comment;
         });

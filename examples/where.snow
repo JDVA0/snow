@@ -1,0 +1,8 @@
+users = [
+    {name: "Alice", active: true},
+    {name: "Bob",   active: false},
+    {name: "Charlie", active: true}
+]
+
+for u in users where u.active:
+    print("Usuario activo:", u.name)

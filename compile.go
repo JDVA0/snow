@@ -54,7 +54,8 @@ type Op struct {
 	Str        string
 	Args       []string
 	Body       []Op
-	Type       string   // declared gradual type for typed assignments (e.g. "str", "str[]")
+	Type       string // declared gradual type for typed assignments (e.g. "str", "str[]")
+	Const      bool
 	ParamTypes []string // per-param types for OpMakeFn, "" when untyped
 	Ret        string   // declared return type for OpMakeFn, "" when untyped
 	Relative   int      // explicit relative import level for OpUse
@@ -193,7 +194,7 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 			if !dyn && len(t.Vals) != len(t.Names) {
 				return c.perr(t.Pos, "assignment expects %d value(s), found %d", len(t.Names), len(t.Vals))
 			}
-			c.emit(Op{Kind: OpAssign, Args: t.Names, Type: t.Type, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpAssign, Args: t.Names, Type: t.Type, Const: t.Const, Line: t.Line, Col: t.Col})
 		} else {
 			c.emit(Op{Kind: OpStoreOp, Name: t.Names[0], Num: int64(t.Op), Line: t.Line, Col: t.Col})
 		}
@@ -364,6 +365,9 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 			return err
 		}
 		c.patch(jumpPastCatch, len(c.ops))
+		if err := c.stmts(t.Always, false); err != nil {
+			return err
+		}
 	case *UseStmt:
 		c.emit(Op{Kind: OpUse, Name: t.Alias, Args: t.Path, Relative: t.Relative, Line: t.Line, Col: t.Col})
 	case *MatchStmt:
@@ -493,6 +497,20 @@ func (c *compiler) expr(e Expr) error {
 			return err
 		}
 		c.emit(Op{Kind: OpBin, Num: int64(code), Line: t.Line, Col: t.Col})
+	case *CondE:
+		if err := c.expr(t.Cond); err != nil {
+			return err
+		}
+		otherwise := c.emit(Op{Kind: OpJumpIfNot, Line: t.Line, Col: t.Col})
+		if err := c.expr(t.Yes); err != nil {
+			return err
+		}
+		end := c.emit(Op{Kind: OpJump, Line: t.Line, Col: t.Col})
+		c.patch(otherwise, len(c.ops))
+		if err := c.expr(t.No); err != nil {
+			return err
+		}
+		c.patch(end, len(c.ops))
 	case *UnE:
 		if err := c.expr(t.X); err != nil {
 			return err

@@ -73,11 +73,12 @@ type Env struct {
 	parent *Env
 	vars   map[string]Val
 	types  map[string]string
+	consts map[string]bool
 }
 
 // NewEnv creates an environment bound to a parent.
 func NewEnv(parent *Env) *Env {
-	return &Env{parent: parent, vars: map[string]Val{}, types: map[string]string{}}
+	return &Env{parent: parent, vars: map[string]Val{}, types: map[string]string{}, consts: map[string]bool{}}
 }
 
 // Interp is a Snow interpreter (a stack VM).
@@ -537,8 +538,16 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 			vals[k], _ = i.pop()
 		}
 		for k, name := range op.Args {
+			for e := i.env; e != nil; e = e.parent {
+				if e.consts[name] {
+					return i.opErr(op, fmt.Errorf("cannot reassign constant %q", name))
+				}
+			}
 			if err := i.setVar(name, vals[k], op.Type); err != nil {
 				return i.opErr(op, err)
+			}
+			if op.Const {
+				i.env.consts[name] = true
 			}
 		}
 	case OpStoreOp:
