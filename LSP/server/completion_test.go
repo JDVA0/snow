@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/JDVA0/snow/lsp/protocol"
@@ -81,5 +82,20 @@ func TestHoverInfersListType(t *testing.T) {
 	hover, ok := result.Result.(protocol.Hover)
 	if !ok || hover.Contents != "frutas: list" {
 		t.Fatalf("expected list type hover, got %#v", result.Result)
+	}
+}
+
+func TestEmptyHoverStillReturnsJSONRPCResult(t *testing.T) {
+	s := NewServer()
+	doc := &Document{URI: "file:///tmp/empty.snow", Text: "\n"}
+	s.documents[doc.URI] = doc
+	params, _ := json.Marshal(map[string]interface{}{"textDocument": map[string]string{"uri": doc.URI}, "position": map[string]int{"line": 0, "character": 0}})
+	response := s.handleHover(&Request{ID: 1, Params: params})
+	payload, err := json.Marshal(response)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(payload), `"result":null`) {
+		t.Fatalf("expected JSON-RPC result null, got %s", payload)
 	}
 }
