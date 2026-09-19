@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -449,8 +450,61 @@ func (s *Server) handleCompletion(req *Request) *Response {
 	}
 }
 
+func moduleMemberItems(module string) []protocol.CompletionItem {
+	members := map[string][]string{
+		"http":   {"get", "post", "put", "delete", "patch", "request"},
+		"fs":     {"read", "write", "append", "exists", "remove", "mkdir", "list", "is_file", "is_dir", "stat", "copy"},
+		"sys":    {"exec", "sh", "env", "set_env", "envs", "args", "cwd", "cd", "hostname", "pid", "platform", "arch", "exit", "now", "sleep"},
+		"db":     {"open", "set", "get", "all", "save", "delete", "has"},
+		"time":   {"unix", "unix_ms", "sleep", "iso", "now"},
+		"json":   {"encode", "decode"},
+		"cli":    {"box", "input", "confirm", "menu", "table"},
+		"api":    {"route", "get", "post", "put", "delete", "patch", "serve"},
+		"csv":    {"read", "write", "parse"},
+		"env":    {"get", "set", "has", "all"},
+		"task":   {"run", "schedule", "cancel"},
+		"input":  {"read", "read_line", "read_secret"},
+		"crypto": {"sha256", "md5", "hash"},
+	}
+
+	items := []protocol.CompletionItem{}
+	for _, name := range members[module] {
+		items = append(items, protocol.CompletionItem{
+			Label:      name,
+			Kind:       3,
+			Detail:     module + "." + name,
+			InsertText: name,
+		})
+	}
+	return items
+}
+
+func detectModulePrefix(doc *Document, line, character int) string {
+	lines := strings.Split(doc.Text, "\n")
+	if line < 0 || line >= len(lines) {
+		return ""
+	}
+	prefix := lines[line]
+	if character > len(prefix) {
+		character = len(prefix)
+	}
+	prefix = prefix[:character]
+	re := regexp.MustCompile(`(^|[^A-Za-z0-9_])([A-Za-z_][A-Za-z0-9_]*)\.$`)
+	matches := re.FindStringSubmatch(prefix)
+	if len(matches) < 3 {
+		return ""
+	}
+	return matches[2]
+}
+
 // getCompletionItems returns completion items based on the document context
 func (s *Server) getCompletionItems(doc *Document, line, character int) []protocol.CompletionItem {
+	if moduleName := detectModulePrefix(doc, line, character); moduleName != "" {
+		if items := moduleMemberItems(moduleName); len(items) > 0 {
+			return items
+		}
+	}
+
 	items := []protocol.CompletionItem{}
 
 	// Add Snow keywords

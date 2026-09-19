@@ -1,9 +1,13 @@
 src/
 node_modules/.pnpm/
 *.ts
-*.map
+**/*.map
 pnpm-lock.yaml
+pnpm-workspace.yaml
 tsconfig.json
+*.map
 README.md
 readme.md
 snow.vsix
+extension.js
+package-lock.json

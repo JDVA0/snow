@@ -30,12 +30,13 @@ type UseStmt struct {
 }
 type AssignStmt struct {
 	Pos
-	Names []string
-	Op    byte // 0 for '=', otherwise the binary op code
-	Vals  []Expr
-	Type  string // declared type, e.g. "str", "str[]"; "" keeps the variable dynamic
-	Vis   string // "pub", "priv" or "" (default: pub)
-	Const bool
+	Names   []string
+	Op      byte // 0 for '=', otherwise the binary op code
+	Vals    []Expr
+	Type    string // declared type, e.g. "str", "str[]"; "" keeps the variable dynamic
+	Vis     string // "pub", "priv" or "" (default: pub)
+	Const   bool
+	Pattern string // "list" or "dict" for destructuring assignment targets
 }
 type SetAttrStmt struct {
 	Pos
@@ -490,6 +491,29 @@ func boToStr(op byte) string {
 }
 
 func (p *parser) parseSimple() (Stmt, error) {
+	if names, pattern, ok, err := p.tryParseDestructuringTarget(); ok {
+		if err != nil {
+			return nil, err
+		}
+		if op, ok := assignTokens[p.peek().Kind]; ok {
+			eq := p.next()
+			rhs, err := p.parseValueList()
+			if err != nil {
+				return nil, err
+			}
+			if op != 0 {
+				return nil, p.errf(eq, "augmented destructuring assignment is not supported")
+			}
+			if len(rhs) != 1 {
+				return nil, p.errf(eq, "destructuring assignment expects a single source value")
+			}
+			if err := p.lineEnd(); err != nil {
+				return nil, err
+			}
+			return &AssignStmt{Pos: Pos{eq.Line, eq.Col}, Names: names, Vals: rhs, Pattern: pattern}, nil
+		}
+		return nil, p.errf(p.peek(), "expected '=' in destructuring assignment")
+	}
 	vals, err := p.parseExprList()
 	if err != nil {
 		return nil, err
@@ -567,6 +591,82 @@ func (p *parser) parseSimple() (Stmt, error) {
 		return nil, err
 	}
 	return &ExprStmt{posOf(vals[0]), vals[0]}, nil
+}
+
+func (p *parser) tryParseDestructuringTarget() ([]string, string, bool, error) {
+	saved := p.pos
+	switch p.peek().Kind {
+	case tLBrack:
+		p.next()
+		var names []string
+		for {
+			if p.peek().Kind == tRBrack {
+				p.next()
+				return names, "list", true, nil
+			}
+			if p.peek().Kind == tComma {
+				p.next()
+				continue
+			}
+			expr, err := p.parseOr()
+			if err != nil {
+				p.pos = saved
+				return nil, "", false, nil
+			}
+			n, ok := expr.(*NameE)
+			if !ok {
+				p.pos = saved
+				return nil, "", false, nil
+			}
+			names = append(names, n.X)
+			if p.peek().Kind == tComma {
+				p.next()
+				continue
+			}
+			if p.peek().Kind == tRBrack {
+				p.next()
+				return names, "list", true, nil
+			}
+			p.pos = saved
+			return nil, "", false, nil
+		}
+	case tLBrace:
+		p.next()
+		var names []string
+		for {
+			if p.peek().Kind == tRBrace {
+				p.next()
+				return names, "dict", true, nil
+			}
+			if p.peek().Kind == tComma {
+				p.next()
+				continue
+			}
+			k := p.peek()
+			switch k.Kind {
+			case tIdent:
+				p.next()
+				names = append(names, k.Text)
+			case tStr:
+				p.next()
+				names = append(names, k.Text)
+			default:
+				p.pos = saved
+				return nil, "", false, nil
+			}
+			if p.peek().Kind == tComma {
+				p.next()
+				continue
+			}
+			if p.peek().Kind == tRBrace {
+				p.next()
+				return names, "dict", true, nil
+			}
+			p.pos = saved
+			return nil, "", false, nil
+		}
+	}
+	return nil, "", false, nil
 }
 
 // parseTypedAssign handles an optional gradual type annotation:

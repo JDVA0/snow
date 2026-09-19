@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 import {
     LanguageClient,
     LanguageClientOptions,
@@ -23,11 +24,19 @@ function startLSP(context: vscode.ExtensionContext) {
         return;
     }
 
-    const lspPath = config.get<string>('lsp.path', '/home/julian/Escritorio/Snow/LSP/snow-lsp');
+    const configuredPath = config.get<string>('lsp.path', '').trim();
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const lspPath = configuredPath || (workspaceRoot ? path.join(workspaceRoot, 'LSP', 'snow-lsp') : '');
 
-    if (!fs.existsSync(lspPath)) {
+    if (!lspPath || !fs.existsSync(lspPath)) {
         console.error(`Snow LSP server not found at: ${lspPath}`);
-        vscode.window.showErrorMessage(`Snow LSP server not found at: ${lspPath}`);
+        vscode.window.showErrorMessage('Snow LSP server not found. Build LSP/snow-lsp or configure snow.lsp.path.');
+        return;
+    }
+
+    const serverStat = fs.statSync(lspPath);
+    if (!serverStat.isFile()) {
+        vscode.window.showErrorMessage('Snow LSP path must point to an executable file.');
         return;
     }
 

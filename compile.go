@@ -179,6 +179,34 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 			c.emit(Op{Kind: OpPop, Line: t.Line, Col: t.Col})
 		}
 	case *AssignStmt:
+		if t.Pattern != "" {
+			if t.Op != 0 {
+				return c.perr(t.Pos, "augmented destructuring assignment is not supported")
+			}
+			if len(t.Vals) != 1 {
+				return c.perr(t.Pos, "destructuring assignment expects a single source value")
+			}
+			tmp := fmt.Sprintf("_destruct%d", c.tmpN)
+			c.tmpN++
+			if err := c.expr(t.Vals[0]); err != nil {
+				return err
+			}
+			c.emit(Op{Kind: OpStore, Name: tmp, Line: t.Line, Col: t.Col})
+			for i, name := range t.Names {
+				c.emit(Op{Kind: OpLoad, Name: tmp, Line: t.Line, Col: t.Col})
+				switch t.Pattern {
+				case "list":
+					c.emit(Op{Kind: OpPushInt, Num: int64(i), Line: t.Line, Col: t.Col})
+				case "dict":
+					c.emit(Op{Kind: OpPushStr, Str: name, Line: t.Line, Col: t.Col})
+				default:
+					return c.perr(t.Pos, "unknown destructuring pattern %q", t.Pattern)
+				}
+				c.emit(Op{Kind: OpIndex, Line: t.Line, Col: t.Col})
+				c.emit(Op{Kind: OpAssign, Args: []string{name}, Type: t.Type, Const: t.Const, Line: t.Line, Col: t.Col})
+			}
+			return nil
+		}
 		for _, v := range t.Vals {
 			if err := c.expr(v); err != nil {
 				return err

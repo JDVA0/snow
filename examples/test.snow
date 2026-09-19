@@ -1,2 +1,3 @@
+using cli
 
-print("Hello, World!")
+cli.box("hello world","welcome to snow cli")

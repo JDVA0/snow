@@ -68,8 +68,8 @@
     "properties": {
       "snow.lsp.path": {
         "type": "string",
-        "default": "/home/julian/Escritorio/Snow/LSP/snow-lsp",
-        "description": "Path to the Snow LSP server"
+        "default": "",
+        "description": "Optional path to the Snow LSP server. By default, the workspace LSP/snow-lsp is used."
       },
       "snow.lsp.enabled": {
         "type": "boolean",

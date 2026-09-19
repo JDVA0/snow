@@ -364,6 +364,29 @@ print(a ?? b ?? c ?? "never")
 print(0 ?? 99)
 print(false ?? true)
 `, "0\nfalse")
+
+	check(t, `
+user = {name: "Ada"}
+print(user?.name ?? "anon")
+print(user?.profile?.name ?? "anon")
+`, "Ada\nanon")
+}
+
+func TestDestructuringAssignment(t *testing.T) {
+	check(t, `
+values = [10, 20, 30]
+[a, b, c] = values
+print(a)
+print(b)
+print(c)
+`, "10\n20\n30")
+
+	check(t, `
+person = {name: "Ada", age: 36}
+{name, age} = person
+print(name)
+print(age)
+`, "Ada\n36")
 }
 
 func TestMultilineStrings(t *testing.T) {

@@ -6,6 +6,30 @@ snowman.exe
 /packages/
 /snow.lock
 
+# Scripts y artefactos locales
+**/*.sh
+*.sh
+*.bash
+*.zsh
+*.ps1
+*.cmd
+*.bat
+*.log
+*.tmp
+*.cache
+*.vsix
+.env
+.env.*
+*.local
+LSP/vscode_extension/*.vsix
+LSP/vscode_extension/.vscode-test/
+
+# Dependencias y build generadas
+node_modules/
+**/node_modules/
+**/dist/
+**/.cache/
+
 # Excepto en build/
 !build/snowman
 !build/snowball
