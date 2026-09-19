@@ -1,6 +1,9 @@
 package snow
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // OpKind identifies a VM operation.
 type OpKind int
@@ -32,6 +35,8 @@ const (
 	OpPop
 	OpBin
 	OpUn
+	OpTrySetup
+	OpTryEnd
 )
 
 // Op is a single VM instruction.
@@ -44,6 +49,7 @@ type Op struct {
 	Str  string
 	Args []string
 	Body []Op
+	Elem string // declared list element type for typed assignments (e.g. "str")
 	Line int
 	Col  int
 }
@@ -86,6 +92,7 @@ const boDummy byte = 0xFF
 type loopFrame struct {
 	top        int
 	isFor      bool
+	tryDepth   int
 	contJumps  []int
 	breakJumps []int
 }
@@ -94,6 +101,7 @@ type compiler struct {
 	ops      []Op
 	loops    []loopFrame
 	tmpN     int
+	tryDepth int
 	keepLast bool
 }
 
@@ -104,6 +112,12 @@ func (c *compiler) emit(op Op) int {
 
 func (c *compiler) patch(at, to int) {
 	c.ops[at].Num = int64(to)
+}
+
+func (c *compiler) emitTryUnwind(loopTryDepth, line, col int) {
+	for i := c.tryDepth; i > loopTryDepth; i-- {
+		c.emit(Op{Kind: OpTryEnd, Line: line, Col: col})
+	}
 }
 
 func (c *compiler) perr(ps Pos, format string, a ...any) error {
@@ -167,7 +181,11 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 			if !dyn && len(t.Vals) != len(t.Names) {
 				return c.perr(t.Pos, "assignment expects %d value(s), found %d", len(t.Names), len(t.Vals))
 			}
-			c.emit(Op{Kind: OpAssign, Args: t.Names, Line: t.Line, Col: t.Col})
+			elem := ""
+			if t.Type != "" {
+				elem = strings.TrimSuffix(t.Type, "[]")
+			}
+			c.emit(Op{Kind: OpAssign, Args: t.Names, Elem: elem, Line: t.Line, Col: t.Col})
 		} else {
 			c.emit(Op{Kind: OpStoreOp, Name: t.Names[0], Num: int64(t.Op), Line: t.Line, Col: t.Col})
 		}
@@ -208,7 +226,7 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 		}
 	case *WhileStmt:
 		top := len(c.ops)
-		c.loops = append(c.loops, loopFrame{top: top})
+		c.loops = append(c.loops, loopFrame{top: top, tryDepth: c.tryDepth})
 		cond := t.Cond
 		if err := c.expr(cond); err != nil {
 			return err
@@ -235,7 +253,7 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 		c.emit(Op{Kind: OpPushInt, Line: t.Line, Col: t.Col})
 		c.emit(Op{Kind: OpStore, Name: idx, Line: t.Line, Col: t.Col})
 		top := len(c.ops)
-		c.loops = append(c.loops, loopFrame{top: top, isFor: true})
+		c.loops = append(c.loops, loopFrame{top: top, isFor: true, tryDepth: c.tryDepth})
 		c.emit(Op{Kind: OpLoad, Name: idx, Line: t.Line, Col: t.Col})
 		c.emit(Op{Kind: OpLoad, Name: tmp, Line: t.Line, Col: t.Col})
 		c.emit(Op{Kind: OpLen, Line: t.Line, Col: t.Col})
@@ -268,6 +286,7 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 			return c.perr(t.Pos, "break/continue outside of a loop")
 		}
 		fr := &c.loops[len(c.loops)-1]
+		c.emitTryUnwind(fr.tryDepth, t.Line, t.Col)
 		if t.Break {
 			fr.breakJumps = append(fr.breakJumps, c.emit(Op{Kind: OpJump, Line: t.Line, Col: t.Col}))
 		} else {
@@ -277,6 +296,21 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 				c.emit(Op{Kind: OpJump, Num: int64(fr.top), Line: t.Line, Col: t.Col})
 			}
 		}
+	case *TryStmt:
+		setupIdx := c.emit(Op{Kind: OpTrySetup, Name: t.CatchVar, Line: t.Line, Col: t.Col})
+		c.tryDepth++
+		if err := c.stmts(t.TryBody, false); err != nil {
+			return err
+		}
+		c.tryDepth--
+		c.emit(Op{Kind: OpTryEnd, Line: t.Line, Col: t.Col})
+		jumpPastCatch := c.emit(Op{Kind: OpJump, Line: t.Line, Col: t.Col})
+		catchOffset := len(c.ops)
+		c.patch(setupIdx, catchOffset)
+		if err := c.stmts(t.CatchBody, false); err != nil {
+			return err
+		}
+		c.patch(jumpPastCatch, len(c.ops))
 	case *UseStmt:
 		c.emit(Op{Kind: OpUse, Name: t.Alias, Args: t.Path, Line: t.Line, Col: t.Col})
 	default:

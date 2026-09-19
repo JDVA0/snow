@@ -81,6 +81,8 @@
           <li><a href="#mod-crypto">crypto (Hashes y JWT)</a></li>
           <li><a href="#mod-task">task (Tareas y Cron)</a></li>
           <li><a href="#mod-input">input (Entrada por Consola)</a></li>
+          <li><a href="#mod-env">env (Variables de Entorno)</a></li>
+          <li><a href="#mod-csv">csv (Tablas CSV)</a></li>
         </ul>
 
         <div class="sidebar-heading" data-i18n="nav_ex">Ejemplos</div>
@@ -145,6 +147,7 @@ sudo mv snowman /usr/local/bin/</code></pre>
           <tbody>
             <tr><td><code>snowman archivo.snow</code></td><td data-i18n="c_run_1">Ejecuta el archivo directamente: <code>snowman servidor.snow</code></td></tr>
             <tr><td><code>snowman run archivo.snow [args...]</code></td><td data-i18n="c_run_2">Ejecuta pasando argumentos al programa: <code>snowman run script.snow --puerto 8080</code></td></tr>
+            <tr><td><code>snowman fmt [-w] [archivo...]</code></td><td data-i18n="c_run_fmt">Formatea código Snow a stdout. Con <code>-w</code> reescribe los archivos: <code>snowman fmt -w app.snow</code></td></tr>
             <tr><td><code>snowman repl</code></td><td data-i18n="c_run_3">Inicia la consola interactiva línea a línea.</td></tr>
             <tr><td><code>snowman --help</code></td><td data-i18n="c_run_4">Muestra la ayuda con los módulos disponibles.</td></tr>
           </tbody>
@@ -236,6 +239,24 @@ total += 5    # suma 5 (total = 15)
 total -= 3    # resta 3 (total = 12)
 total *= 2    # multiplica por 2 (total = 24)
 total /= 4    # divide (total = 6.0)</code></pre>
+
+        <h3 data-i18n="h_types_lists">Listas tipadas</h3>
+        <p data-i18n="p_types_lists">Puedes declarar el tipo de los elementos de una lista: <code>str[]</code>, <code>int[]</code>, <code>float[]</code>, <code>bool[]</code>, <code>dict[]</code>, <code>list[]</code> o <code>any[]</code>. Snow valida cada elemento al asignar y, si falla, el error se propaga como un valor (se puede capturar con <code>try</code> / <code>catch</code>):</p>
+        <pre><code># Listas homogéneas con tipo declarado
+nombres: str[] = ["Julian", "Ana", "Luis"]
+edades:  int[] = [25, 30, 40]
+personas: dict[] = [{nombre: "Ana"}, {nombre: "Luis"}]
+matriz:  list[] = [[1, 2], [3]]
+mezcla:  any[]  = [1, "texto", nil, true]   # any[] acepta de todo
+
+print(nombres[1])       # Ana
+print(personas[0].nombre)  # Ana
+
+# Un elemento que no coincide produce un error capturable
+try:
+    edades: int[] = ["a", "b"]
+catch err:
+    print(err)            # cannot hold str in int[] (element 0)</code></pre>
       </section>
 
       <!-- Tipos -->
@@ -409,6 +430,7 @@ print(mayores)       # [3, 4]</code></pre>
             <tr><td><code>map(fn, lista)</code></td><td data-i18n="b_map">Aplica una función a cada elemento de una lista.</td><td><code>map(fn(x): x+1, [1, 2])</code></td></tr>
             <tr><td><code>filter(fn, lista)</code></td><td data-i18n="b_filter">Filtra una lista conservando los elementos donde la función devuelve true.</td><td><code>filter(fn(x): x>0, [-1, 2])</code></td></tr>
             <tr><td><code>exit([codigo])</code></td><td data-i18n="b_exit">Termina la ejecución del programa inmediatamente con el código dado (0 por defecto).</td><td><code>exit(1)</code></td></tr>
+            <tr><td><code>fail(valor)</code></td><td data-i18n="b_fail">Produce un error y lo propaga hasta el <code>catch</code> más cercano. El valor suele ser un texto, a veces un dict.</td><td><code>fail("inválido")</code></td></tr>
           </tbody>
         </table>
       </section>
@@ -416,18 +438,39 @@ print(mayores)       # [3, 4]</code></pre>
       <!-- Manejo de errores -->
       <section id="errores" class="doc-section">
         <h2 data-i18n="h_errors_title">Manejo de Errores</h2>
-        <p data-i18n="p_errors_desc">Snow proporciona un reporte claro de errores sintácticos y de ejecución con número exacto de línea y contexto:</p>
-        <pre><code># Ejemplo de error por variable no definida:
-$ snowman run app.snow
-Error en app.snow (línea 14):
-    resultado = procesar(datos)
-    ^-- nombre no definido: "procesar"
+        <p data-i18n="p_errors_desc">Snow trata los errores como valores. No hay clases, jerarquías ni excepciones tipadas. La API es solo <code>try</code> / <code>catch</code> y <code>fail()</code>.</p>
 
-# Ejemplo de error de tipo en tiempo de ejecución:
-Error en app.snow (línea 8):
-    total = "100" + 25
-    ^-- error de tipo: no se puede sumar 'str' e 'int' (usa int() o str())</code></pre>
-        <p data-i18n="p_errors_flow">En servidores <code>api</code>, las excepciones y fallos no controlados son capturados automáticamente, respondiendo con un error HTTP 500 en formato JSON sin tumbar el proceso del servidor.</p>
+        <h3 data-i18n="h_try_catch">try / catch</h3>
+        <p data-i18n="p_try_catch"> <code>try</code> ejecuta un bloque. Si cualquier operación produce un error, el resto del bloque no corre y el control pasa al <code>catch</code>, que recibe el error como un valor (casi siempre un texto):</p>
+        <pre><code>try:
+    contenido = fs.read("config.json")
+    data = json.parse(contenido)
+    usuario = data?["user"]?["name"] ?? "anónimo"
+    print(f"Usuario: {usuario}")
+
+catch err:
+    print(f"No se pudo cargar la configuración: {err}")</code></pre>
+
+        <h3 data-i18n="h_fail">fail()</h3>
+        <p data-i18n="p_fail">Para producir un error de forma explícita se usa <code>fail()</code>. El valor puede ser un texto o un dict; no hay tipos especiales de error:</p>
+        <pre><code>fn validar_edad(edad):
+    if edad &lt; 18:
+        fail("Debe ser mayor de edad")
+    return true
+
+try:
+    validar_edad(15)
+catch err:
+    print(err)</code></pre>
+
+        <h3 data-i18n="h_err_prop">Propagación</h3>
+        <p data-i18n="p_err_prop">El error atraviesa llamadas de función hasta el <code>catch</code> más cercano. Si no hay ninguno, Snow termina y muestra el error con archivo, línea y columna.</p>
+
+        <h3 data-i18n="h_nil_vs_fail">nil y errores</h3>
+        <p data-i18n="p_nil_vs_fail"><code>nil</code> es ausencia de valor. <code>fail</code> es una operación que falló. El acceso seguro <code>?[]</code> y el operador <code>??</code> trabajan con <code>nil</code>, no con errores:</p>
+        <pre><code>nombre = data?["user"]?["name"] ?? "anónimo"
+fail("No se pudo conectar")</code></pre>
+        <p data-i18n="p_errors_flow">En servidores <code>api</code>, un error no capturado en un handler responde HTTP 500 en JSON sin tumbar el proceso.</p>
       </section>
 
       <!-- Módulo: API -->
@@ -912,6 +955,63 @@ activo = input.bool("¿Deseas recibir notificaciones? (s/n): ", true)
 print(f"Usuario: {nombre}, Edad: {edad}, Altura: {altura}m, Activo: {activo}")</code></pre>
       </section>
 
+      <!-- Módulo env -->
+      <section id="mod-env" class="doc-section">
+        <h2>using env</h2>
+        <p data-i18n="p_mod_env_desc">Lectura y escritura de variables de entorno, con conversión de tipos y carga de archivos <code>.env</code>. Una clave ausente es <code>nil</code> (o el valor por defecto); un valor mal formado es un error.</p>
+        <table class="table-nord">
+          <thead>
+            <tr>
+              <th style="width: 34%;">Función</th>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>env.get(clave, [defecto])</code></td><td data-i18n="env_get_desc">Lee una variable. Si no existe, retorna el valor por defecto o <code>nil</code>.</td></tr>
+            <tr><td><code>env.set(clave, valor)</code></td><td data-i18n="env_set_desc">Asigna una variable de entorno del proceso.</td></tr>
+            <tr><td><code>env.has(clave)</code></td><td data-i18n="env_has_desc">Retorna <code>true</code> si la variable está definida.</td></tr>
+            <tr><td><code>env.int(clave, [defecto])</code></td><td data-i18n="env_int_desc">Lee y convierte a entero. Si no existe, <code>nil</code> o el defecto. Si existe y no es un entero, error.</td></tr>
+            <tr><td><code>env.float(clave, [defecto])</code></td><td data-i18n="env_float_desc">Igual que <code>env.int</code> para números decimales.</td></tr>
+            <tr><td><code>env.bool(clave, [defecto])</code></td><td data-i18n="env_bool_desc">Interpreta <code>1</code>, <code>true</code>, <code>yes</code>, <code>y</code>, <code>si</code>, <code>on</code> como verdadero.</td></tr>
+            <tr><td><code>env.all()</code></td><td data-i18n="env_all_desc">Diccionario con todas las variables de entorno.</td></tr>
+            <tr><td><code>env.load([ruta])</code></td><td data-i18n="env_load_desc">Carga un archivo <code>.env</code> (por defecto <code>./.env</code>) y retorna cuántas claves asignó. Si el archivo no existe, retorna <code>0</code>.</td></tr>
+          </tbody>
+        </table>
+        <pre><code>using env
+
+env.load()
+puerto = env.int("PORT", 8080)
+debug = env.bool("DEBUG")
+nombre = env.get("APP_NAME", "snow")</code></pre>
+      </section>
+
+      <!-- Módulo csv -->
+      <section id="mod-csv" class="doc-section">
+        <h2>using csv</h2>
+        <p data-i18n="p_mod_csv_desc">Parseo y escritura de CSV. El delimitador opcional es un carácter (<code>","</code> por defecto).</p>
+        <table class="table-nord">
+          <thead>
+            <tr>
+              <th style="width: 34%;">Función</th>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>csv.parse(texto, [delim])</code></td><td data-i18n="csv_parse_desc">Convierte texto CSV en una lista de listas de cadenas.</td></tr>
+            <tr><td><code>csv.dicts(texto, [delim])</code></td><td data-i18n="csv_dicts_desc">Usa la primera fila como encabezados y retorna una lista de dicts.</td></tr>
+            <tr><td><code>csv.stringify(filas, [delim])</code></td><td data-i18n="csv_str_desc">Serializa una lista de listas o de dicts a texto CSV.</td></tr>
+            <tr><td><code>csv.read(ruta, [delim])</code></td><td data-i18n="csv_read_desc">Lee un archivo y lo parsea como <code>csv.parse</code>.</td></tr>
+            <tr><td><code>csv.write(ruta, filas, [delim])</code></td><td data-i18n="csv_write_desc">Escribe filas o dicts a un archivo.</td></tr>
+          </tbody>
+        </table>
+        <pre><code>using csv
+
+rows = csv.parse("id,name\n1,Ana\n2,Luis")
+personas = csv.dicts("id,name\n1,Ana")
+print(personas[0].name)
+csv.write("out.csv", personas)</code></pre>
+      </section>
+
       <!-- Ejemplos completos -->
       <section id="ej-crud" class="doc-section">
         <h2 data-i18n="h_ex_crud">Ejemplo Completo 1: API REST CRUD en Memoria</h2>
@@ -1108,8 +1208,34 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         p_script_run: "Ejecución en la terminal:",
         h_api5_title: "API en 5 líneas", p_api5_desc: "Levanta un servidor HTTP funcional con endpoints y respuesta JSON en segundos:",
         p_api5_test: "Pruébalo con <code>curl</code> o tu navegador:",
-        h_errors_title: "Manejo de Errores", p_errors_desc: "Snow proporciona un reporte claro de errores sintácticos y de ejecución con número exacto de línea y contexto:",
-        p_errors_flow: "En servidores <code>api</code>, las excepciones y fallos no controlados son capturados automáticamente, respondiendo con un error HTTP 500 en formato JSON sin tumbar el proceso del servidor.",
+        h_errors_title: "Manejo de Errores",
+        p_errors_desc: "Snow trata los errores como valores. No hay clases, jerarquías ni excepciones tipadas. La API es solo <code>try</code> / <code>catch</code> y <code>fail()</code>.",
+        h_try_catch: "try / catch",
+        p_try_catch: "<code>try</code> ejecuta un bloque. Si cualquier operación produce un error, el resto del bloque no corre y el control pasa al <code>catch</code>, que recibe el error como un valor (casi siempre un texto):",
+        h_fail: "fail()",
+        p_fail: "Para producir un error de forma explícita se usa <code>fail()</code>. El valor puede ser un texto o un dict; no hay tipos especiales de error:",
+        h_err_prop: "Propagación",
+        p_err_prop: "El error atraviesa llamadas de función hasta el <code>catch</code> más cercano. Si no hay ninguno, Snow termina y muestra el error con archivo, línea y columna.",
+        h_nil_vs_fail: "nil y errores",
+        p_nil_vs_fail: "<code>nil</code> es ausencia de valor. <code>fail</code> es una operación que falló. El acceso seguro <code>?[]</code> y el operador <code>??</code> trabajan con <code>nil</code>, no con errores:",
+        p_errors_flow: "En servidores <code>api</code>, un error no capturado en un handler responde HTTP 500 en JSON sin tumbar el proceso.",
+        c_run_fmt: "Formatea código Snow a stdout. Con <code>-w</code> reescribe los archivos: <code>snowman fmt -w app.snow</code>",
+        b_fail: "Produce un error y lo propaga hasta el <code>catch</code> más cercano. El valor suele ser un texto, a veces un dict.",
+        p_mod_env_desc: "Lectura y escritura de variables de entorno, con conversión de tipos y carga de archivos <code>.env</code>. Una clave ausente es <code>nil</code> (o el valor por defecto); un valor mal formado es un error.",
+        env_get_desc: "Lee una variable. Si no existe, retorna el valor por defecto o <code>nil</code>.",
+        env_set_desc: "Asigna una variable de entorno del proceso.",
+        env_has_desc: "Retorna <code>true</code> si la variable está definida.",
+        env_int_desc: "Lee y convierte a entero. Si no existe, <code>nil</code> o el defecto. Si existe y no es un entero, error.",
+        env_float_desc: "Igual que <code>env.int</code> para números decimales.",
+        env_bool_desc: "Interpreta <code>1</code>, <code>true</code>, <code>yes</code>, <code>y</code>, <code>si</code>, <code>on</code> como verdadero.",
+        env_all_desc: "Diccionario con todas las variables de entorno.",
+        env_load_desc: "Carga un archivo <code>.env</code> (por defecto <code>./.env</code>) y retorna cuántas claves asignó. Si el archivo no existe, retorna <code>0</code>.",
+        p_mod_csv_desc: "Parseo y escritura de CSV. El delimitador opcional es un carácter (<code>\",\"</code> por defecto).",
+        csv_parse_desc: "Convierte texto CSV en una lista de listas de cadenas.",
+        csv_dicts_desc: "Usa la primera fila como encabezados y retorna una lista de dicts.",
+        csv_str_desc: "Serializa una lista de listas o de dicts a texto CSV.",
+        csv_read_desc: "Lee un archivo y lo parsea como <code>csv.parse</code>.",
+        csv_write_desc: "Escribe filas o dicts a un archivo.",
         h_cli_boxes_title: "cli.box y cli.table", p_cli_boxes_desc: "Cajas y tablas formateadas con cálculo exacto de ancho dinámico para la consola:",
         h_cli_colors_title: "Colores y estilos ANSI", p_cli_colors_p: "Formateo directo de cadenas con secuencias de escape ANSI sin configuración compleja:",
         h_cli_args_title: "Parseo de argumentos", p_cli_args_p: "<code>cli.parse()</code> procesa banderas y comandos recibidos en la terminal:",
@@ -1141,6 +1267,8 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         h_indent_rule: "Regla de Indentación (Bloques)",
         p_indent_desc: "Cuando abres un bloque de código (con <code>if</code>, <code>elif</code>, <code>else</code>, <code>for</code>, <code>while</code> o <code>fn</code>), la línea debe terminar con dos puntos <code>:</code>. Todas las líneas que formen parte de ese bloque deben comenzar con <strong>4 espacios</strong> de indentación:",
         h_vars: "Variables y Asignaciones",
+        h_types_lists: "Listas tipadas",
+        p_types_lists: "Puedes declarar el tipo de los elementos de una lista: <code>str[]</code>, <code>int[]</code>, <code>float[]</code>, <code>bool[]</code>, <code>dict[]</code>, <code>list[]</code> o <code>any[]</code>. Snow valida cada elemento al asignar y, si falla, el error se propaga como un valor (se puede capturar con <code>try</code> / <code>catch</code>):",
         h_types: "Tipos y Operadores", h_types_table: "Tipos de datos",
         th_type: "Tipo", th_ex: "Ejemplo",
         td_int: "Enteros. Soporta suma (<code>+</code>), resta (<code>-</code>), producto (<code>*</code>), división decimal (<code>/</code>), división entera (<code>//</code>) y módulo (<code>%</code>).",
@@ -1267,8 +1395,34 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         p_script_run: "Terminal execution:",
         h_api5_title: "API in 5 Lines", p_api5_desc: "Spin up a working HTTP server with endpoints and JSON responses in seconds:",
         p_api5_test: "Test it with <code>curl</code> or your browser:",
-        h_errors_title: "Error Handling", p_errors_desc: "Snow provides clear syntax and runtime error reports with exact line numbers and context:",
-        p_errors_flow: "In <code>api</code> servers, uncaught exceptions are safely captured and returned as HTTP 500 JSON without crashing the server process.",
+        h_errors_title: "Error Handling",
+        p_errors_desc: "Snow treats errors as values. There are no classes, hierarchies, or typed exceptions. The API is just <code>try</code> / <code>catch</code> and <code>fail()</code>.",
+        h_try_catch: "try / catch",
+        p_try_catch: "<code>try</code> runs a block. If any operation produces an error, the rest of the block is skipped and control jumps to <code>catch</code>, which receives the error as a value (usually a string):",
+        h_fail: "fail()",
+        p_fail: "Use <code>fail()</code> to raise an error explicitly. The payload may be a string or a dict; there is no special error type:",
+        h_err_prop: "Propagation",
+        p_err_prop: "The error travels through function calls until the nearest <code>catch</code>. If none exists, Snow stops and prints the error with file, line, and column.",
+        h_nil_vs_fail: "nil vs errors",
+        p_nil_vs_fail: "<code>nil</code> is absence of a value. <code>fail</code> is a failed operation. Safe access <code>?[]</code> and <code>??</code> work with <code>nil</code>, not with errors:",
+        p_errors_flow: "In <code>api</code> servers, an uncaught error in a handler returns HTTP 500 JSON without crashing the process.",
+        c_run_fmt: "Formats Snow source to stdout. With <code>-w</code> rewrites files in place: <code>snowman fmt -w app.snow</code>",
+        b_fail: "Produces an error and propagates it to the nearest <code>catch</code>. The value is usually a string, sometimes a dict.",
+        p_mod_env_desc: "Read and write environment variables, with typed helpers and <code>.env</code> loading. A missing key is <code>nil</code> (or the default); a malformed value is an error.",
+        env_get_desc: "Reads a variable. If missing, returns the default or <code>nil</code>.",
+        env_set_desc: "Sets a process environment variable.",
+        env_has_desc: "Returns <code>true</code> if the variable is defined.",
+        env_int_desc: "Reads and converts to int. If missing, <code>nil</code> or the default. If present but not an int, error.",
+        env_float_desc: "Same as <code>env.int</code> for floating-point numbers.",
+        env_bool_desc: "Treats <code>1</code>, <code>true</code>, <code>yes</code>, <code>y</code>, <code>si</code>, <code>on</code> as true.",
+        env_all_desc: "Dictionary of all environment variables.",
+        env_load_desc: "Loads a <code>.env</code> file (default <code>./.env</code>) and returns how many keys were set. Missing file returns <code>0</code>.",
+        p_mod_csv_desc: "Parse and write CSV. Optional delimiter is a single character (default <code>\",\"</code>).",
+        csv_parse_desc: "Turns CSV text into a list of lists of strings.",
+        csv_dicts_desc: "Uses the first row as headers and returns a list of dicts.",
+        csv_str_desc: "Serializes a list of lists or dicts to CSV text.",
+        csv_read_desc: "Reads a file and parses it like <code>csv.parse</code>.",
+        csv_write_desc: "Writes rows or dicts to a file.",
         h_cli_boxes_title: "cli.box and cli.table", p_cli_boxes_desc: "Formatted terminal boxes and tables with exact dynamic width calculation:",
         h_cli_colors_title: "ANSI Colors and Styles", p_cli_colors_p: "Direct string styling with ANSI escape codes without complex configuration:",
         h_cli_args_title: "Argument Parsing", p_cli_args_p: "<code>cli.parse()</code> handles flags and command arguments received from the terminal:",
@@ -1300,6 +1454,8 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         h_indent_rule: "Indentation Rule (Blocks)",
         p_indent_desc: "When opening a code block (with <code>if</code>, <code>elif</code>, <code>else</code>, <code>for</code>, <code>while</code>, or <code>fn</code>), end the line with a colon <code>:</code>. All lines inside that block must begin with <strong>4 spaces</strong>:",
         h_vars: "Variables and Assignments",
+        h_types_lists: "Typed Lists",
+        p_types_lists: "You can declare the element type of a list: <code>str[]</code>, <code>int[]</code>, <code>float[]</code>, <code>bool[]</code>, <code>dict[]</code>, <code>list[]</code>, or <code>any[]</code>. Snow validates every element on assignment; on failure the error propagates as a value (catchable with <code>try</code> / <code>catch</code>):",
         h_types: "Types & Operators", h_types_table: "Data types", th_type: "Type", th_ex: "Example",
         td_int: "Integers. Supports addition (<code>+</code>), subtraction (<code>-</code>), multiplication (<code>*</code>), float division (<code>/</code>), floor division (<code>//</code>), and modulo (<code>%</code>).",
         td_float: "64-bit floating-point numbers.", td_str: "Strings. Concatenation with <code>+</code>. Multiplication: <code>\"ab\" * 3</code> yields <code>\"ababab\"</code>. Supports indexing: <code>s[0]</code>, <code>s[-1]</code>.",
@@ -1433,10 +1589,10 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
             f ? '<span class="syn-keyword">f</span><span class="syn-string">' + esc(s) + '</span>'
               : '<span class="syn-string">' + esc(m) + '</span>');
           code = code.replace(/\b(\d+(\.\d+)?|0x[0-9a-fA-F]+)\b/g, '<span class="syn-number">$&</span>');
-          code = code.replace(/\b(using|fn|return|if|elif|else|for|while|break|continue|and|or|not|in)\b/g, '<span class="syn-keyword">$&</span>');
+          code = code.replace(/\b(using|fn|return|if|elif|else|for|while|break|continue|try|catch|and|or|not|in)\b/g, '<span class="syn-keyword">$&</span>');
           code = code.replace(/\b(true|false|nil)\b/g, '<span class="syn-bool">$&</span>');
-          code = code.replace(/\b(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|str|int|float|type)\b(?=\()/g, '<span class="syn-func">$&</span>');
-          code = code.replace(/\b(api|sys|fs|cli|http|db)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword">$1</span>.<span class="syn-func">$2</span>');
+          code = code.replace(/\b(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|fail|str|int|float|type)\b(?=\()/g, '<span class="syn-func">$&</span>');
+          code = code.replace(/\b(api|sys|fs|cli|http|db|env|csv|json|time|crypto|task|input)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword">$1</span>.<span class="syn-func">$2</span>');
           return code + comment;
         });
         block.innerHTML = out.join('\n');

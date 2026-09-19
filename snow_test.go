@@ -674,4 +674,280 @@ print(items?[1] ?? "oob")
 `, "20")
 }
 
+func TestEnvModule(t *testing.T) {
+	check(t, `
+using env
+env.set("SNOW_TEST_VAR", "hello_snow")
+print(env.get("SNOW_TEST_VAR"))
+print(env.has("SNOW_TEST_VAR"))
+print(env.get("SNOW_NON_EXISTENT", "default_val"))
+`, "hello_snow\ntrue\ndefault_val")
 
+	check(t, `
+using env
+env.set("SNOW_TEST_NUM", "42")
+env.set("SNOW_TEST_BOOL", "true")
+print(env.int("SNOW_TEST_NUM"))
+print(env.bool("SNOW_TEST_BOOL"))
+print(env.int("SNOW_TEST_MISSING", 100))
+`, "42\ntrue\n100")
+}
+
+func TestCSVModule(t *testing.T) {
+	check(t, `
+using csv
+raw = "id,name,score\n1,Alice,95\n2,Bob,88"
+data = csv.parse(raw)
+print(len(data))
+print(data[1][1])
+`, "3\nAlice")
+
+	check(t, `
+using csv
+raw = "id,name,score\n1,Alice,95\n2,Bob,88"
+dicts = csv.dicts(raw)
+print(len(dicts))
+print(dicts[0].name)
+print(dicts[1].score)
+`, "2\nAlice\n88")
+
+	check(t, `
+using csv
+rows = [["col1", "col2"], ["a", "b"]]
+s = csv.stringify(rows)
+print(trim(s))
+`, "col1,col2\na,b")
+
+	check(t, `
+using csv
+raw = "a;b\n1;2"
+print(csv.parse(raw, ";")[1][0])
+dicts = csv.dicts("n,v\nx,9")
+print(csv.stringify(dicts) != "")
+`, "1\ntrue")
+}
+
+func TestTryCatch(t *testing.T) {
+	check(t, `
+try:
+    fail("boom")
+    print("no")
+catch err:
+    print(err)
+print("ok")
+`, "boom\nok")
+
+	check(t, `
+try:
+    fail({mensaje: "no encontrado", linea: 12})
+catch err:
+    print(err.mensaje)
+    print(err.linea)
+`, "no encontrado\n12")
+
+	check(t, `
+fn validar(edad):
+    if edad < 18:
+        fail("Debe ser mayor de edad")
+    return true
+
+try:
+    validar(15)
+    print("no")
+catch err:
+    print(err)
+`, "Debe ser mayor de edad")
+
+	check(t, `
+fn inner():
+    fail("desde inner")
+
+fn mid():
+    inner()
+
+try:
+    mid()
+catch err:
+    print(err)
+`, "desde inner")
+
+	check(t, `
+try:
+    print(1 // 0)
+    print("no")
+catch err:
+    print("caught")
+`, "caught")
+
+	check(t, `
+try:
+    try:
+        fail("inner")
+    catch e:
+        print(e)
+        fail("outer")
+catch e:
+    print(e)
+`, "inner\nouter")
+
+	check(t, `
+n = 0
+for i in range(5):
+    try:
+        if i == 2:
+            break
+        n += 1
+    catch err:
+        print(err)
+print(n)
+`, "2")
+
+	check(t, `
+print(nil ?? "nada")
+try:
+    fail("error")
+catch err:
+    print(type(err))
+`, "nada\nstr")
+
+	if _, err := run(t, `fail("sin catch")`); err == nil {
+		t.Fatal("expected uncaught fail to stop the program")
+	}
+	if _, err := run(t, "try:\n    print(1)\n"); err == nil {
+		t.Fatal("expected try without catch to fail")
+	}
+	if _, err := run(t, "catch err:\n    print(err)\n"); err == nil {
+		t.Fatal("expected catch without try to fail")
+	}
+}
+
+func TestFormat(t *testing.T) {
+	src := `
+nombres: str[] = ["Julian", "Ana", "Luis"]
+num: int[]=[1,2,3]
+fn  validar( edad ):
+  if edad<18:
+   fail("menor")
+  return true
+
+try:
+  x=validar( 15 )
+catch err:
+  print( err )
+`
+	out, err := Format(src)
+	if err != nil {
+		t.Fatalf("Format: %v", err)
+	}
+	want := `nombres: str[] = ["Julian", "Ana", "Luis"]
+num: int[] = [1, 2, 3]
+fn validar(edad):
+    if edad < 18:
+        fail("menor")
+    return true
+
+try:
+    x = validar(15)
+catch err:
+    print(err)
+`
+	if out != want {
+		t.Fatalf("Format got:\n%q\nwant:\n%q", out, want)
+	}
+	again, err := Format(out)
+	if err != nil {
+		t.Fatalf("Format second pass: %v", err)
+	}
+	if again != out {
+		t.Fatalf("Format is not stable:\nfirst:\n%q\nsecond:\n%q", out, again)
+	}
+}
+
+func TestEnvIntInvalid(t *testing.T) {
+	check(t, `
+using env
+env.set("SNOW_BAD_INT", "abc")
+try:
+    env.int("SNOW_BAD_INT")
+    print("no")
+catch err:
+    print("bad")
+print(env.int("SNOW_BAD_INT", 7))
+`, "bad\n7")
+}
+
+func TestTypedLists(t *testing.T) {
+	check(t, `
+nombres: str[] = ["Julian", "Ana", "Luis"]
+print(nombres[0])
+print(nombres[2])
+`, "Julian\nLuis")
+
+	check(t, `
+edades: int[] = [25, 30, 40]
+print(edades[1])
+`, "30")
+
+	check(t, `
+alturas: float[] = [1.75, 1.8]
+print(alturas[0])
+`, "1.75")
+
+	check(t, `
+flags: bool[] = [true, false]
+print(flags[0])
+`, "true")
+
+	check(t, `
+matriz: list[] = [[1, 2], [3]]
+print(matriz[1][0])
+`, "3")
+
+	check(t, `
+personas: dict[] = [{nombre: "Ana"}, {nombre: "Luis"}]
+print(personas[0].nombre)
+print(personas[1].nombre)
+`, "Ana\nLuis")
+
+	check(t, `
+cosas: any[] = [1, "a", nil, false]
+print(len(cosas))
+`, "4")
+
+	check(t, `
+n: int[] = range(3)
+print(n[2])
+`, "2")
+
+	check(t, `
+try:
+    edades: int[] = ["a", "b"]
+    print("no")
+catch err:
+    print(err)
+`, "cannot hold str in int[] (element 0)")
+
+	check(t, `
+try:
+    p: str[] = "no es lista"
+    print("no")
+catch err:
+    print(err)
+`, "expected a list, got str")
+
+	check(t, `
+using json
+try:
+    e: int[] = json.parse("[1, \"x\"]")
+    print("no")
+catch err:
+    print(err)
+`, "cannot hold str in int[] (element 1)")
+
+	if _, err := run(t, "n: strx[] = [1]"); err == nil {
+		t.Fatal("expected unknown list type error")
+	}
+	if _, err := run(t, "a, b: str[] = [1, 2]"); err == nil {
+		t.Fatal("expected typed declaration on a single name")
+	}
+}

@@ -31,6 +31,7 @@ type AssignStmt struct {
 	Names []string
 	Op    byte // 0 for '=', otherwise the binary op code
 	Vals  []Expr
+	Type  string // list element type, e.g. "str[]" when declared typed; "" otherwise
 }
 type FnStmt struct {
 	Pos
@@ -62,6 +63,12 @@ type WhileStmt struct {
 type LoopStmt struct {
 	Pos
 	Break bool
+}
+type TryStmt struct {
+	Pos
+	TryBody   []Stmt
+	CatchVar  string
+	CatchBody []Stmt
 }
 type ExprStmt struct {
 	Pos
@@ -108,6 +115,7 @@ type IndexE struct {
 	X   Expr
 	Key Expr
 }
+
 // SafeIndexE is a safe subscript: x?[key] returns nil if x is nil or key is missing.
 type SafeIndexE struct {
 	Pos
@@ -154,6 +162,7 @@ func (*IfStmt) stmt()     {}
 func (*ForStmt) stmt()    {}
 func (*WhileStmt) stmt()  {}
 func (*LoopStmt) stmt()   {}
+func (*TryStmt) stmt()    {}
 func (*ExprStmt) stmt()   {}
 func (*NumLit) expr()     {}
 func (*StrLit) expr()     {}
@@ -163,9 +172,9 @@ func (*NameE) expr()      {}
 func (*BinE) expr()       {}
 func (*UnE) expr()        {}
 func (*CallE) expr()      {}
-func (*IndexE) expr()      {}
-func (*SafeIndexE) expr()  {}
-func (*AttrE) expr()       {}
+func (*IndexE) expr()     {}
+func (*SafeIndexE) expr() {}
+func (*AttrE) expr()      {}
 func (*ListLit) expr()    {}
 func (*DictLit) expr()    {}
 func (*FnExpr) expr()     {}
@@ -328,6 +337,10 @@ func (p *parser) parseStmt() (Stmt, error) {
 			return p.parseLoopCtrl(true)
 		case "continue":
 			return p.parseLoopCtrl(false)
+		case "try":
+			return p.parseTry()
+		case "catch":
+			return nil, p.errf(k, "'catch' without matching 'try'")
 		}
 	}
 	return p.parseSimple()
@@ -347,6 +360,9 @@ func (p *parser) parseSimple() (Stmt, error) {
 	vals, err := p.parseExprList()
 	if err != nil {
 		return nil, err
+	}
+	if p.peek().Kind == tColon {
+		return p.parseTypedAssign(vals)
 	}
 	if op, ok := assignTokens[p.peek().Kind]; ok {
 		eq := p.next()
@@ -372,7 +388,7 @@ func (p *parser) parseSimple() (Stmt, error) {
 		if err := p.lineEnd(); err != nil {
 			return nil, err
 		}
-		return &AssignStmt{Pos{eq.Line, eq.Col}, names, op, rhs}, nil
+		return &AssignStmt{Pos: Pos{eq.Line, eq.Col}, Names: names, Op: op, Vals: rhs}, nil
 	}
 	if len(vals) > 1 {
 		ps := posOf(vals[0])
@@ -382,6 +398,57 @@ func (p *parser) parseSimple() (Stmt, error) {
 		return nil, err
 	}
 	return &ExprStmt{posOf(vals[0]), vals[0]}, nil
+}
+
+// parseTypedAssign handles the typed-list declaration form:
+// nombre: str[] = [...]
+func (p *parser) parseTypedAssign(vals []Expr) (Stmt, error) {
+	peek := p.peek()
+	if len(vals) != 1 {
+		return nil, p.errf(peek, "invalid type declaration: type applies to a single name")
+	}
+	n, ok := vals[0].(*NameE)
+	if !ok {
+		ps := posOf(vals[0])
+		return nil, p.errf(Tok{Line: ps.Line, Col: ps.Col}, "invalid assignment target")
+	}
+	p.next() // consume ':'
+	elem, err := p.expectIdent()
+	if err != nil {
+		return nil, err
+	}
+	if p.peek().Kind != tLBrack {
+		return nil, p.errf(p.peek(), "expected '[' after the type")
+	}
+	p.next()
+	if p.peek().Kind != tRBrack {
+		return nil, p.errf(p.peek(), "expected ']' in list type")
+	}
+	p.next()
+	typeName := elem + "[]"
+	if !validListElem(elem) {
+		return nil, p.errf(peek, "unknown list type %q (use str, int, float, bool, dict, list or any)", typeName)
+	}
+	if p.peek().Kind != tAssign {
+		return nil, p.errf(p.peek(), "expected '=' in type declaration")
+	}
+	p.next()
+	rhs, err := p.parseValueList()
+	if err != nil {
+		return nil, err
+	}
+	if err := p.lineEnd(); err != nil {
+		return nil, err
+	}
+	return &AssignStmt{Pos: Pos{n.Line, n.Col}, Names: []string{n.X}, Vals: rhs, Type: typeName}, nil
+}
+
+func validListElem(e string) bool {
+	switch e {
+	case "str", "int", "float", "bool", "dict", "list", "any":
+		return true
+	}
+	return false
 }
 
 // lineEnd consumes the newline that ends a simple statement and
@@ -655,6 +722,34 @@ func (p *parser) parseLoopCtrl(break_ bool) (Stmt, error) {
 		return nil, p.errf(st, "'continue' outside of a loop")
 	}
 	return &LoopStmt{Pos{st.Line, st.Col}, break_}, nil
+}
+
+func (p *parser) parseTry() (Stmt, error) {
+	st := p.next() // consume 'try'
+	if _, err := p.expectColon(); err != nil {
+		return nil, err
+	}
+	tryBody, err := p.parseSuite()
+	if err != nil {
+		return nil, err
+	}
+	k := p.peek()
+	if k.Kind != tIdent || k.Text != "catch" {
+		return nil, p.errf(k, "expected 'catch' after try block")
+	}
+	p.next() // consume 'catch'
+	if p.peek().Kind != tIdent || isReserved(p.peek().Text) {
+		return nil, p.errf(p.peek(), "expected a name after 'catch'")
+	}
+	catchVar := p.next().Text
+	if _, err := p.expectColon(); err != nil {
+		return nil, err
+	}
+	catchBody, err := p.parseSuite()
+	if err != nil {
+		return nil, err
+	}
+	return &TryStmt{Pos{st.Line, st.Col}, tryBody, catchVar, catchBody}, nil
 }
 
 func (p *parser) parseReturn() (Stmt, error) {
@@ -1039,7 +1134,7 @@ func (p *parser) parsePrimary() (Expr, error) {
 		case "nil":
 			p.next()
 			return &NilLit{Pos{k.Line, k.Col}}, nil
-		case "and", "or", "not", "in", "using", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue":
+		case "and", "or", "not", "in", "using", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue", "try", "catch":
 			return nil, p.errf(k, "unexpected %q", k.Text)
 		}
 		p.next()
@@ -1147,7 +1242,7 @@ func exprStart(k Tok) bool {
 
 func isReserved(w string) bool {
 	switch w {
-	case "using", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not":
+	case "using", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not", "try", "catch":
 		return true
 	}
 	return false
@@ -1176,6 +1271,8 @@ func posOf(e Expr) Pos {
 	case *CallE:
 		return x.Pos
 	case *IndexE:
+		return x.Pos
+	case *SafeIndexE:
 		return x.Pos
 	case *AttrE:
 		return x.Pos

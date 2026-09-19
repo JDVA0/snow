@@ -56,6 +56,7 @@ func stdBuiltins() map[string]bfunc {
 		"sleep":       bSleep,
 		"input":       bInput,
 		"exit":        bExit,
+		"fail":        bFail,
 	}
 	for name := range m {
 		stdNames[name] = true
@@ -735,4 +736,11 @@ func bExit(i *Interp, args []Val) ([]Val, error) {
 		return nil, errors.New("exit expects at most one argument")
 	}
 	return nil, &ExitError{code}
+}
+
+func bFail(i *Interp, args []Val) ([]Val, error) {
+	if len(args) != 1 {
+		return nil, fmt.Errorf("fail expects 1 argument, got %d", len(args))
+	}
+	return nil, &errFail{val: args[0]}
 }

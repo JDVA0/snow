@@ -22,6 +22,10 @@ Snow es un lenguaje de programación simple, directo y conciso, diseñado espec�
 - **Interpolación F-Strings y Operador Elvis (`??`):** `f"Hola {usuario}"`, cadenas multilínea con `"""` y valor por defecto para nulos.
 - **Acceso a sistema y archivos (`using sys`, `using fs`):** Ejecución de comandos del sistema (`sys.sh`), lectura de entorno, control de procesos y operaciones de archivos.
 - **Herramientas de consola (`using cli`):** Análisis de banderas/argumentos, tablas alineadas y cajas de texto formateadas.
+- **Entorno y CSV (`using env`, `using csv`):** Variables de entorno, archivos `.env`, parseo y escritura de CSV.
+- **Errores como valores:** `try` / `catch` y `fail(valor)`. Sin clases ni jerarquías. `nil` es ausencia, no un error.
+- **Listas tipadas:** `nombres: str[] = ["Julian", "Ana"]` valida elementos en tiempo de ejecución (`str[]`, `int[]`, `dict[]`, `any[]`, ...).
+- **Formato:** `snowman fmt [-w] archivo.snow` reindenta el código con 4 espacios.
 - **REPL interactivo avanzado:** Historial persistente en `~/.snow_history`, comandos (`help`, `.exit`, `.history`) y colores por tipo de dato.
 
 ### Instalación
@@ -92,6 +96,10 @@ Snow is a simple, straightforward, and concise programming language designed to 
 - **F-Strings and Elvis operator (`??`):** `f"Hello {user}"`, multiline strings (`"""..."""`), and clean fallback default values.
 - **System and file access (`using sys`, `using fs`):** Run shell commands (`sys.sh`), manage environment variables, inspect processes, and handle disk files directly.
 - **CLI toolkit (`using cli`):** Command-line flag parsing, structured text tables, and framed display boxes.
+- **Environment and CSV (`using env`, `using csv`):** Environment variables, `.env` files, CSV parse and write.
+- **Errors as values:** `try` / `catch` and `fail(value)`. No classes or hierarchies. `nil` is absence, not an error.
+- **Typed lists:** `names: str[] = ["Julian", "Ana"]` validates elements at runtime (`str[]`, `int[]`, `dict[]`, `any[]`, ...).
+- **Formatter:** `snowman fmt [-w] file.snow` reprints source with 4-space indentation.
 - **Enhanced REPL:** Persistent command history in `~/.snow_history`, built-in navigation (`help`, `.exit`, `.history`), and colorized output.
 
 ### Installation

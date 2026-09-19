@@ -60,6 +60,12 @@ type errReturn struct{ vals []Val }
 
 func (e *errReturn) Error() string { return "return" }
 
+// errFail is a Snow-level failure. The payload is a normal value
+// (usually a string, sometimes a dict) — never a typed exception.
+type errFail struct{ val Val }
+
+func (e *errFail) Error() string { return SnowStr(e.val) }
+
 // Env is a variable environment (scope chain).
 type Env struct {
 	parent *Env
@@ -84,9 +90,19 @@ type Interp struct {
 	argv      []string
 	depth     int
 	frameBase int
+	tryFrames []tryFrame
 	api       *APIServer
 	modules   map[string]Val
 	mu        sync.Mutex
+}
+
+type tryFrame struct {
+	catchPC   int
+	catchVar  string
+	stackLen  int
+	frameBase int
+	env       *Env
+	depth     int
 }
 
 const maxDepth = 10000
@@ -223,238 +239,333 @@ func (i *Interp) opErr(op Op, err error) error {
 	return &Errat{i.src, op.Line, op.Col, err}
 }
 
+// checkTypedList validates a value assigned to a typed-list variable
+// (nombre: str[] = [...]). Every element must match the declared type.
+func checkTypedList(v Val, elem string) error {
+	l, ok := v.(List)
+	if !ok {
+		return fmt.Errorf("expected a list, got %s", TypeName(v))
+	}
+	if elem == "any" {
+		return nil
+	}
+	for i, e := range l {
+		if TypeName(e) != elem {
+			return fmt.Errorf("cannot hold %s in %s[] (element %d)", TypeName(e), elem, i)
+		}
+	}
+	return nil
+}
+
+func failValue(err error) Val {
+	var f *errFail
+	if errors.As(err, &f) {
+		return f.val
+	}
+	var er *Errat
+	if errors.As(err, &er) && er.Err != nil {
+		return Str(er.Err.Error())
+	}
+	return Str(err.Error())
+}
+
+func (i *Interp) catchError(err error) (int, bool) {
+	if _, ok := err.(*errReturn); ok {
+		return 0, false
+	}
+	var ex *ExitError
+	if errors.As(err, &ex) {
+		return 0, false
+	}
+	if len(i.tryFrames) == 0 {
+		return 0, false
+	}
+	tf := i.tryFrames[len(i.tryFrames)-1]
+	i.tryFrames = i.tryFrames[:len(i.tryFrames)-1]
+
+	i.stack = i.stack[:tf.stackLen]
+	i.frameBase = tf.frameBase
+	i.env = tf.env
+	i.depth = tf.depth
+
+	if tf.catchVar != "" {
+		i.setVar(tf.catchVar, failValue(err))
+	}
+	return tf.catchPC, true
+}
+
 func (i *Interp) execOps(ops []Op) error {
 	pc := 0
+	tryBase := len(i.tryFrames)
 	for pc < len(ops) {
 		op := ops[pc]
-		switch op.Kind {
-		case OpPushInt:
-			i.push(Int(op.Num))
-		case OpPushFloat:
-			i.push(Float(op.Flt))
-		case OpPushStr:
-			i.push(Str(op.Str))
-		case OpPushBool:
-			i.push(Bool(op.Bol))
-		case OpPushNil:
-			i.push(Nil)
-		case OpLoad:
-			v, ok := i.lookup(op.Name)
-			if !ok {
-				return i.opErr(op, fmt.Errorf("undefined name '%s'", op.Name))
-			}
-			i.push(v)
-		case OpStore:
-			v, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			i.env.vars[op.Name] = v
-		case OpMakeFn:
-			i.push(&Fn{Name: op.Name, Params: op.Args, Body: op.Body, Env: i.env, Line: op.Line, Col: op.Col})
-		case OpCall:
-			n := int(op.Num)
-			if len(i.stack) < n {
-				return i.opErr(op, fmt.Errorf("call expects %d argument(s), found %d on the stack", n, len(i.stack)))
-			}
-			args := make([]Val, n)
-			for k := n - 1; k >= 0; k-- {
-				args[k], _ = i.pop()
-			}
-			callee, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			vals, err := i.invoke(callee, args)
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			for _, v := range vals {
-				i.push(v)
-			}
-		case OpReturn:
-			n := int(op.Num)
-			vals := make([]Val, n)
-			for k := n - 1; k >= 0; k-- {
-				v, err := i.pop()
-				if err != nil {
-					return i.opErr(op, err)
-				}
-				vals[k] = v
-			}
-			return &errReturn{vals}
-		case OpJump:
-			pc = int(op.Num)
-			continue
-		case OpJumpIfNot:
-			v, err := i.popBool(op)
-			if err != nil {
+		err := i.execSingleOp(op, ops, &pc)
+		if err != nil {
+			if _, ok := err.(*errReturn); ok {
+				i.tryFrames = i.tryFrames[:tryBase]
 				return err
 			}
-			if !bool(v.(Bool)) {
-				pc = int(op.Num)
-				continue
-			}
-		case OpJumpIf:
-			v, err := i.popBool(op)
-			if err != nil {
+			var ex *ExitError
+			if errors.As(err, &ex) {
+				i.tryFrames = i.tryFrames[:tryBase]
 				return err
 			}
-			if bool(v.(Bool)) {
-				pc = int(op.Num)
-				continue
-			}
-		case OpJumpIfNotNil:
-			v, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			if v != Nil {
-				pc = int(op.Num)
-				continue
-			}
-		case OpUse:
-			if err := i.useOp(op); err != nil {
-				return i.opErr(op, err)
-			}
-		case OpAssign:
-			n := len(op.Args)
-			if len(i.stack)-i.frameBase != n {
-				return i.opErr(op, fmt.Errorf("assignment expects %d value(s), found %d", n, len(i.stack)-i.frameBase))
-			}
-			vals := make([]Val, n)
-			for k := n - 1; k >= 0; k-- {
-				vals[k], _ = i.pop()
-			}
-			for k, name := range op.Args {
-				i.setVar(name, vals[k])
-			}
-		case OpStoreOp:
-			v, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			cur, ok := i.lookup(op.Name)
-			if !ok {
-				return i.opErr(op, fmt.Errorf("undefined name '%s'", op.Name))
-			}
-			res, err := binVal(cur, v, byte(op.Num))
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			i.setVar(op.Name, res)
-		case OpMakeList:
-			n := int(op.Num)
-			if len(i.stack) < n {
-				return i.opErr(op, errors.New("stack underflow building a list"))
-			}
-			l := make(List, n)
-			for k := n - 1; k >= 0; k-- {
-				l[k], _ = i.pop()
-			}
-			i.push(l)
-		case OpMakeDict:
-			n := int(op.Num)
-			if len(i.stack) < 2*n {
-				return i.opErr(op, errors.New("stack underflow building a dict"))
-			}
-			pairs := make([][2]Val, n)
-			for k := n - 1; k >= 0; k-- {
-				v, _ := i.pop()
-				kk, _ := i.pop()
-				pairs[k] = [2]Val{kk, v}
-			}
-			d := NewDict(n)
-			for _, pr := range pairs {
-				ks, ok := pr[0].(Str)
-				if !ok {
-					return i.opErr(op, fmt.Errorf("dict key must be a string, got %s", TypeName(pr[0])))
+			// Only catch frames pushed by this ops chunk, so a fail()
+			// inside a function does not jump to an outer catch PC.
+			if len(i.tryFrames) > tryBase {
+				if targetPC, ok := i.catchError(err); ok {
+					pc = targetPC
+					continue
 				}
-				d.Set(string(ks), pr[1])
 			}
-			i.push(d)
-		case OpIndex:
-			key, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			box, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			v, err := indexVal(box, key)
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			i.push(v)
-		case OpSafeIndex:
-			// x?[key] — returns nil if container is nil, wrong type, or key is absent.
-			key, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			box, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			if _, isNil := box.(NilT); isNil {
-				i.push(Nil)
-				break
-			}
-			v, err := indexVal(box, key)
-			if err != nil {
-				// Missing key or wrong container type → propagate nil
-				i.push(Nil)
-				break
-			}
-			i.push(v)
-		case OpLen:
-			v, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			n, err := lenVal(v)
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			i.push(Int(n))
-		case OpDup:
-			if len(i.stack) == 0 {
-				return i.opErr(op, errors.New("stack underflow"))
-			}
-			i.push(i.stack[len(i.stack)-1])
-		case OpPop:
-			if _, err := i.pop(); err != nil {
-				return i.opErr(op, err)
-			}
-		case OpBin:
-			b, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			a, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			v, err := binVal(a, b, byte(op.Num))
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			i.push(v)
-		case OpUn:
-			a, err := i.pop()
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			v, err := unVal(a, byte(op.Num))
-			if err != nil {
-				return i.opErr(op, err)
-			}
-			i.push(v)
-		default:
-			return i.opErr(op, errors.New("unknown opcode"))
+			return err
 		}
 		pc++
+	}
+	return nil
+}
+
+func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
+	switch op.Kind {
+	case OpPushInt:
+		i.push(Int(op.Num))
+	case OpPushFloat:
+		i.push(Float(op.Flt))
+	case OpPushStr:
+		i.push(Str(op.Str))
+	case OpPushBool:
+		i.push(Bool(op.Bol))
+	case OpPushNil:
+		i.push(Nil)
+	case OpLoad:
+		v, ok := i.lookup(op.Name)
+		if !ok {
+			return i.opErr(op, fmt.Errorf("undefined name '%s'", op.Name))
+		}
+		i.push(v)
+	case OpStore:
+		v, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		i.env.vars[op.Name] = v
+	case OpMakeFn:
+		i.push(&Fn{Name: op.Name, Params: op.Args, Body: op.Body, Env: i.env, Line: op.Line, Col: op.Col})
+	case OpCall:
+		n := int(op.Num)
+		if len(i.stack) < n {
+			return i.opErr(op, fmt.Errorf("call expects %d argument(s), found %d on the stack", n, len(i.stack)))
+		}
+		args := make([]Val, n)
+		for k := n - 1; k >= 0; k-- {
+			args[k], _ = i.pop()
+		}
+		callee, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		vals, err := i.invoke(callee, args)
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		for _, v := range vals {
+			i.push(v)
+		}
+	case OpReturn:
+		n := int(op.Num)
+		vals := make([]Val, n)
+		for k := n - 1; k >= 0; k-- {
+			v, err := i.pop()
+			if err != nil {
+				return i.opErr(op, err)
+			}
+			vals[k] = v
+		}
+		return &errReturn{vals}
+	case OpJump:
+		*pc = int(op.Num) - 1 // -1 because execOps does pc++ after
+	case OpJumpIfNot:
+		v, err := i.popBool(op)
+		if err != nil {
+			return err
+		}
+		if !bool(v.(Bool)) {
+			*pc = int(op.Num) - 1
+		}
+	case OpJumpIf:
+		v, err := i.popBool(op)
+		if err != nil {
+			return err
+		}
+		if bool(v.(Bool)) {
+			*pc = int(op.Num) - 1
+		}
+	case OpJumpIfNotNil:
+		v, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		if v != Nil {
+			*pc = int(op.Num) - 1
+		}
+	case OpUse:
+		if err := i.useOp(op); err != nil {
+			return i.opErr(op, err)
+		}
+	case OpAssign:
+		n := len(op.Args)
+		if len(i.stack)-i.frameBase != n {
+			return i.opErr(op, fmt.Errorf("assignment expects %d value(s), found %d", n, len(i.stack)-i.frameBase))
+		}
+		vals := make([]Val, n)
+		for k := n - 1; k >= 0; k-- {
+			vals[k], _ = i.pop()
+		}
+		for k, name := range op.Args {
+			if op.Elem != "" {
+				if err := checkTypedList(vals[k], op.Elem); err != nil {
+					return i.opErr(op, err)
+				}
+			}
+			i.setVar(name, vals[k])
+		}
+	case OpStoreOp:
+		v, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		cur, ok := i.lookup(op.Name)
+		if !ok {
+			return i.opErr(op, fmt.Errorf("undefined name '%s'", op.Name))
+		}
+		res, err := binVal(cur, v, byte(op.Num))
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		i.setVar(op.Name, res)
+	case OpMakeList:
+		n := int(op.Num)
+		if len(i.stack) < n {
+			return i.opErr(op, errors.New("stack underflow building a list"))
+		}
+		l := make(List, n)
+		for k := n - 1; k >= 0; k-- {
+			l[k], _ = i.pop()
+		}
+		i.push(l)
+	case OpMakeDict:
+		n := int(op.Num)
+		if len(i.stack) < 2*n {
+			return i.opErr(op, errors.New("stack underflow building a dict"))
+		}
+		pairs := make([][2]Val, n)
+		for k := n - 1; k >= 0; k-- {
+			v, _ := i.pop()
+			kk, _ := i.pop()
+			pairs[k] = [2]Val{kk, v}
+		}
+		d := NewDict(n)
+		for _, pr := range pairs {
+			ks, ok := pr[0].(Str)
+			if !ok {
+				return i.opErr(op, fmt.Errorf("dict key must be a string, got %s", TypeName(pr[0])))
+			}
+			d.Set(string(ks), pr[1])
+		}
+		i.push(d)
+	case OpIndex:
+		key, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		box, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		v, err := indexVal(box, key)
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		i.push(v)
+	case OpSafeIndex:
+		// x?[key] — returns nil if container is nil, wrong type, or key is absent.
+		key, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		box, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		if _, isNil := box.(NilT); isNil {
+			i.push(Nil)
+			break
+		}
+		v, err := indexVal(box, key)
+		if err != nil {
+			// Missing key or wrong container type → propagate nil
+			i.push(Nil)
+			break
+		}
+		i.push(v)
+	case OpLen:
+		v, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		n, err := lenVal(v)
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		i.push(Int(n))
+	case OpDup:
+		if len(i.stack) == 0 {
+			return i.opErr(op, errors.New("stack underflow"))
+		}
+		i.push(i.stack[len(i.stack)-1])
+	case OpPop:
+		if _, err := i.pop(); err != nil {
+			return i.opErr(op, err)
+		}
+	case OpBin:
+		b, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		a, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		v, err := binVal(a, b, byte(op.Num))
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		i.push(v)
+	case OpUn:
+		a, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		v, err := unVal(a, byte(op.Num))
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		i.push(v)
+	case OpTrySetup:
+		i.tryFrames = append(i.tryFrames, tryFrame{
+			catchPC:   int(op.Num),
+			catchVar:  op.Name,
+			stackLen:  len(i.stack),
+			frameBase: i.frameBase,
+			env:       i.env,
+			depth:     i.depth,
+		})
+	case OpTryEnd:
+		if len(i.tryFrames) > 0 {
+			i.tryFrames = i.tryFrames[:len(i.tryFrames)-1]
+		}
+	default:
+		return i.opErr(op, errors.New("unknown opcode"))
 	}
 	return nil
 }
@@ -531,12 +642,12 @@ func (i *Interp) useOp(op Op) error {
 	stdMod := ""
 	if len(path) == 2 && path[0] == "snow" {
 		switch path[1] {
-		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task", "input":
+		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task", "input", "env", "csv":
 			stdMod = path[1]
 		}
 	} else if len(path) == 1 {
 		switch path[0] {
-		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task", "input":
+		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task", "input", "env", "csv":
 			stdMod = path[0]
 		}
 	}
@@ -571,6 +682,10 @@ func (i *Interp) useOp(op Op) error {
 			m = newTaskModule(i, op.Name)
 		case "input":
 			m = newInputModule(i, op.Name)
+		case "env":
+			m = newEnvModule(i, op.Name)
+		case "csv":
+			m = newCSVModule(i, op.Name)
 		default:
 			return fmt.Errorf("unknown standard module snow.%s", stdMod)
 		}
