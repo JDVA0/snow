@@ -83,7 +83,7 @@
       results.innerHTML = found.map(pkg => `<article class="package-result"><div><h2>${esc(pkg.name)} <small>${esc(pkg.version)}</small></h2><p>${esc(pkg.description)}</p><p class="package-keywords">${esc(pkg.keywords).replaceAll(',', ' · ')}</p></div><div class="package-command"><span>${i18n[language].install}</span><code>snowball get ${esc(pkg.id)}@${esc(pkg.version)}</code></div></article>`).join('');
     }
 
-    fetch('../repo/index.toml').then(response => { if (!response.ok) throw new Error(); return response.text(); }).then(text => { packages = parseIndex(text); document.getElementById('package-count').textContent = packages.length + ' paquetes'; document.getElementById('package-state').textContent = ''; setLang(language); }).catch(() => { document.getElementById('package-state').textContent = language === 'es' ? 'No se pudo cargar el índice de paquetes.' : 'The package index could not be loaded.'; });
+    fetch('packages-index.toml').then(response => { if (!response.ok) throw new Error(); return response.text(); }).then(text => { packages = parseIndex(text); document.getElementById('package-count').textContent = packages.length + ' paquetes'; document.getElementById('package-state').textContent = ''; setLang(language); }).catch(() => { document.getElementById('package-state').textContent = language === 'es' ? 'No se pudo cargar el índice de paquetes.' : 'The package index could not be loaded.'; });
     setLang(language);
   </script>
 </body>
