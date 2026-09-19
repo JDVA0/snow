@@ -1,0 +1,7 @@
+name = "snow.pagination"
+version = "0.1.0"
+description = "Offset pagination slices and response metadata"
+license = "MIT"
+repository = "https://github.com/JDVA0/snow"
+keywords = "pagination,api,offset,lists"
+entry = "pagination.snow"

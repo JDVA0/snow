@@ -1,0 +1,7 @@
+name = "snow.result"
+version = "0.1.0"
+description = "Explicit success and error result dictionaries"
+license = "MIT"
+repository = "https://github.com/JDVA0/snow"
+keywords = "result,error,success,api"
+entry = "result.snow"

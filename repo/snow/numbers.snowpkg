@@ -1,0 +1,7 @@
+name = "snow.numbers"
+version = "0.1.0"
+description = "Numeric aggregation, median, percentages, and interpolation"
+license = "MIT"
+repository = "https://github.com/JDVA0/snow"
+keywords = "numbers,math,median,percent,statistics"
+entry = "numbers.snow"

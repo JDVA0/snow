@@ -1,0 +1,7 @@
+name = "snow.dict"
+version = "0.1.0"
+description = "Dictionary pick, omit, merge, and defaults helpers"
+license = "MIT"
+repository = "https://github.com/JDVA0/snow"
+keywords = "dict,object,merge,pick,omit"
+entry = "dict.snow"

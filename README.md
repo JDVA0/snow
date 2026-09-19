@@ -217,7 +217,7 @@ snowball get snow/math.snow
 snowball get-local snow/text.snow
 ```
 
-`get` instala la biblioteca en `packages/snow/src/`, registra `dep.snow = "packages/snow"` y genera `snow.lock`. Después puedes usarla con `import snow.text`. Las bibliotecas iniciales son `snow/text.snow`, `snow/math.snow`, `snow/collections.snow` y `snow/validate.snow`.
+`get` instala la biblioteca en `packages/snow/src/`, registra `dep.snow = "packages/snow"` y genera `snow.lock`. Después puedes usarla con `import snow.text`. El catálogo oficial incluye 16 bibliotecas: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template` y `stats`.
 
 Cada biblioteca oficial acompaña un archivo de metadatos `.snowpkg`. El formato es TOML simple y define `name`, `version`, `description`, `license`, `repository`, `keywords` y `entry`. Consulta la información de una biblioteca instalada con `snowball info snow/text.snow`.
 
@@ -526,7 +526,7 @@ snowball get snow/math.snow
 snowball get-local snow/text.snow
 ```
 
-`get` installs the library in `packages/snow/src/`, writes `dep.snow = "packages/snow"`, and generates `snow.lock`. Import it with `import snow.text`. The initial libraries are `snow/text.snow`, `snow/math.snow`, `snow/collections.snow`, and `snow/validate.snow`.
+`get` installs the library in `packages/snow/src/`, writes `dep.snow = "packages/snow"`, and generates `snow.lock`. Import it with `import snow.text`. The official catalog includes 16 libraries: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template`, and `stats`.
 
 Every official library includes a `.snowpkg` metadata file. Its simple TOML format defines `name`, `version`, `description`, `license`, `repository`, `keywords`, and `entry`. Inspect an installed library with `snowball info snow/text.snow`.
 

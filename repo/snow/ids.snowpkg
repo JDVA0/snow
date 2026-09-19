@@ -1,0 +1,7 @@
+name = "snow.ids"
+version = "0.1.0"
+description = "Readable prefixes, sequences, and zero-padded identifiers"
+license = "MIT"
+repository = "https://github.com/JDVA0/snow"
+keywords = "ids,identifiers,sequence,prefix"
+entry = "ids.snow"

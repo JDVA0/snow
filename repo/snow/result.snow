@@ -1,0 +1,20 @@
+# Official Snow library: explicit success and error values
+
+pub fn ok(value):
+    return {ok: true, value: value, error: nil}
+
+pub fn err(message):
+    return {ok: false, value: nil, error: message}
+
+pub fn unwrap(result, fallback):
+    if result.ok:
+        return result.value
+    return fallback
+
+pub fn message(result, fallback):
+    if result.ok:
+        return fallback
+    return result.error
+
+pub fn is_ok(result):
+    return result.ok == true

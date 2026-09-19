@@ -1,0 +1,7 @@
+name = "snow.template"
+version = "0.1.0"
+description = "Named double-brace placeholder rendering"
+license = "MIT"
+repository = "https://github.com/JDVA0/snow"
+keywords = "template,render,placeholders,text"
+entry = "template.snow"

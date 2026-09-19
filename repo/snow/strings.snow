@@ -1,0 +1,24 @@
+# Official Snow library: string formatting helpers
+
+pub fn words(value):
+    return filter(fn(part): len(part) > 0, split(trim(value), " "))
+
+pub fn snake_case(value):
+    value = lower(trim(value))
+    value = replace(value, "-", " ")
+    return join(words(value), "_")
+
+pub fn kebab_case(value):
+    return replace(snake_case(value), "_", "-")
+
+pub fn title_case(value):
+    result = []
+    for word in words(value):
+        result = append(result, upper(word[:1]) + lower(word[1:]))
+    return join(result, " ")
+
+pub fn pad_left(value, width, fill):
+    result = str(value)
+    while len(result) < width:
+        result = fill + result
+    return result

@@ -1,0 +1,7 @@
+name = "snow.query"
+version = "0.1.0"
+description = "Simple query-string parsing, serialization, and defaults"
+license = "MIT"
+repository = "https://github.com/JDVA0/snow"
+keywords = "query,url,params,http"
+entry = "query.snow"

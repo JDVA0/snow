@@ -1,0 +1,22 @@
+# Official Snow library: reusable validation guards
+
+pub fn one_of(value, allowed):
+    return value in allowed
+
+pub fn required_fields(value, fields):
+    missing = []
+    for field in fields:
+        if not has(value, field) or value[field] == nil:
+            missing = append(missing, field)
+    return missing
+
+pub fn has_fields(value, fields):
+    return len(required_fields(value, fields)) == 0
+
+pub fn string_between(value, low, high):
+    if type(value) != "str":
+        return false
+    return len(value) >= low and len(value) <= high
+
+pub fn positive(value):
+    return (type(value) == "int" or type(value) == "float") and value > 0

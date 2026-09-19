@@ -1,0 +1,25 @@
+# Official Snow library: basic descriptive statistics
+
+pub fn total(values):
+    sum = 0
+    for value in values:
+        sum += value
+    return sum
+
+pub fn mean(values):
+    if len(values) == 0:
+        return nil
+    return total(values) / len(values)
+
+pub fn minimum(values):
+    if len(values) == 0:
+        return nil
+    return min(values)
+
+pub fn maximum(values):
+    if len(values) == 0:
+        return nil
+    return max(values)
+
+pub fn summary(values):
+    return {count: len(values), total: total(values), mean: mean(values), min: minimum(values), max: maximum(values)}

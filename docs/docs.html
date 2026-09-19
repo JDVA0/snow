@@ -26,6 +26,7 @@
         <li><a href="docs.html" class="active" data-i18n="nav_top_guide">Documentación</a></li>
         <li><a href="docs.html#sintaxis" data-i18n="nav_top_lang">Lenguaje</a></li>
         <li><a href="docs.html#mod-api" data-i18n="nav_top_mods">Módulos</a></li>
+		<li><a href="#packages" data-i18n="nav_top_packages">Paquetes</a></li>
         <li><a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener">GitHub</a></li>
         <li>
           <div class="lang-group">
@@ -65,8 +66,8 @@
           <li><a href="#with-statement" style="padding-left:1.5rem; font-size:.82rem;">Gestión de recursos <code>with</code></a></li>
           <li><a href="#funciones" data-i18n="nav_funcs">Funciones y Closures</a></li>
           <li><a href="#visibilidad" style="padding-left:1.5rem; font-size:.82rem;"><code>pub</code> / <code>priv</code> e <code>import</code></a></li>
-          <li><a href="#proyectos" style="padding-left:1.5rem; font-size:.82rem;">Proyectos, tipos y pruebas</a></li>
-	          <li><a href="#packages" style="padding-left:1.5rem; font-size:.82rem;">Paquetes oficiales</a></li>
+          <li><a href="#proyectos" style="padding-left:1.5rem; font-size:.82rem;" data-i18n="nav_projects">Proyectos, tipos y pruebas</a></li>
+	          <li><a href="#packages" style="padding-left:1.5rem; font-size:.82rem;" data-i18n="nav_packages">Paquetes oficiales</a></li>
           <li><a href="#asign-campos" style="padding-left:1.5rem; font-size:.82rem;">Asignación de campos <code>x.y = v</code></a></li>
           <li><a href="#nativas" data-i18n="nav_builtins">Funciones Nativas</a></li>
           <li><a href="#errores" data-i18n="nav_errors">Manejo de Errores</a></li>
@@ -448,8 +449,8 @@ for clave, valor in config:
 for k, v in ["a", "b"]:
     print(k, v)                     # 0 a, 1 b  (índice y elemento)</code></pre>
 
-        <h3 id="where-clause">3. Cláusula <code>where</code> en bucles <code>for</code></h3>
-        <p>Filtra elementos directamente dentro del encabezado del <code>for</code>. La condición se evalúa <em>después</em> de asignar la variable de iteración, de modo que puedes usarla directamente. Es el equivalente a un <code>if</code> anidado en la primera línea del cuerpo:</p>
+        <h3 id="where-clause" data-i18n="h_where">3. Cláusula <code>where</code> en bucles <code>for</code></h3>
+        <p data-i18n="p_where">Filtra elementos directamente dentro del encabezado del <code>for</code>. La condición se evalúa <em>después</em> de asignar la variable de iteración, de modo que puedes usarla directamente. Es el equivalente a un <code>if</code> anidado en la primera línea del cuerpo:</p>
         <pre><code>nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 # Números mayores a 3
@@ -488,8 +489,8 @@ while cuenta < 10:
         break
     print("Numero:", cuenta)</code></pre>
 
-        <h3 id="with-statement">5. Gestión automática de recursos: <code>with</code></h3>
-        <p>El <code>with</code> recibe una expresión que devuelve un <em>recurso</em> (normalmente un diccionario con un método <code>close()</code>). Al entrar en el bloque, opcionalmente le asigna un nombre con <code>as</code>. Al salir (por cualquier camino: fin normal, <code>return</code>, <code>break</code> o error), Snow invoca automáticamente <code>.close()</code> sobre el recurso, si existe.</p>
+        <h3 id="with-statement" data-i18n="h_with">5. Gestión automática de recursos: <code>with</code></h3>
+        <p data-i18n="p_with">El <code>with</code> recibe una expresión que devuelve un <em>recurso</em> (normalmente un diccionario con un método <code>close()</code>). Al entrar en el bloque, opcionalmente le asigna un nombre con <code>as</code>. Al salir (por cualquier camino: fin normal, <code>return</code>, <code>break</code> o error), Snow invoca automáticamente <code>.close()</code> sobre el recurso, si existe.</p>
         <pre><code># Helper que crea un "recurso" con estado
 make_db = fn(name):
     state = {opened: true, closed: false}
@@ -588,10 +589,10 @@ catch err:
 
       <!-- Visibilidad pub/priv -->
       <section id="visibilidad" class="doc-section">
-        <h2>Visibilidad de símbolos: <code>pub</code>, <code>priv</code> e <code>import</code></h2>
+        <h2 data-i18n="h_visibility">Visibilidad de símbolos: <code>pub</code>, <code>priv</code> e <code>import</code></h2>
 
-        <h3>1. Regla de visibilidad: <code>pub</code> por defecto</h3>
-        <p>En Snow, <strong>todos los símbolos son públicos por defecto</strong>. Cualquier <code>fn</code> o variable declarada en un archivo se exporta cuando otro archivo lo <code>import</code>. Si quieres ocultar un símbolo y que <em>solo</em> sea visible dentro del mismo archivo (y nunca se exporte), márcalo con <code>priv</code>. El modificador <code>pub</code> existe para ser explícito, pero es el comportamiento por defecto.</p>
+        <h3 data-i18n="h_visibility_rule">1. Regla de visibilidad: <code>pub</code> por defecto</h3>
+        <p data-i18n="p_visibility_rule">En Snow, <strong>todos los símbolos son públicos por defecto</strong>. Cualquier <code>fn</code> o variable declarada en un archivo se exporta cuando otro archivo lo <code>import</code>. Si quieres ocultar un símbolo y que <em>solo</em> sea visible dentro del mismo archivo (y nunca se exporte), márcalo con <code>priv</code>. El modificador <code>pub</code> existe para ser explícito, pero es el comportamiento por defecto.</p>
         <pre><code># ============ math_utils.snow ============
 
 # Público (implícito): se exporta
@@ -618,8 +619,8 @@ fn double(x):
     return _helper(x)
 </code></pre>
 
-        <h3>2. Importar módulos con <code>import</code> y alias con <code>as</code></h3>
-        <p>Para cargar un archivo <code>.snow</code> como módulo, usa <code>import</code>. Snow busca el archivo relativo al directorio del programa importador. Opcionalmente puedes darle un alias con <code>as</code>:</p>
+        <h3 data-i18n="h_visibility_import">2. Importar módulos con <code>import</code> y alias con <code>as</code></h3>
+        <p data-i18n="p_visibility_import">Para cargar un archivo <code>.snow</code> como módulo, usa <code>import</code>. Snow busca el archivo relativo al directorio del programa importador. Opcionalmente puedes darle un alias con <code>as</code>:</p>
         <pre><code># ============ app.snow ============
 
 # Importa math_utils.snow con alias "math"
@@ -642,22 +643,22 @@ catch e:
     print("Esperado:", e)   # attribute not found: _helper
 </code></pre>
 
-        <p class="notice-box"><span class="notice-icon" aria-hidden="true">#</span> <strong>Semántica de <code>priv</code>:</strong> el modificador <code>priv</code> se trata como una herramienta de organización de código, no como un mecanismo de seguridad fuerte. Marca símbolos como "detalles internos" y Snow simplemente los <em>omite del diccionario exportado</em> del módulo durante el <code>import</code>. Dentro del mismo archivo, un símbolo <code>priv</code> es accesible normalmente por cualquier función.</p>
+        <p class="notice-box" data-i18n="p_visibility_note"><span class="notice-icon" aria-hidden="true">#</span> <strong>Semántica de <code>priv</code>:</strong> el modificador <code>priv</code> se trata como una herramienta de organización de código, no como un mecanismo de seguridad fuerte. Marca símbolos como "detalles internos" y Snow simplemente los <em>omite del diccionario exportado</em> del módulo durante el <code>import</code>. Dentro del mismo archivo, un símbolo <code>priv</code> es accesible normalmente por cualquier función.</p>
       </section>
 
       <section id="proyectos" class="doc-section">
-        <h2>Diagnósticos, tipos graduales, paquetes y pruebas</h2>
-        <p>Los errores del ejecutable muestran archivo, línea, columna, el código fuente y un marcador. Los diagnósticos se emiten en inglés para ofrecer una salida estable en terminales y CI.</p>
+        <h2 data-i18n="h_projects">Diagnósticos, tipos graduales, paquetes y pruebas</h2>
+        <p data-i18n="p_projects">Los errores del ejecutable muestran archivo, línea, columna, el código fuente y un marcador. Los diagnósticos se emiten en inglés para ofrecer una salida estable en terminales y CI.</p>
 
-        <h3>Tipos graduales</h3>
-        <p>Las anotaciones son opcionales: el código sin anotaciones sigue siendo dinámico. Cuando una anotación existe, Snow valida el valor en ejecución. Los tipos unión permiten representar valores alternativos.</p>
+        <h3 data-i18n="h_gradual_types">Tipos graduales</h3>
+        <p data-i18n="p_gradual_types">Las anotaciones son opcionales: el código sin anotaciones sigue siendo dinámico. Cuando una anotación existe, Snow valida el valor en ejecución. Los tipos unión permiten representar valores alternativos.</p>
         <pre><code>age: int = 18
 name: str = "Ada"
 tags: str[] = ["snow", "cli"]
 selected: int | nil = nil</code></pre>
 
-        <h3>Paquetes locales</h3>
-        <p>Crea <code>snow.toml</code> en la raíz y guarda los módulos en <code>src/</code>. El campo <code>source</code> es opcional y usa <code>src</code> por defecto.</p>
+        <h3 data-i18n="h_local_packages">Paquetes locales</h3>
+        <p data-i18n="p_local_packages">Crea <code>snow.toml</code> en la raíz y guarda los módulos en <code>src/</code>. El campo <code>source</code> es opcional y usa <code>src</code> por defecto.</p>
         <pre><code># Imports explícitamente relativos
 import ./utils.slug
 import ../shared.validators
@@ -670,16 +671,16 @@ source = "src"
 import my_app.utils
 print(utils.slugify("Hello Snow"))</code></pre>
 
-        <h3>Pruebas de scripts</h3>
-        <p>Todo archivo que termina en <code>_test.snow</code> es un test: pasa cuando termina sin errores. Usa <code>assert(condicion, [mensaje])</code> para expresar expectativas. Ejecuta todos los tests del directorio actual o limita la búsqueda a rutas concretas.</p>
+        <h3 data-i18n="h_script_tests">Pruebas de scripts</h3>
+        <p data-i18n="p_script_tests">Todo archivo que termina en <code>_test.snow</code> es un test: pasa cuando termina sin errores. Usa <code>assert(condicion, [mensaje])</code> para expresar expectativas. Ejecuta todos los tests del directorio actual o limita la búsqueda a rutas concretas.</p>
         <pre><code># math_test.snow
 assert(2 + 2 == 4, "arithmetic must work")
 
 $ snowman test
 $ snowman test tests unit/math_test.snow</code></pre>
 
-        <h3>Gestor de paquetes <code>snowball</code></h3>
-        <p><code>snowball get</code> descarga siempre las bibliotecas oficiales desde el repositorio Snow en GitHub. <code>add</code> conserva soporte para dependencias por ruta; <code>get-local</code> se usa exclusivamente para instalar desde una carpeta local <code>repo/</code>.</p>
+        <h3 data-i18n="h_snowball">Gestor de paquetes <code>snowball</code></h3>
+        <p data-i18n="p_snowball"><code>snowball get</code> descarga siempre las bibliotecas oficiales desde el repositorio Snow en GitHub. <code>add</code> conserva soporte para dependencias por ruta; <code>get-local</code> se usa exclusivamente para instalar desde una carpeta local <code>repo/</code>.</p>
         <pre><code>$ snowball init my_app
 $ snowball add text_tools ../text_tools
 $ snowball get snow/text.snow
@@ -691,51 +692,123 @@ $ snowball remove text_tools
 # app.snow
 import snow.text
 print(text.slug("Hello Snow"))</code></pre>
-        <p>Bibliotecas iniciales: <code>snow/text.snow</code>, <code>snow/math.snow</code>, <code>snow/collections.snow</code> y <code>snow/validate.snow</code>. Para desarrollo local configura <code>SNOW_REPO</code> o ejecuta desde un subdirectorio que tenga <code>repo/</code> en un directorio padre.</p>
+        <p data-i18n="p_snowball_libraries">El catálogo oficial incluye 16 bibliotecas, desde texto y colecciones hasta paginación, estadísticas, plantillas y validación. Para desarrollo local configura <code>SNOW_REPO</code> o ejecuta desde un subdirectorio que tenga <code>repo/</code> en un directorio padre.</p>
       </section>
 
 	  <section id="packages" class="doc-section">
-		<h2>Paquetes oficiales</h2>
-		<p>Catálogo de bibliotecas disponibles en <code>repo/snow</code>. Cada paquete incluye un archivo <code>.snowpkg</code> con <code>name</code>, <code>version</code>, <code>description</code>, <code>license</code>, <code>repository</code>, <code>keywords</code> y <code>entry</code>. Instala una biblioteca con <code>snowball get</code>.</p>
+		<h2 data-i18n="h_official_packages">Paquetes oficiales</h2>
+		<p data-i18n="p_official_packages">Catálogo de bibliotecas disponibles en <code>repo/snow</code>. Cada paquete incluye un archivo <code>.snowpkg</code> con <code>name</code>, <code>version</code>, <code>description</code>, <code>license</code>, <code>repository</code>, <code>keywords</code> y <code>entry</code>. Instala una biblioteca con <code>snowball get</code>.</p>
 		<div class="package-search">
-		  <label for="package-search">Buscar paquetes</label>
-		  <input id="package-search" type="search" placeholder="Nombre, palabra clave o descripción" oninput="searchPackages(this.value)">
+		  <label for="package-search" data-i18n="package_search_label">Buscar paquetes</label>
+		  <input id="package-search" type="search" data-i18n-ph="package_search_placeholder" placeholder="Nombre, palabra clave o descripción" oninput="searchPackages(this.value)">
 		</div>
 		<div id="package-list" class="package-grid">
 		  <article class="package-card" data-package="snow text strings slug normalization prefix suffix">
 			<h3><code>snow.text</code> <span>v0.1.0</span></h3>
-			<p>Normalización de texto, slugs y comprobaciones de prefijos o sufijos.</p>
+			<p data-i18n="pkg_text_desc">Normalización de texto, slugs y comprobaciones de prefijos o sufijos.</p>
 			<p class="package-meta">text, strings, slug · MIT</p>
 			<code>snowball get snow/text.snow</code>
 		  </article>
 		  <article class="package-card" data-package="snow math numbers statistics clamp average ranges">
 			<h3><code>snow.math</code> <span>v0.1.0</span></h3>
-			<p>Rangos numéricos, límites y cálculo de promedios.</p>
+			<p data-i18n="pkg_math_desc">Rangos numéricos, límites y cálculo de promedios.</p>
 			<p class="package-meta">math, numbers, statistics · MIT</p>
 			<code>snowball get snow/math.snow</code>
 		  </article>
 		  <article class="package-card" data-package="snow collections lists unique compact first">
 			<h3><code>snow.collections</code> <span>v0.1.0</span></h3>
-			<p>Utilidades para listas: valores únicos, compactación y valor inicial.</p>
+			<p data-i18n="pkg_collections_desc">Utilidades para listas: valores únicos, compactación y valor inicial.</p>
 			<p class="package-meta">lists, collections, unique · MIT</p>
 			<code>snowball get snow/collections.snow</code>
 		  </article>
 		  <article class="package-card" data-package="snow validate validation email input length">
 			<h3><code>snow.validate</code> <span>v0.1.0</span></h3>
-			<p>Validaciones comunes de texto, correo electrónico y longitud.</p>
+			<p data-i18n="pkg_validate_desc">Validaciones comunes de texto, correo electrónico y longitud.</p>
 			<p class="package-meta">validation, email, input · MIT</p>
 			<code>snowball get snow/validate.snow</code>
 		  </article>
+		  <article class="package-card" data-package="snow arrays lists chunk slice count take drop">
+			<h3><code>snow.arrays</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_arrays_desc">Cortes, grupos, descarte y conteo para listas.</p>
+			<p class="package-meta">arrays, lists, chunk, slice · MIT</p>
+			<code>snowball get snow/arrays.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow dict object merge pick omit defaults">
+			<h3><code>snow.dict</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_dict_desc">Transformaciones de diccionarios: pick, omit, merge y defaults.</p>
+			<p class="package-meta">dict, object, merge, pick · MIT</p>
+			<code>snowball get snow/dict.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow strings text snake kebab title padding">
+			<h3><code>snow.strings</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_strings_desc">Cambio de formato, palabras y relleno de texto.</p>
+			<p class="package-meta">strings, text, snake, kebab · MIT</p>
+			<code>snowball get snow/strings.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow numbers math median percent statistics interpolation">
+			<h3><code>snow.numbers</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_numbers_desc">Mediana, porcentajes, interpolación y rangos numéricos.</p>
+			<p class="package-meta">numbers, math, median, statistics · MIT</p>
+			<code>snowball get snow/numbers.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow query url params http parse stringify">
+			<h3><code>snow.query</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_query_desc">Parseo y creación sencilla de parámetros de consulta.</p>
+			<p class="package-meta">query, url, params, http · MIT</p>
+			<code>snowball get snow/query.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow csvutil csv records headers data">
+			<h3><code>snow.csvutil</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_csvutil_desc">Filas, registros y mapeo de cabeceras CSV simples.</p>
+			<p class="package-meta">csv, records, headers, data · MIT</p>
+			<code>snowball get snow/csvutil.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow pagination api offset pages metadata">
+			<h3><code>snow.pagination</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_pagination_desc">Paginación por offset y metadatos para respuestas API.</p>
+			<p class="package-meta">pagination, api, offset, lists · MIT</p>
+			<code>snowball get snow/pagination.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow result error success api unwrap">
+			<h3><code>snow.result</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_result_desc">Valores explícitos de éxito y error para flujos de aplicación.</p>
+			<p class="package-meta">result, error, success, api · MIT</p>
+			<code>snowball get snow/result.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow guards validation fields types input">
+			<h3><code>snow.guards</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_guards_desc">Guardas de campos requeridos, tipos y valores válidos.</p>
+			<p class="package-meta">validation, guards, fields, types · MIT</p>
+			<code>snowball get snow/guards.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow ids identifiers sequence prefix padding">
+			<h3><code>snow.ids</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_ids_desc">Identificadores legibles con prefijos y ceros a la izquierda.</p>
+			<p class="package-meta">ids, identifiers, sequence, prefix · MIT</p>
+			<code>snowball get snow/ids.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow template render placeholders text">
+			<h3><code>snow.template</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_template_desc">Renderizado de plantillas con marcadores de nombre.</p>
+			<p class="package-meta">template, render, placeholders, text · MIT</p>
+			<code>snowball get snow/template.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow stats statistics mean summary numbers">
+			<h3><code>snow.stats</code> <span>v0.1.0</span></h3>
+			<p data-i18n="pkg_stats_desc">Totales, media, límites y resumen estadístico.</p>
+			<p class="package-meta">stats, statistics, mean, summary · MIT</p>
+			<code>snowball get snow/stats.snow</code>
+		  </article>
 		</div>
-		<p id="package-empty" class="text-muted" hidden>No hay paquetes que coincidan con la búsqueda.</p>
+		<p id="package-empty" class="text-muted" data-i18n="package_empty" hidden>No hay paquetes que coincidan con la búsqueda.</p>
 	  </section>
 
       <!-- Asignación de campos -->
       <section id="asign-campos" class="doc-section">
-        <h2>Asignación de campos y elementos: <code>x.y = v</code> y <code>x[k] = v</code></h2>
+        <h2 data-i18n="h_assignment">Asignación de campos y elementos: <code>x.y = v</code> y <code>x[k] = v</code></h2>
 
-        <h3>1. Asignar atributos a diccionarios (<code>dict.campo = valor</code>)</h3>
-        <p>Además de crear diccionarios con literales, puedes agregar o sobrescribir claves usando la notación de punto. Es exactamente equivalente a acceder con corchetes usando una cadena:</p>
+        <h3 data-i18n="h_assign_attr">1. Asignar atributos a diccionarios (<code>dict.campo = valor</code>)</h3>
+        <p data-i18n="p_assign_attr">Además de crear diccionarios con literales, puedes agregar o sobrescribir claves usando la notación de punto. Es exactamente equivalente a acceder con corchetes usando una cadena:</p>
         <pre><code>config = {puerto: 8080, modo: "dev"}
 
 # Sobrescribir un campo existente
@@ -768,8 +841,8 @@ c.inc()
 print(c.get())   # 2
 </code></pre>
 
-        <h3>2. Asignar elementos de listas y cadenas (<code>lista[k] = valor</code>)</h3>
-        <p>Para listas puedes sobrescribir elementos por índice. Los índices negativos cuentan desde el final (<code>-1</code> es el último elemento). Asignar fuera de rango es un error capturable:</p>
+        <h3 data-i18n="h_assign_index">2. Asignar elementos de listas y cadenas (<code>lista[k] = valor</code>)</h3>
+        <p data-i18n="p_assign_index">Para listas puedes sobrescribir elementos por índice. Los índices negativos cuentan desde el final (<code>-1</code> es el último elemento). Asignar fuera de rango es un error capturable:</p>
         <pre><code>nums = [10, 20, 30, 40]
 
 nums[0]  = 100     # primer elemento
@@ -783,8 +856,8 @@ catch e:
     print("Esperado:", e)   # list index out of range: 10 (len 4)
 </code></pre>
 
-        <h3>3. Operadores compuestos (<code>+=</code>, <code>-=</code>, etc.)</h3>
-        <p>La asignación de campos también admite los operadores compuestos habituales. Internamente Snow desugariza <code>x.y += n</code> → <code>x.y = x.y + n</code>, de modo que funciona para cualquier operador binario compatible:</p>
+        <h3 data-i18n="h_assign_compound">3. Operadores compuestos (<code>+=</code>, <code>-=</code>, etc.)</h3>
+        <p data-i18n="p_assign_compound">La asignación de campos también admite los operadores compuestos habituales. Internamente Snow desugariza <code>x.y += n</code> → <code>x.y = x.y + n</code>, de modo que funciona para cualquier operador binario compatible:</p>
         <pre><code>stats = {visitas: 0, total: 100.5}
 
 stats.visitas += 1      # stats.visitas = stats.visitas + 1
@@ -795,7 +868,7 @@ print(stats.visitas)   # 2
 print(stats.total)     # 201.0
 </code></pre>
 
-        <p class="notice-box">ℹ️ <strong>Soportados en asignación compuesta:</strong> <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>//=</code>, <code>%=</code> y <code>??=</code>. Se pueden usar tanto en asignación de atributos como de índice.</p>
+        <p class="notice-box" data-i18n="p_assign_note"><span class="notice-icon" aria-hidden="true">i</span> <strong>Soportados en asignación compuesta:</strong> <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>//=</code>, <code>%=</code> y <code>??=</code>. Se pueden usar tanto en asignación de atributos como de índice.</p>
       </section>
 
       <!-- Nativas -->
@@ -1233,7 +1306,7 @@ else:
 
       <!-- Módulo time -->
       <section id="mod-time" class="doc-section">
-        <h2>using time &mdash; Fechas, Pausas y Timestamps</h2>
+        <h2 data-i18n="h_mod_time">using time &mdash; Fechas, Pausas y Timestamps</h2>
         <p data-i18n="p_mod_time_desc">Manejo de tiempo, pausas de ejecución, formateo de fechas y marcas temporales unix sin complicaciones.</p>
         <table class="table-nord">
           <thead>
@@ -1261,7 +1334,7 @@ print(f"Transcurrido: {time.since(t0)} seg")</code></pre>
 
       <!-- Módulo json -->
       <section id="mod-json" class="doc-section">
-        <h2>using json &mdash; Parseo y Serialización</h2>
+        <h2 data-i18n="h_mod_json">using json &mdash; Parseo y Serialización</h2>
         <p data-i18n="p_mod_json_desc">Conversión bidireccional entre texto JSON y estructuras de datos nativas de Snow (listas y diccionarios).</p>
         <table class="table-nord">
           <thead>
@@ -1288,7 +1361,7 @@ if json.valid(contenido):
 
       <!-- Módulo crypto -->
       <section id="mod-crypto" class="doc-section">
-        <h2>using crypto &mdash; Hashes, Tokens y JWT</h2>
+        <h2 data-i18n="h_mod_crypto">using crypto &mdash; Hashes, Tokens y JWT</h2>
         <p data-i18n="p_mod_crypto_desc">Funciones criptográficas esenciales para autenticación y seguridad en APIs sin dependencias externas.</p>
         <table class="table-nord">
           <thead>
@@ -1316,7 +1389,7 @@ if datos != nil:
 
       <!-- Módulo task -->
       <section id="mod-task" class="doc-section">
-        <h2>using task &mdash; Tareas Programadas y Fondo</h2>
+        <h2 data-i18n="h_mod_task">using task &mdash; Tareas Programadas y Fondo</h2>
         <p data-i18n="p_mod_task_desc">Ejecución periódica y diferida de tareas en segundo plano dentro del propio runtime.</p>
         <table class="table-nord">
           <thead>
@@ -1342,7 +1415,7 @@ task.after("1m", fn(): control.stop())</code></pre>
 
       <!-- Módulo input -->
       <section id="mod-input" class="doc-section">
-        <h2>using input &mdash; Lectura de Entrada con Conversión de Tipos</h2>
+        <h2 data-i18n="h_mod_input">using input &mdash; Lectura de Entrada con Conversión de Tipos</h2>
         <p data-i18n="p_mod_input_desc">Lectura limpia de datos desde la consola estándar con conversión automática al tipo deseado y valores por defecto opcionales.</p>
         <table class="table-nord">
           <thead>
@@ -1601,7 +1674,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
   <script>
     const i18n = {
       es: {
-        nav_top_guide: "Guía", nav_top_lang: "Lenguaje", nav_top_mods: "Módulos",
+        nav_top_guide: "Guía", nav_top_lang: "Lenguaje", nav_top_mods: "Módulos", nav_top_packages: "Paquetes",
         hero_title: "<strong>Snow</strong> — un lenguaje <span class=\"acc\">pequeño y tranquilo</span> para crear APIs web.",
         hero_desc: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Nada revolucionario, solo para experimentar con APIs y hacer las cosas un poco más fáciles.",
         btn_install: "Comenzar", btn_docs: "Ver la guía",
@@ -1803,10 +1876,42 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         input_flt_desc: "Solicita y convierte la entrada a un número decimal (<code>float</code>).",
         input_bool_desc: "Lee una confirmación booleana (<code>y/n</code>, <code>si/no</code>, <code>true/false</code>).",
         input_hidden_desc: "Lectura de entradas confidenciales (claves, tokens) desde la terminal.",
+        h_visibility: "Visibilidad de símbolos: <code>pub</code>, <code>priv</code> e <code>import</code>",
+        h_visibility_rule: "1. Regla de visibilidad: <code>pub</code> por defecto",
+        p_visibility_rule: "En Snow, <strong>todos los símbolos son públicos por defecto</strong>. Cualquier <code>fn</code> o variable declarada en un archivo se exporta cuando otro archivo lo <code>import</code>. Si quieres ocultar un símbolo y que <em>solo</em> sea visible dentro del mismo archivo, márcalo con <code>priv</code>. El modificador <code>pub</code> existe para ser explícito, pero es el comportamiento por defecto.",
+        h_visibility_import: "2. Importar módulos con <code>import</code> y alias con <code>as</code>",
+        p_visibility_import: "Para cargar un archivo <code>.snow</code> como módulo, usa <code>import</code>. Snow busca el archivo relativo al directorio del programa importador. Opcionalmente puedes darle un alias con <code>as</code>:",
+        p_visibility_note: "<span class=\"notice-icon\" aria-hidden=\"true\">#</span> <strong>Semántica de <code>priv</code>:</strong> <code>priv</code> es una herramienta de organización, no un mecanismo de seguridad fuerte. Snow omite estos símbolos del diccionario exportado durante el <code>import</code>, aunque siguen accesibles dentro de su archivo.",
+        nav_projects: "Proyectos, tipos y pruebas", nav_packages: "Paquetes oficiales",
+        h_projects: "Diagnósticos, tipos graduales, paquetes y pruebas",
+        p_projects: "Los errores del ejecutable muestran archivo, línea, columna, el código fuente y un marcador. Los diagnósticos se emiten en inglés para ofrecer una salida estable en terminales y CI.",
+        h_gradual_types: "Tipos graduales", p_gradual_types: "Las anotaciones son opcionales: el código sin anotaciones sigue siendo dinámico. Cuando una anotación existe, Snow valida el valor en ejecución. Los tipos unión permiten representar valores alternativos.",
+        h_local_packages: "Paquetes locales", p_local_packages: "Crea <code>snow.toml</code> en la raíz y guarda los módulos en <code>src/</code>. El campo <code>source</code> es opcional y usa <code>src</code> por defecto.",
+        h_script_tests: "Pruebas de scripts", p_script_tests: "Todo archivo que termina en <code>_test.snow</code> es un test: pasa cuando termina sin errores. Usa <code>assert(condicion, [mensaje])</code> para expresar expectativas. Ejecuta todos los tests del directorio actual o limita la búsqueda a rutas concretas.",
+        h_snowball: "Gestor de paquetes <code>snowball</code>", p_snowball: "<code>snowball get</code> descarga siempre las bibliotecas oficiales desde el repositorio Snow en GitHub. <code>add</code> conserva soporte para dependencias por ruta; <code>get-local</code> se usa exclusivamente para instalar desde una carpeta local <code>repo/</code>.",
+        p_snowball_libraries: "El catálogo oficial incluye 16 bibliotecas, desde texto y colecciones hasta paginación, estadísticas, plantillas y validación. Para desarrollo local configura <code>SNOW_REPO</code> o ejecuta desde un subdirectorio que tenga <code>repo/</code> en un directorio padre.",
+        h_official_packages: "Paquetes oficiales", p_official_packages: "Catálogo de bibliotecas disponibles en <code>repo/snow</code>. Cada paquete incluye un archivo <code>.snowpkg</code> con <code>name</code>, <code>version</code>, <code>description</code>, <code>license</code>, <code>repository</code>, <code>keywords</code> y <code>entry</code>. Instala una biblioteca con <code>snowball get</code>.",
+        package_search_label: "Buscar paquetes", package_search_placeholder: "Nombre, palabra clave o descripción", package_empty: "No hay paquetes que coincidan con la búsqueda.",
+        pkg_text_desc: "Normalización de texto, slugs y comprobaciones de prefijos o sufijos.", pkg_math_desc: "Rangos numéricos, límites y cálculo de promedios.", pkg_collections_desc: "Utilidades para listas: valores únicos, compactación y valor inicial.", pkg_validate_desc: "Validaciones comunes de texto, correo electrónico y longitud.",
+        pkg_arrays_desc: "Cortes, grupos, descarte y conteo para listas.", pkg_dict_desc: "Transformaciones de diccionarios: pick, omit, merge y defaults.", pkg_strings_desc: "Cambio de formato, palabras y relleno de texto.", pkg_numbers_desc: "Mediana, porcentajes, interpolación y rangos numéricos.", pkg_query_desc: "Parseo y creación sencilla de parámetros de consulta.", pkg_csvutil_desc: "Filas, registros y mapeo de cabeceras CSV simples.", pkg_pagination_desc: "Paginación por offset y metadatos para respuestas API.", pkg_result_desc: "Valores explícitos de éxito y error para flujos de aplicación.", pkg_guards_desc: "Guardas de campos requeridos, tipos y valores válidos.", pkg_ids_desc: "Identificadores legibles con prefijos y ceros a la izquierda.", pkg_template_desc: "Renderizado de plantillas con marcadores de nombre.", pkg_stats_desc: "Totales, media, límites y resumen estadístico.",
+        h_where: "3. Cláusula <code>where</code> en bucles <code>for</code>", p_where: "Filtra elementos directamente en la cabecera de <code>for</code>. La condición se evalúa <em>después</em> de asignar la variable de iteración, así que puedes usarla inmediatamente. Equivale a un <code>if</code> anidado como primera línea del cuerpo:",
+        h_with: "5. Gestión automática de recursos: <code>with</code>", p_with: "La sentencia <code>with</code> recibe una expresión que devuelve un <em>recurso</em> (normalmente un diccionario con método <code>close()</code>). Al entrar al bloque puede enlazarlo opcionalmente con <code>as</code>. Al salir —normalmente, con <code>return</code>, <code>break</code> o un error— Snow invoca automáticamente <code>.close()</code> sobre el recurso cuando esté disponible.",
+        h_assignment: "Asignación de campos y elementos: <code>x.y = v</code> y <code>x[k] = v</code>",
+        h_assign_attr: "1. Asignar atributos a diccionarios (<code>dict.campo = valor</code>)", p_assign_attr: "Además de crear diccionarios con literales, puedes agregar o sobrescribir claves mediante notación de punto. Es exactamente equivalente al acceso con corchetes y una cadena:",
+        h_assign_index: "2. Asignar elementos de listas y cadenas (<code>lista[k] = valor</code>)", p_assign_index: "En las listas, puedes sobrescribir elementos por índice. Los índices negativos cuentan desde el final (<code>-1</code> es el último). Una asignación fuera de los límites produce un error capturable:",
+        h_assign_compound: "3. Operadores compuestos (<code>+=</code>, <code>-=</code>, etc.)", p_assign_compound: "La asignación de campos también acepta los operadores compuestos habituales. Internamente, Snow transforma <code>x.y += n</code> en <code>x.y = x.y + n</code>, así que funciona con cualquier operador binario compatible:",
+        p_assign_note: "<span class=\"notice-icon\" aria-hidden=\"true\">i</span> <strong>Soportados en asignación compuesta:</strong> <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>//=</code>, <code>%=</code>, <code>**=</code>, <code>&=</code>, <code>|=</code>, <code>^=</code>, <code>&lt;&lt;=</code>, <code>&gt;&gt;=</code>. Funcionan tanto con atributos como con índices.",
+        h_mod_time: "using time &mdash; Fechas, pausas y marcas de tiempo", h_mod_json: "using json &mdash; Parseo y serialización", h_mod_crypto: "using crypto &mdash; Hashes, tokens y JWT", h_mod_task: "using task &mdash; Tareas programadas y en segundo plano", h_mod_input: "using input &mdash; Lectura de entrada con conversión de tipos",
+        h_safe_index: "Acceso seguro a JSON anidado (<code>?[]</code>)", p_safe_index_desc: "Cuando trabajas con JSON profundo, una clave ausente lanza un error. El operador <code>?[]</code> devuelve <code>nil</code> en vez de fallar, y se combina con <code>??</code> para dar un valor por defecto:",
+        api_sc_title: "Atajo de código de estado directo:", api_sc_desc: "En cualquier ruta puedes retornar directamente un par <code>return codigo, datos</code> o un código numérico como <code>return 204</code> sin envolverlo en <code>api.json()</code>. Por ejemplo: <code>return 404, {\"error\": \"no encontrado\"}</code>.",
+        p_mod_time_desc: "Manejo de tiempo, pausas de ejecución, formateo de fechas y marcas temporales Unix sin complicaciones.", time_sleep_desc: "Pausa el script durante el tiempo indicado. Acepta segundos (<code>2</code> o <code>0.5</code>) o texto (<code>\"500ms\"</code>, <code>\"2s\"</code>, <code>\"1m\"</code>).", time_now_desc: "Retorna la fecha y hora actual en texto. Soporta sintaxis strftime (<code>\"%Y-%m-%d %H:%M:%S\"</code>) o formato Go.", time_unix_desc: "Retorna la marca de tiempo Unix actual en segundos como un entero (<code>int</code>).", time_unixms_desc: "Retorna la marca de tiempo Unix actual en milisegundos como un entero (<code>int</code>).", time_iso_desc: "Retorna la fecha y hora actual en formato estándar RFC3339 / ISO-8601.", time_since_desc: "Calcula los segundos transcurridos desde la marca de tiempo <code>t0</code> como número decimal (<code>float</code>).",
+        p_mod_json_desc: "Conversión bidireccional entre texto JSON y estructuras de datos nativas de Snow (listas y diccionarios).", json_parse_desc: "Decodifica una cadena JSON y la convierte en diccionario, lista o valor primitivo. Lanza error si el JSON es inválido.", json_stringify_desc: "Serializa cualquier valor de Snow a texto JSON. Si se especifica indentación (número o <code>true</code>), genera formato legible.", json_valid_desc: "Valida si una cadena de texto contiene JSON bien formado sin lanzar excepciones (retorna <code>true</code> o <code>false</code>).",
+        p_mod_crypto_desc: "Funciones criptográficas esenciales para autenticación y seguridad en APIs sin dependencias externas.", crypto_sha256_desc: "Calcula el hash SHA-256 del texto y lo devuelve como cadena hexadecimal.", crypto_sha1_desc: "Calcula el hash SHA-1 del texto y lo devuelve como cadena hexadecimal.", crypto_md5_desc: "Calcula el hash MD5 del texto y lo devuelve como cadena hexadecimal.", crypto_token_desc: "Genera una cadena hexadecimal aleatoria y segura criptográficamente (32 caracteres por defecto).", crypto_jwtsign_desc: "Genera un token JWT firmado con HMAC-SHA256 para el diccionario de datos indicado.", crypto_jwtver_desc: "Verifica la firma del token JWT y su expiración. Retorna el diccionario de datos o <code>nil</code> si no es válido.",
+        p_mod_task_desc: "Ejecución periódica y diferida de tareas en segundo plano dentro del propio runtime.", task_every_desc: "Ejecuta la función en segundo plano cada intervalo de tiempo (ej. <code>\"5s\"</code>, <code>\"1m\"</code>, <code>10</code>). Retorna un control con <code>.stop()</code>.", task_after_desc: "Ejecuta la función una sola vez en segundo plano transcurridos los segundos o duración indicada. Retorna un control con <code>.stop()</code>.",
         f_author: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Libre y de código abierto."
       },
       en: {
-        nav_top_guide: "Guide", nav_top_lang: "Language", nav_top_mods: "Modules",
+        nav_top_guide: "Guide", nav_top_lang: "Language", nav_top_mods: "Modules", nav_top_packages: "Packages",
         hero_title: "<strong>Snow</strong> — a <span class=\"acc\">small and quiet</span> language for building web APIs.",
         hero_desc: "Made by <strong>JDVA0</strong> · A project built for fun and experimentation. Nothing revolutionary, just a way to play with APIs and make things a bit easier.",
         btn_install: "Get started", btn_docs: "Read the guide",
@@ -2004,6 +2109,38 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         input_flt_desc: "Prompts and converts input to decimal number (<code>float</code>).",
         input_bool_desc: "Reads boolean confirmation (<code>y/n</code>, <code>yes/no</code>, <code>true/false</code>).",
         input_hidden_desc: "Reads sensitive inputs (passwords, tokens) from terminal.",
+        h_visibility: "Symbol visibility: <code>pub</code>, <code>priv</code>, and <code>import</code>",
+        h_visibility_rule: "1. Visibility rule: <code>pub</code> by default",
+        p_visibility_rule: "In Snow, <strong>all symbols are public by default</strong>. Any <code>fn</code> or variable declared in a file is exported when another file <code>import</code>s it. To keep a symbol visible only inside its own file, mark it <code>priv</code>. The <code>pub</code> modifier is available for clarity, but it is the default behavior.",
+        h_visibility_import: "2. Importing modules with <code>import</code> and <code>as</code> aliases",
+        p_visibility_import: "To load a <code>.snow</code> file as a module, use <code>import</code>. Snow looks for the file relative to the importing program. You may give it an alias with <code>as</code>:",
+        p_visibility_note: "<span class=\"notice-icon\" aria-hidden=\"true\">#</span> <strong><code>priv</code> semantics:</strong> <code>priv</code> is an organization tool, not a strong security mechanism. Snow omits these symbols from the exported dictionary during <code>import</code>, while they remain accessible inside their own file.",
+        nav_projects: "Projects, types, and tests", nav_packages: "Official packages",
+        h_projects: "Diagnostics, gradual types, packages, and tests",
+        p_projects: "Runner errors show the file, line, column, source line, and a caret. Diagnostics are emitted in English to provide stable terminal and CI output.",
+        h_gradual_types: "Gradual types", p_gradual_types: "Annotations are optional, so unannotated code remains dynamic. When an annotation exists, Snow validates the value at runtime. Union types represent alternative values.",
+        h_local_packages: "Local packages", p_local_packages: "Create <code>snow.toml</code> at the root and keep modules in <code>src/</code>. The <code>source</code> field is optional and defaults to <code>src</code>.",
+        h_script_tests: "Script tests", p_script_tests: "Every file ending in <code>_test.snow</code> is a test: it passes when it completes without errors. Use <code>assert(condition, [message])</code> for expectations. Run all tests in the current directory or restrict the search to selected paths.",
+        h_snowball: "<code>snowball</code> package manager", p_snowball: "<code>snowball get</code> always downloads official libraries from the Snow GitHub repository. <code>add</code> still supports path dependencies; use <code>get-local</code> exclusively to install from a local <code>repo/</code> directory.",
+        p_snowball_libraries: "The official catalog includes 16 libraries, from text and collections to pagination, statistics, templates, and validation. For local development, set <code>SNOW_REPO</code> or run from a subdirectory with <code>repo/</code> in a parent directory.",
+        h_official_packages: "Official packages", p_official_packages: "A catalog of libraries available in <code>repo/snow</code>. Each package includes a <code>.snowpkg</code> file with <code>name</code>, <code>version</code>, <code>description</code>, <code>license</code>, <code>repository</code>, <code>keywords</code>, and <code>entry</code>. Install a library with <code>snowball get</code>.",
+        package_search_label: "Search packages", package_search_placeholder: "Name, keyword, or description", package_empty: "No packages match this search.",
+        pkg_text_desc: "Text normalization, slugs, and prefix or suffix checks.", pkg_math_desc: "Numeric ranges, clamping, and average calculation.", pkg_collections_desc: "List utilities: unique values, compaction, and a first fallback value.", pkg_validate_desc: "Common text, email, and length validation.",
+        pkg_arrays_desc: "List slicing, chunks, dropping, and value counting.", pkg_dict_desc: "Dictionary transformations: pick, omit, merge, and defaults.", pkg_strings_desc: "Case conversion, word handling, and text padding.", pkg_numbers_desc: "Median, percentages, interpolation, and numeric ranges.", pkg_query_desc: "Simple query-parameter parsing and creation.", pkg_csvutil_desc: "Simple CSV rows, records, and header mapping.", pkg_pagination_desc: "Offset pagination and API response metadata.", pkg_result_desc: "Explicit success and error values for application flows.", pkg_guards_desc: "Required-field, type, and value validation guards.", pkg_ids_desc: "Readable identifiers with prefixes and zero padding.", pkg_template_desc: "Named-placeholder template rendering.", pkg_stats_desc: "Totals, mean, bounds, and summary statistics.",
+        h_where: "3. <code>where</code> clause in <code>for</code> loops", p_where: "Filters elements directly in the <code>for</code> header. The condition is evaluated <em>after</em> assigning the iteration variable, so you can use it immediately. It is equivalent to a nested <code>if</code> on the first body line:",
+        h_with: "5. Automatic resource management: <code>with</code>", p_with: "The <code>with</code> statement receives an expression that returns a <em>resource</em> (normally a dictionary with a <code>close()</code> method). When entering the block it can optionally bind it with <code>as</code>. When leaving—normally, through <code>return</code>, <code>break</code>, or an error—Snow automatically invokes <code>.close()</code> on the resource when available.",
+        h_assignment: "Field and item assignment: <code>x.y = v</code> and <code>x[k] = v</code>",
+        h_assign_attr: "1. Assigning dictionary attributes (<code>dict.field = value</code>)", p_assign_attr: "In addition to creating dictionaries with literals, you can add or overwrite keys through dot notation. It is exactly equivalent to bracket access with a string:",
+        h_assign_index: "2. Assigning list and string elements (<code>list[k] = value</code>)", p_assign_index: "For lists, you can overwrite elements by index. Negative indices count from the end (<code>-1</code> is the last element). Assigning out of bounds raises a catchable error:",
+        h_assign_compound: "3. Compound operators (<code>+=</code>, <code>-=</code>, etc.)", p_assign_compound: "Field assignment also accepts the usual compound operators. Internally, Snow desugars <code>x.y += n</code> to <code>x.y = x.y + n</code>, so it works with every compatible binary operator:",
+        p_assign_note: "<span class=\"notice-icon\" aria-hidden=\"true\">i</span> <strong>Supported in compound assignment:</strong> <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>//=</code>, <code>%=</code>, <code>**=</code>, <code>&=</code>, <code>|=</code>, <code>^=</code>, <code>&lt;&lt;=</code>, <code>&gt;&gt;=</code>. They work with both attribute and index assignment.",
+        h_mod_time: "using time &mdash; Dates, delays, and timestamps", h_mod_json: "using json &mdash; Parsing and serialization", h_mod_crypto: "using crypto &mdash; Hashes, tokens, and JWT", h_mod_task: "using task &mdash; Scheduled and background tasks", h_mod_input: "using input &mdash; Typed console input",
+        h_safe_index: "Safe access to nested JSON (<code>?[]</code>)", p_safe_index_desc: "When working with deep JSON, a missing key raises an error. The <code>?[]</code> operator returns <code>nil</code> instead, and combines with <code>??</code> to provide a default value:",
+        api_sc_title: "Direct status-code shortcut:", api_sc_desc: "In any route you can return a <code>return code, data</code> pair directly, or a numeric code such as <code>return 204</code>, without wrapping it in <code>api.json()</code>. For example: <code>return 404, {\"error\": \"not found\"}</code>.",
+        p_mod_time_desc: "Simple time handling, execution delays, date formatting, and Unix timestamps.", time_sleep_desc: "Pauses the script for the requested duration. Accepts seconds (<code>2</code> or <code>0.5</code>) or text (<code>\"500ms\"</code>, <code>\"2s\"</code>, <code>\"1m\"</code>).", time_now_desc: "Returns the current date and time as text. Supports strftime syntax (<code>\"%Y-%m-%d %H:%M:%S\"</code>) or Go layouts.", time_unix_desc: "Returns the current Unix timestamp in seconds as an integer (<code>int</code>).", time_unixms_desc: "Returns the current Unix timestamp in milliseconds as an integer (<code>int</code>).", time_iso_desc: "Returns the current date and time in standard RFC3339 / ISO-8601 format.", time_since_desc: "Calculates elapsed seconds since timestamp <code>t0</code> as a decimal number (<code>float</code>).",
+        p_mod_json_desc: "Bidirectional conversion between JSON text and Snow native data structures (lists and dictionaries).", json_parse_desc: "Decodes a JSON string into a dictionary, list, or primitive value. Raises an error if the JSON is invalid.", json_stringify_desc: "Serializes any Snow value to JSON text. When indentation is provided (a number or <code>true</code>), it produces readable formatting.", json_valid_desc: "Checks whether a text string contains well-formed JSON without raising exceptions (returns <code>true</code> or <code>false</code>).",
+        p_mod_crypto_desc: "Essential cryptographic functions for API authentication and security without external dependencies.", crypto_sha256_desc: "Calculates the text's SHA-256 hash and returns it as a hexadecimal string.", crypto_sha1_desc: "Calculates the text's SHA-1 hash and returns it as a hexadecimal string.", crypto_md5_desc: "Calculates the text's MD5 hash and returns it as a hexadecimal string.", crypto_token_desc: "Generates a cryptographically secure random hexadecimal string (32 characters by default).", crypto_jwtsign_desc: "Generates an HMAC-SHA256 signed JWT for the supplied data dictionary.", crypto_jwtver_desc: "Verifies the JWT signature and expiration. Returns the data dictionary or <code>nil</code> when it is invalid.",
+        p_mod_task_desc: "Periodic and delayed background task execution within the runtime.", task_every_desc: "Runs the function in the background at each interval (for example, <code>\"5s\"</code>, <code>\"1m\"</code>, or <code>10</code>). Returns a controller with <code>.stop()</code>.", task_after_desc: "Runs the function once in the background after the given seconds or duration. Returns a controller with <code>.stop()</code>.",
         f_author: "Made by <strong>JDVA0</strong> · Built for fun and experimentation. Free and open source."
       }
     };

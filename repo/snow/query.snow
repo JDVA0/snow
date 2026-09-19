@@ -1,0 +1,25 @@
+# Official Snow library: simple query-string handling
+
+pub fn parse(value):
+    result = {}
+    if len(trim(value)) == 0:
+        return result
+    for pair in split(value, "&"):
+        parts = split(pair, "=")
+        key = parts[0]
+        if len(parts) > 1:
+            result[key] = parts[1]
+        else:
+            result[key] = ""
+    return result
+
+pub fn stringify(values):
+    result = []
+    for key in keys(values):
+        result = append(result, str(key) + "=" + str(values[key]))
+    return join(result, "&")
+
+pub fn get(values, key, fallback):
+    if has(values, key):
+        return values[key]
+    return fallback

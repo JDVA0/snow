@@ -1,0 +1,17 @@
+# Official Snow library: named placeholder rendering
+
+pub fn render(source, values):
+    result = source
+    for key in keys(values):
+        result = replace(result, "{{" + str(key) + "}}", str(values[key]))
+    return result
+
+pub fn has_placeholder(source, key):
+    return contains(source, "{{" + str(key) + "}}")
+
+pub fn missing(source, fields):
+    result = []
+    for key in fields:
+        if has_placeholder(source, key):
+            result = append(result, key)
+    return result
