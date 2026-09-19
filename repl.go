@@ -144,6 +144,8 @@ func replTerminal(i *Interp, fd int) {
 		return
 	}
 	defer term.Restore(fd, oldState)
+	setReplTerm(fd, oldState)
+	defer endReplTerm()
 
 	// In raw mode the OS ONLCR flag is disabled, so we must translate \n→\r\n
 	// ourselves for any output that Snow scripts produce (print, cli.info, etc.).

@@ -151,7 +151,7 @@ func cliAsk(i *Interp, args []Val) ([]Val, error) {
 	}
 
 	reader := bufio.NewReader(os.Stdin)
-	line, err := reader.ReadString('\n')
+	line, err := readLineFrom(reader)
 	if err != nil && len(line) == 0 {
 		if defaultVal != "" {
 			return []Val{Str(defaultVal)}, nil
@@ -181,7 +181,7 @@ func cliConfirm(i *Interp, args []Val) ([]Val, error) {
 	fmt.Fprintf(i.out, "%s [%s]: ", prompt, hint)
 
 	reader := bufio.NewReader(os.Stdin)
-	line, _ := reader.ReadString('\n')
+	line, _ := readLineFrom(reader)
 	ans := strings.ToLower(strings.TrimSpace(line))
 	if ans == "" {
 		return []Val{Bool(defaultYes)}, nil
@@ -537,7 +537,7 @@ func runeWidth(r rune) int {
 	// Emoji and pictograph ranges
 	if (r >= 0x1F300 && r <= 0x1F9FF) || // Miscellaneous Symbols & Pictographs, Emoticons, Supplemental
 		(r >= 0x1FA00 && r <= 0x1FAFF) || // Symbols and Pictographs Extended-A
-		(r >= 0x2600 && r <= 0x27BF) {   // Miscellaneous Symbols & Dingbats (including ❄ 0x2744, ⚡ 0x26A1, etc.)
+		(r >= 0x2600 && r <= 0x27BF) { // Miscellaneous Symbols & Dingbats (including ❄ 0x2744, ⚡ 0x26A1, etc.)
 		return 2
 	}
 	return 1

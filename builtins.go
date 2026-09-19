@@ -717,7 +717,7 @@ func bInput(i *Interp, args []Val) ([]Val, error) {
 		fmt.Fprint(i.out, string(s))
 	}
 	reader := i.InReader()
-	line, err := reader.ReadString('\n')
+	line, err := readLineFrom(reader)
 	if err != nil && len(line) == 0 {
 		return []Val{Nil}, nil
 	}

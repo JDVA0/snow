@@ -14,7 +14,7 @@ func readLineStdin(i *Interp, prompt string) (string, error) {
 		fmt.Fprint(i.out, prompt)
 	}
 	reader := i.InReader()
-	line, err := reader.ReadString('\n')
+	line, err := readLineFrom(reader)
 	if err != nil && len(line) == 0 {
 		return "", err
 	}
@@ -192,7 +192,7 @@ func inputHidden(i *Interp, args []Val) ([]Val, error) {
 		if ok {
 			fd = int(f.Fd())
 		}
-		passBytes, err := term.ReadPassword(fd)
+		passBytes, err := termReadPassword(fd)
 		fmt.Fprintln(i.out)
 		if err != nil && len(passBytes) == 0 {
 			if defaultVal != "" {
