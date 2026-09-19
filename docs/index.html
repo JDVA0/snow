@@ -1,316 +1,241 @@
-<!DOCTYPE html>
-<html lang="es">
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snow — Documentación</title>
-  <meta name="description" content="Documentación de Snow: lenguaje interpretado y minimalista hecho en Go por JDVA0.">
-  <link rel="icon" type="image/svg+xml" href="snowflake.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snow — Language Reference</title>
+<meta name="description" content="The complete Snow programming language reference and guide.">
+<link rel="icon" type="image/svg+xml" href="snowflake.svg">
+<style>
+:root{color-scheme:dark;--bg:#111315;--panel:#191c20;--panel2:#20242a;--line:#30363d;--text:#e9edf0;--muted:#aeb6bd;--quiet:#77818a;--code:#0b0d0f;--blue:#9bc7e8;--green:#a8d5b0;--orange:#e5b587;--pink:#ddb4d9;--yellow:#e4d69c}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:"JetBrainsMono Nerd Font","JetBrains Nerd Font","JetBrains Mono",monospace;font-size:15px;line-height:1.75}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}code{font-size:.9em;color:var(--orange)}pre{margin:1.2rem 0;padding:1.2rem 1.35rem;overflow-x:auto;background:var(--code);border:1px solid var(--line);border-left:3px solid #68747e;color:#dbe2e6;font-size:.86rem;line-height:1.75}pre code{color:inherit}.kw{color:var(--pink)}.fn{color:var(--green)}.str{color:var(--orange)}.num{color:var(--blue)}.comment{color:#6f7b84;font-style:italic}.const{color:var(--yellow)}
+header{border-bottom:1px solid var(--line);padding:1.3rem 3rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(17,19,21,.96);backdrop-filter:blur(10px);z-index:2}.brand{display:flex;align-items:center;gap:.7rem;color:var(--text);font-weight:700;font-size:1rem}.brand img{width:27px;height:27px;filter:grayscale(1) brightness(1.5)}.header-tools{display:flex;align-items:center;gap:1.2rem}.header-note{color:var(--quiet);font-size:.72rem}.language-switch{display:flex;border:1px solid var(--line);font-size:.7rem}.language-switch a{padding:.2rem .45rem;color:var(--muted);text-decoration:none;border-right:1px solid var(--line)}.language-switch a:last-child{border-right:0}.language-switch a.active{background:var(--panel2);color:var(--text);font-weight:700}.language-switch a.disabled{color:var(--quiet);opacity:.55;cursor:not-allowed}.language-switch a.disabled:hover{text-decoration:none}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:calc(100vh - 76px)}aside{border-right:1px solid var(--line);padding:2.4rem 2rem;position:sticky;top:76px;height:calc(100vh - 76px);overflow-y:auto}aside h2{margin:0 0 1.2rem;color:var(--quiet);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}nav{display:grid;gap:.2rem}nav a{padding:.3rem 0;color:var(--muted);font-size:.8rem}nav a:hover{color:var(--text)}main{min-width:0;padding:4rem clamp(2rem,6vw,7rem) 6rem}.content{max-width:1040px}h1{max-width:900px;margin:0 0 1.2rem;font-size:3.5rem;line-height:1.08;letter-spacing:-.08em}h2{margin:4.2rem 0 1rem;padding-top:1.2rem;border-top:1px solid var(--line);font-size:1.45rem;letter-spacing:-.04em}h3{margin:2rem 0 .5rem;font-size:1rem;color:var(--text)}p,li{color:var(--muted)}p{max-width:850px;margin:.7rem 0 1.1rem}ul,ol{max-width:850px;padding-left:1.5rem}.lead{max-width:820px;color:var(--muted);font-size:1.05rem}.kicker{color:var(--quiet);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}.note{max-width:850px;padding:.9rem 1.1rem;margin:1.3rem 0;background:var(--panel);border:1px solid var(--line);border-left:3px solid #8998a3;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem}.card{padding:1rem 1.1rem;background:var(--panel);border:1px solid var(--line)}.card strong{display:block;color:var(--text);margin-bottom:.3rem}.small{font-size:.82rem;color:var(--quiet)}table{width:100%;border-collapse:collapse;margin:1rem 0 1.5rem;font-size:.84rem}th,td{text-align:left;vertical-align:top;padding:.7rem;border-bottom:1px solid var(--line)}th{color:var(--text);background:var(--panel2)}td{color:var(--muted)}footer{margin-top:5rem;padding-top:1.2rem;border-top:1px solid var(--line);color:var(--quiet);font-size:.75rem}
+@media(max-width:850px){header{padding:1rem 1.2rem}.header-note{display:none}.layout{display:block}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:1.2rem}nav{display:flex;flex-wrap:wrap;gap:.2rem 1rem}nav a{font-size:.72rem}main{padding:2.5rem 1.2rem 4rem}h1{font-size:2.35rem}h2{margin-top:3rem}}
+</style>
 </head>
 <body>
+<header><a class="brand" href="#top"><img src="snowflake.svg" alt="">Snow</a><div class="header-tools"><span class="header-note">The complete language reference · Snow 0.1</span><div class="language-switch" aria-label="Language"><a class="active" href="index.html" aria-current="page">EN</a><a class="disabled" href="index.html" aria-disabled="true" title="Spanish edition coming soon">ES</a></div></div></header>
+<div class="layout">
+<aside><h2>Contents</h2><nav>
+<a href="#start">01 · Start here</a><a href="#model">02 · Language model</a><a href="#syntax">03 · Syntax and values</a><a href="#expressions">04 · Expressions</a><a href="#control">05 · Control flow</a><a href="#functions">06 · Functions</a><a href="#errors">07 · Errors and cleanup</a><a href="#collections">08 · Collections</a><a href="#modules">09 · Modules and imports</a><a href="#stdlib">10 · Standard library</a><a href="#projects">11 · Projects and packages</a><a href="#tools">12 · Command-line tools</a><a href="#testing">13 · Testing and diagnostics</a><a href="#lsp">14 · Editor and LSP</a><a href="#reference">15 · Quick reference</a>
+</nav></aside>
+<main id="top"><div class="content">
+<p class="kicker">Snow language reference</p>
+<h1>Build useful programs with less ceremony.</h1>
+<p class="lead">Snow is a small interpreted language implemented in Go. It is designed for scripts, command-line tools, web APIs, and automation. This page is the complete guide: read it from the beginning to learn Snow, or use the contents as a reference.</p>
+<div class="note"><strong>Design idea.</strong> Snow keeps the syntax close to the data it manipulates. Indentation defines blocks, dictionaries represent structured records, modules expose ordinary values, and errors can be handled at clear boundaries.</div>
 
-  <!-- Topbar -->
-  <nav class="topbar">
-    <div class="nav-inner">
-      <a href="index.html" class="brand">
-        <img src="snowflake.svg" alt="Snow">
-        Snow
-      </a>
-      <ul class="nav-links">
-        <li><a href="index.html" class="active" data-i18n="nav_home">Inicio</a></li>
-        <li><a href="docs.html" data-i18n="nav_doc">Documentación</a></li>
-        <li><a href="docs.html#sintaxis" data-i18n="nav_lang">Lenguaje</a></li>
-        <li><a href="docs.html#mod-api" data-i18n="nav_mods">Módulos</a></li>
-		<li><a href="packages.html" data-i18n="nav_packages">Paquetes</a></li>
-        <li><a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener">GitHub</a></li>
-        <li>
-          <div class="lang-group" role="group" aria-label="Language selection">
-            <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
-            <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </nav>
+<h2 id="start">01 · Start here</h2>
+<p>Install the command-line runner from the repository:</p>
+<pre><code>go build -o snowman ./cmd/snowman
+./snowman hello.snow</code></pre>
+<p>Create <code>hello.snow</code>:</p>
+<pre><code><span class="fn">print</span>(<span class="str">"hello, Snow"</span>)</code></pre>
+<p>A Snow file is read from top to bottom. Statements can assign values, call functions, import modules, define functions, or control execution. Blocks begin after a colon and use four spaces.</p>
+<pre><code>name = <span class="str">"Ada"</span>
+<span class="kw">if</span> name == <span class="str">"Ada"</span>:
+    <span class="fn">print</span>(<span class="str">"welcome, "</span> + name)</code></pre>
+<p>For experiments, use <code>snowman repl</code>. For a project, keep source in <code>src/</code>, tests in files ending with <code>_test.snow</code>, and configuration in <code>snow.toml</code>.</p>
 
-  <!-- Main Content -->
-  <main class="doc-page">
+<h2 id="model">02 · Language model</h2>
+<p>Snow follows a simple execution pipeline. The tokenizer turns source text into tokens. The parser builds a program tree. The checker can inspect names, types, modules, and unreachable code without running the program. The compiler emits VM operations, and the interpreter executes them.</p>
+<div class="grid"><div class="card"><strong>Dynamic by default</strong><span class="small">Names do not need annotations. Add types at boundaries where a contract is valuable.</span></div><div class="card"><strong>Values over classes</strong><span class="small">Lists, dictionaries, functions, modules, and native values are composed directly.</span></div><div class="card"><strong>Explicit effects</strong><span class="small">Network, files, processes, and environment access live in modules.</span></div></div>
+<p>Use <code>snowman check file.snow</code> to get feedback without executing network calls or changing files. Runtime errors include source location and, for uncaught failures, a stack trace.</p>
 
-    <!-- Hero -->
-    <header class="snow-hero">
-      <div class="snow-hero-mark">
-        <img src="snowflake.svg" alt="Snowflake logo">
-      </div>
-      <div class="snow-hero-copy">
-        <p class="snow-eyebrow" data-i18n="hero_eyebrow">Lenguaje ligero · Go · Código abierto</p>
-        <h1 data-i18n="hero_title">Snow hace que las ideas cobren forma.</h1>
-        <p class="snow-hero-lead" data-i18n="hdr_desc1">
-          Snow es un lenguaje interpretado, directo y minimalista para crear APIs web, herramientas CLI y scripts sin fricción.
-        </p>
-        <div class="snow-hero-actions">
-          <a href="docs.html#instalacion" class="snow-button snow-button-primary" data-i18n="hero_primary">Empezar</a>
-          <a href="docs.html#lsp" class="snow-button snow-button-secondary" data-i18n="hero_secondary">Ver el LSP</a>
-        </div>
-        <p class="snow-hero-note" data-i18n="hdr_desc2">
-          Hecho por <strong>JDVA0</strong> · Un proyecto para experimentar con APIs y herramientas de consola.
-        </p>
-      </div>
-    </header>
+<h2 id="syntax">03 · Syntax and values</h2>
+<h3>Comments and names</h3><p>A comment starts with <code>#</code>. Names contain letters, digits, and underscores, but cannot begin with a digit. Keywords are reserved.</p>
+<pre><code><span class="comment"># A comment explains intent.</span>
+server_name = <span class="str">"local"</span>
+server_name = server_name + <span class="str">"host"</span></code></pre>
+<h3>Primitive values</h3><p>Snow has <code>nil</code>, booleans, integers, floats, strings, lists, dictionaries, functions, modules, and native values.</p>
+<pre><code>missing = <span class="kw">nil</span>
+enabled = <span class="kw">true</span>
+count = <span class="num">42</span>
+ratio = <span class="num">4.5</span>
+message = <span class="str">"hello"</span></code></pre>
+<h3>Lists and dictionaries</h3><pre><code>numbers = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]
+user = {name: <span class="str">"Ada"</span>, active: <span class="kw">true</span>}
+<span class="fn">print</span>(numbers[<span class="num">0</span>])
+<span class="fn">print</span>(user.name)
+<span class="fn">print</span>(user[<span class="str">"active"</span>])</code></pre>
+<h3>Constants and annotations</h3><pre><code><span class="kw">const</span> PORT = <span class="num">8080</span>
+name: str = <span class="str">"Ada"</span>
+tags: str[] = [<span class="str">"go"</span>, <span class="str">"snow"</span>]
+value: int | nil = <span class="kw">nil</span>
+value = <span class="num">7</span></code></pre><p><code>const</code> prevents reassignment at runtime. Annotations are optional and gradual. A type mismatch reports the name and received type.</p>
+<h3>Destructuring</h3><pre><code>[first, second] = [<span class="num">10</span>, <span class="num">20</span>]
+{name, age} = {name: <span class="str">"Ada"</span>, age: <span class="num">36</span>}</code></pre>
+<h3>Strings</h3><pre><code>single = <span class="str">"text"</span>
+multiline = <span class="str">"""line one
+line two"""</span>
+welcome = f<span class="str">"Hello, {name}!"</span></code></pre>
 
-    <section class="snow-signal-band" aria-label="Snow highlights">
-      <div>
-        <strong data-i18n="signal_syntax_title">Sintaxis limpia</strong>
-        <span data-i18n="signal_syntax_desc">Indentación, expresiones claras y cero llaves.</span>
-      </div>
-      <div>
-        <strong data-i18n="signal_tools_title">Herramientas nativas</strong>
-        <span data-i18n="signal_tools_desc">HTTP, CLI, archivos y paquetes en un solo lenguaje.</span>
-      </div>
-      <div>
-        <strong data-i18n="signal_lsp_title">LSP listo</strong>
-        <span data-i18n="signal_lsp_desc">Diagnósticos y autocompletado contextual para VS Code.</span>
-      </div>
-    </section>
+<h2 id="expressions">04 · Expressions</h2>
+<p>An expression produces a value. Expressions may be literals, names, calls, indexing, attributes, function expressions, operators, or a conditional expression.</p>
+<h3>Arithmetic and comparison</h3><p>Use <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>//</code>, and <code>%</code>. Comparisons are <code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, and <code>&gt;=</code>.</p>
+<pre><code>whole = <span class="num">7</span> // <span class="num">2</span>
+remainder = <span class="num">7</span> % <span class="num">2</span>
+ratio = <span class="num">7</span> / <span class="num">2</span>
+ready = count &gt; <span class="num">0</span></code></pre>
+<h3>Boolean and nullish operators</h3><p><code>and</code> and <code>or</code> short-circuit. <code>not</code> negates a boolean. <code>in</code> checks membership and <code>not in</code> reverses it. <code>??</code> uses a fallback only for <code>nil</code>; zero and false remain valid values.</p>
+<pre><code>allowed = active <span class="kw">and</span> (role == <span class="str">"admin"</span> <span class="kw">or</span> role == <span class="str">"owner"</span>)
+title = supplied_title ?? <span class="str">"anonymous"</span>
+<span class="fn">print</span>(<span class="num">0</span> ?? <span class="num">99</span>) <span class="comment"># 0</span></code></pre>
+<h3>Access and slicing</h3><pre><code>letters = [<span class="str">"a"</span>, <span class="str">"b"</span>, <span class="str">"c"</span>]
+letters[<span class="num">0</span>] = <span class="str">"A"</span>
+part = letters[<span class="num">1</span>:]
+name = profile?.account?.name ?? <span class="str">"anonymous"</span>
+item = data?[<span class="str">"missing"</span>] ?? <span class="str">"default"</span></code></pre><p>Normal access reports invalid or missing data. Safe attribute <code>?.</code> and safe index <code>?[]</code> return <code>nil</code> when the chain reaches an absent value.</p>
+<h3>Ternary expressions</h3><pre><code>label = <span class="str">"open"</span> <span class="kw">if</span> enabled <span class="kw">else</span> <span class="str">"closed"</span></code></pre><p>Only the selected branch is evaluated.</p>
+<h3>Compound assignment</h3><pre><code>count += <span class="num">1</span>
+items[<span class="num">0</span>] *= <span class="num">2</span>
+config.timeout ??= <span class="num">30</span></code></pre>
 
-    <!-- Quick install strip -->
-    <section class="doc-install" aria-label="Instalación rápida">
-      <div class="doc-install-cmd">
-        <span class="prompt">$</span>
-        <code>git clone https://github.com/JDVA0/snow &amp;&amp; cd snow &amp;&amp; go build ./cmd/snowman</code>
-      </div>
-      <a href="docs.html#instalacion" class="doc-install-action" data-i18n="btn_install">Guía de instalación</a>
-    </section>
+<h2 id="control">05 · Control flow</h2>
+<h3>Conditions</h3><pre><code><span class="kw">if</span> score &gt;= <span class="num">90</span>:
+    grade = <span class="str">"A"</span>
+<span class="kw">elif</span> score &gt;= <span class="num">80</span>:
+    grade = <span class="str">"B"</span>
+<span class="kw">else</span>:
+    grade = <span class="str">"keep going"</span></code></pre>
+<h3>For and where</h3><pre><code><span class="kw">for</span> item <span class="kw">in</span> items:
+    <span class="fn">print</span>(item)
+<span class="kw">for</span> number <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">10</span>) <span class="kw">where</span> number % <span class="num">2</span> == <span class="num">0</span>:
+    <span class="fn">print</span>(number)</code></pre><p><code>where</code> filters before the loop body. Two names receive pairs from dictionaries, lists of pairs, <code>enumerate</code>, or <code>zip</code>.</p>
+<h3>While, break, continue</h3><pre><code>remaining = <span class="num">3</span>
+<span class="kw">while</span> remaining &gt; <span class="num">0</span>:
+    <span class="fn">print</span>(remaining)
+    remaining -= <span class="num">1</span></code></pre>
+<h3>Match</h3><pre><code>command = <span class="str">"help"</span>
+<span class="kw">match</span> command:
+    <span class="kw">case</span> <span class="str">"start"</span>:
+        <span class="fn">print</span>(<span class="str">"starting"</span>)
+    <span class="kw">case</span> <span class="str">"help"</span>, <span class="str">"?"</span>:
+        <span class="fn">print</span>(<span class="str">"help"</span>)
+    <span class="kw">case</span> _:
+        <span class="fn">print</span>(<span class="str">"unknown"</span>)</code></pre><p>Cases run top to bottom. The wildcard must be the only value in its case and must be last.</p>
 
-    <section class="doc-card doc-card-wide" aria-label="LSP y VS Code">
-      <div class="doc-card-title">LSP y extensión de VS Code</div>
-      <p>Snow incluye diagnósticos de sintaxis y análisis estático, además de
-        autocompletado contextual para módulos. Después de <code>using http</code>,
-        escribir <code>http.</code> muestra <code>get</code>, <code>post</code>,
-        <code>put</code>, <code>delete</code>, <code>patch</code> y <code>request</code>.</p>
-      <p><a href="docs.html#lsp">Instalar y configurar el LSP en VS Code</a></p>
-    </section>
+<h2 id="functions">06 · Functions</h2>
+<p>Functions are values. Define one with <code>fn</code>, return with <code>return</code>, and pass functions to collection helpers.</p>
+<pre><code><span class="kw">fn</span> <span class="fn">add</span>(left, right) -&gt; int:
+    <span class="kw">return</span> left + right
 
-    <section class="doc-card doc-card-wide" aria-label="Funciones recientes">
-      <div class="doc-card-title">Funciones recientes del lenguaje</div>
-      <p><code>const</code> crea constantes inmutables, <code>always</code>
-        garantiza limpieza después de <code>try</code>/<code>catch</code>, y las
-        expresiones ternarias permiten escribir
-        <code>value if condition else other_value</code>.</p>
-      <p><code>enumerate()</code> produce pares índice-valor,
-        <code>zip()</code> combina listas y <code>snowball outdated</code>
-        revisa actualizaciones de paquetes.</p>
-    </section>
+double = <span class="kw">fn</span>(value): value * <span class="num">2</span>
+<span class="fn">print</span>(<span class="fn">add</span>(<span class="num">2</span>, <span class="num">3</span>))</code></pre>
+<h3>Parameters and gradual types</h3><pre><code><span class="kw">fn</span> <span class="fn">repeat</span>(word: str, times: int) -&gt; str:
+    <span class="kw">return</span> word * times</code></pre><p>Annotations check arguments, returns, and variables at runtime. Untyped code stays dynamic. Functions can close over surrounding names.</p>
+<pre><code>minimum = <span class="num">10</span>
+is_large = <span class="kw">fn</span>(value): value &gt;= minimum</code></pre>
+<h3>map, filter, fold</h3><pre><code>numbers = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>]
+evens = <span class="fn">filter</span>(<span class="kw">fn</span>(n): n % <span class="num">2</span> == <span class="num">0</span>, numbers)
+doubled = <span class="fn">map</span>(<span class="kw">fn</span>(n): n * <span class="num">2</span>, evens)
+total = <span class="fn">fold</span>(numbers, <span class="num">0</span>, <span class="kw">fn</span>(a, b): a + b)</code></pre>
 
-    <!-- 2-Column Grid -->
-    <div class="doc-grid">
+<h2 id="errors">07 · Errors and cleanup</h2>
+<p>Snow treats a failure as a value that can be caught. Use <code>fail</code> to stop the current operation, <code>try</code> to establish a recovery boundary, <code>catch</code> to receive the failure, and <code>always</code> for cleanup after success or failure.</p>
+<pre><code><span class="kw">fn</span> <span class="fn">require_name</span>(user):
+    <span class="kw">if</span> user?.name == <span class="kw">nil</span>:
+        <span class="fn">fail</span>(<span class="str">"name is required"</span>)
+    <span class="kw">return</span> user.name
 
-      <!-- Card: Primeros pasos -->
-      <section class="doc-card">
-        <div class="doc-card-title" data-i18n="card_start_title">Primeros pasos</div>
-        <div class="doc-card-entry">
-          <a href="docs.html#instalacion" data-i18n="link_inst">Instalación</a>
-          <p data-i18n="desc_inst">Instrucciones para compilar desde el código fuente o usar el binario snowman.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#repl" data-i18n="link_repl">REPL interactivo</a>
-          <p data-i18n="desc_repl">Consola interactiva con historial de comandos, autocompletado y bloques indentados.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#primer-script" data-i18n="link_script">Tu primer script</a>
-          <p data-i18n="desc_script">Escribe <code>print("hola mundo")</code> y ejecútalo directamente con <code>snowman app.snow</code>.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#api-en-5-lineas" data-i18n="link_api5">API en 5 líneas</a>
-          <p data-i18n="desc_api5">Levanta un servidor HTTP funcional con endpoints y respuesta JSON en segundos.</p>
-        </div>
-      </section>
+<span class="kw">try</span>:
+    <span class="fn">print</span>(<span class="fn">require_name</span>({}))
+<span class="kw">catch</span> err:
+    <span class="fn">print</span>(err)
+<span class="kw">always</span>:
+    <span class="fn">print</span>(<span class="str">"cleanup"</span>)</code></pre>
+<p>Uncaught errors include file, line, column, and stack trace. Use <code>with resource as name:</code> when the value has a <code>close</code> method; Snow closes it after the body.</p>
+<pre><code><span class="kw">with</span> <span class="fn">open_resource</span>() <span class="kw">as</span> resource:
+    <span class="fn">print</span>(resource)</code></pre>
 
-      <!-- Card: El lenguaje -->
-      <section class="doc-card">
-        <div class="doc-card-title" data-i18n="card_lang_title">El lenguaje</div>
-        <div class="doc-card-entry">
-          <a href="docs.html#sintaxis" data-i18n="link_syntax">Sintaxis e indentación</a>
-          <p data-i18n="desc_syntax">Bloques basados en indentación consistente de 2 o 4 espacios sin llaves.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#tipos" data-i18n="link_types">Tipos y operadores</a>
-          <p data-i18n="desc_types">Enteros, flotantes, cadenas, booleanos, listas, mapas y operador <code>??</code>.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#funciones" data-i18n="link_funcs">Funciones y closures</a>
-          <p data-i18n="desc_funcs">Definición con <code>fn</code>, retorno de valores y soporte para funciones de primera clase.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#fstr-elvis" data-i18n="link_fstrings">F-strings e interpolación</a>
-          <p data-i18n="desc_fstrings">Interpolación limpia de variables y expresiones usando la sintaxis <code>f"..."</code>.</p>
-        </div>
-      </section>
+<h2 id="collections">08 · Collections</h2>
+<h3>Dictionary operations</h3><pre><code>settings = {theme: <span class="str">"dark"</span>}
+settings.timeout = <span class="num">30</span>
+<span class="fn">print</span>(<span class="fn">keys</span>(settings))
+<span class="fn">print</span>(<span class="fn">values</span>(settings))
+<span class="fn">print</span>(<span class="fn">get</span>(settings, <span class="str">"missing"</span>, <span class="str">"fallback"</span>))</code></pre>
+<h3>Pair helpers</h3><pre><code><span class="kw">for</span> index, value <span class="kw">in</span> <span class="fn">enumerate</span>([<span class="str">"a"</span>, <span class="str">"b"</span>]):
+    <span class="fn">print</span>(index, value)
+<span class="kw">for</span> left, right <span class="kw">in</span> <span class="fn">zip</span>([<span class="num">1</span>, <span class="num">2</span>], [<span class="str">"one"</span>, <span class="str">"two"</span>]):
+    <span class="fn">print</span>(left, right)</code></pre><p><code>zip</code> stops at the shorter list. <code>append</code>, <code>reverse</code>, and <code>sort</code> create useful collection transformations.</p>
 
-      <!-- Card: Módulos -->
-      <section class="doc-card">
-        <div class="doc-card-title" data-i18n="card_mods_title">Módulos integrados</div>
-        <div class="doc-card-entry">
-          <a href="docs.html#mod-api" data-i18n="link_mod_api">api — Servidor HTTP</a>
-          <p data-i18n="desc_mod_api">Rutas GET, POST, PUT, DELETE, soporte CORS nativo y manejo JSON automático.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#mod-http" data-i18n="link_mod_http">http — Cliente HTTP</a>
-          <p data-i18n="desc_mod_http">Consumo de APIs REST externas con <code>http.get()</code> y <code>http.post()</code>.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#mod-db" data-i18n="link_mod_db">db — Almacén clave-valor</a>
-          <p data-i18n="desc_mod_db">Persistencia local en disco embebida sin necesidad de bases de datos externas.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#mod-sys" data-i18n="link_mod_sys">sys &amp; fs — Sistema y archivos</a>
-          <p data-i18n="desc_mod_sys">Lectura y escritura segura de archivos, variables de entorno y utilidades del sistema.</p>
-        </div>
-      </section>
+<h2 id="modules">09 · Modules and imports</h2>
+<p>Use <code>using</code> for standard modules and <code>import</code> for Snow files. A module is a namespace whose members are ordinary values accessed with a dot.</p>
+<pre><code><span class="kw">using</span> http
+<span class="kw">using</span> json
+response = http.<span class="fn">get</span>(<span class="str">"https://example.com"</span>)
+<span class="fn">print</span>(response.status)
 
-      <!-- Card: CLI Toolkit -->
-      <section class="doc-card">
-        <div class="doc-card-title" data-i18n="card_cli_title">CLI Toolkit</div>
-        <div class="doc-card-entry">
-          <a href="docs.html#mod-cli" data-i18n="link_cli_boxes">cli.box y cli.table</a>
-          <p data-i18n="desc_cli_boxes">Cajas y tablas formateadas con cálculo exacto de ancho dinámico para la terminal.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#cli-colores" data-i18n="link_cli_colors">Colores y estilos ANSI</a>
-          <p data-i18n="desc_cli_colors">Formateo de texto en consola sin dependencias complejas ni configuración.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#cli-args" data-i18n="link_cli_args">Parseo de argumentos</a>
-          <p data-i18n="desc_cli_args"><code>cli.parse()</code> para construir utilidades de línea de comandos con flags y comandos.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#cli-prompts" data-i18n="link_cli_prompts">Prompts interactivos</a>
-          <p data-i18n="desc_cli_prompts">Pide datos al usuario con <code>cli.ask()</code> o confirmaciones con <code>cli.confirm()</code>.</p>
-        </div>
-      </section>
+<span class="kw">import</span> ./formatters <span class="kw">as</span> fmt
+<span class="fn">print</span>(fmt.<span class="fn">title</span>(<span class="str">"snow"</span>))</code></pre>
+<p>Top-level values are public by default. <code>priv</code> hides a function or variable from imported exports; <code>pub</code> makes intent explicit. Relative imports may use <code>./</code> and <code>../</code>. Import cycles are detected.</p>
 
-    </div>
+<h2 id="stdlib">10 · Standard library</h2>
+<table><tr><th>Module</th><th>Main members</th><th>Purpose</th></tr>
+<tr><td><code>api</code></td><td>listen, route, get, post, put, delete, patch, all, use, static, cors, serve, response, json, text, html, redirect, status</td><td>HTTP servers, routes, middleware, and responses.</td></tr>
+<tr><td><code>http</code></td><td>get, post, put, delete, patch, request</td><td>HTTP client. Response values expose status, ok, body, headers, text(), json().</td></tr>
+<tr><td><code>fs</code></td><td>read, write, append, exists, remove, mkdir, list, is_file, is_dir, stat, copy</td><td>Files and directories.</td></tr>
+<tr><td><code>sys</code></td><td>exec, sh, env, set_env, envs, args, cwd, cd, hostname, pid, platform, arch, exit, now, sleep</td><td>Processes, environment, paths, and host information.</td></tr>
+<tr><td><code>cli</code></td><td>color, info, success, warn, error, ask, confirm, box, table, divider, clear, parse, args</td><td>Terminal UI and command-line arguments.</td></tr>
+<tr><td><code>json</code></td><td>parse, stringify, valid</td><td>JSON conversion and validation.</td></tr>
+<tr><td><code>csv</code></td><td>parse, dicts, stringify, read, write</td><td>CSV text and files.</td></tr>
+<tr><td><code>env</code></td><td>get, set, int, float, bool, has, all, load</td><td>Environment configuration and .env files.</td></tr>
+<tr><td><code>time</code></td><td>sleep, now, unix, unix_ms, iso, since</td><td>Clocks, durations, and timestamps.</td></tr>
+<tr><td><code>crypto</code></td><td>sha256, sha1, md5, random_token, jwt_sign, jwt_verify</td><td>Hashes, tokens, and JWT helpers.</td></tr>
+<tr><td><code>task</code></td><td>every, after</td><td>Scheduled and delayed work.</td></tr>
+<tr><td><code>input</code></td><td>str, line, int, float, bool, hidden</td><td>Interactive typed input.</td></tr></table>
+<div class="note"><strong>Security:</strong> validate external values before using them as shell commands, paths, headers, or response data. Hashes are not encryption, and secrets should come from the environment rather than source files.</div>
 
-    <!-- Full-width: Referencia rápida -->
-    <section class="doc-card-full">
-      <div class="doc-card-title" data-i18n="card_ref_title">Referencia rápida</div>
-      <div class="doc-card-full-grid">
-        <div class="doc-card-entry">
-          <a href="docs.html#nativas" data-i18n="link_builtins">Funciones nativas</a>
-          <p data-i18n="desc_builtins"><code>print</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>range</code>, <code>keys</code>, <code>values</code>...</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#errores" data-i18n="link_errors">Manejo de errores</a>
-          <p data-i18n="desc_errors">Reporte claro de errores sintácticos y de ejecución con número de línea.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="docs.html#ej-crud" data-i18n="link_examples">Ejemplos completos</a>
-          <p data-i18n="desc_examples">Proyectos de muestra en el repositorio: CRUD REST, CLI tools y procesadores de texto.</p>
-        </div>
-        <div class="doc-card-entry">
-          <a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener" data-i18n="link_source">Código fuente</a>
-          <p data-i18n="desc_source">Repositorio oficial en GitHub, código abierto bajo la licencia MIT.</p>
-        </div>
-      </div>
-    </section>
+<h2 id="projects">11 · Projects and packages</h2>
+<p>A minimal project uses <code>snow.toml</code> and <code>src/</code>:</p><pre><code>name = <span class="str">"weather_tool"</span>
+source = <span class="str">"src"</span></code></pre>
+<p>Use dotted imports for project modules. Keep reusable code in separate files and a small entry point in <code>src/main.snow</code>.</p>
+<pre><code>snowball init my_app
+snowball search http
+snowball get snow/text.snow@^0.1.0
+snowball list
+snowball info snow/text.snow
+snowball outdated
+snowball update</code></pre>
+<p><code>snowball</code> installs packages from the official registry, records versions and checksums in <code>snow.lock</code>, and supports local dependencies. Commit the lockfile for reproducible installs. <code>outdated</code> reports locked packages with newer registry versions.</p>
 
-  </main>
+<h2 id="tools">12 · Command-line tools</h2>
+<table><tr><th>Command</th><th>Behavior</th></tr><tr><td><code>snowman file.snow</code></td><td>Run a Snow file.</td></tr><tr><td><code>snowman repl</code></td><td>Open the interactive REPL.</td></tr><tr><td><code>snowman check file.snow</code></td><td>Parse and statically analyze without running.</td></tr><tr><td><code>snowman fmt [-w] file.snow</code></td><td>Format source; <code>-w</code> writes it in place.</td></tr><tr><td><code>snowman test</code></td><td>Run <code>*_test.snow</code> scripts.</td></tr><tr><td><code>snowball outdated</code></td><td>Check package updates.</td></tr></table>
+<p>A useful loop is format, check, test, then run:</p><pre><code>snowman fmt -w src tests
+snowman check src/main.snow
+snowman test
+go test ./...</code></pre>
 
-  <script>
-    const i18n = {
-      es: {
-        nav_home: "Inicio", nav_doc: "Documentación", nav_lang: "Lenguaje", nav_mods: "Módulos", nav_packages: "Paquetes",
-        hero_eyebrow: "Lenguaje ligero · Go · Código abierto", hero_title: "Snow hace que las ideas cobren forma.", hero_primary: "Empezar", hero_secondary: "Ver el LSP",
-        signal_syntax_title: "Sintaxis limpia", signal_syntax_desc: "Indentación, expresiones claras y cero llaves.", signal_tools_title: "Herramientas nativas", signal_tools_desc: "HTTP, CLI, archivos y paquetes en un solo lenguaje.", signal_lsp_title: "LSP listo", signal_lsp_desc: "Diagnósticos y autocompletado contextual para VS Code.",
-        hdr_desc1: 'Snow es un lenguaje de programación interpretado, ligero y minimalista, desarrollado en Go. Su sintaxis es limpia y directa: sin llaves <code>{}</code> y sin puntos y coma <code>;</code>.',
-        hdr_desc2: 'Hecho por <strong>JDVA0</strong> · Un proyecto por diversión y experimentación. Para prototipar APIs web y scripts sin complicaciones.',
-        btn_install: "Guía de instalación",
-        card_start_title: "Primeros pasos",
-        link_inst: "Instalación", desc_inst: "Instrucciones para compilar desde el código fuente o usar el binario snowman.",
-        link_repl: "REPL interactivo", desc_repl: "Consola interactiva con historial de comandos, autocompletado y bloques indentados.",
-        link_script: "Tu primer script", desc_script: 'Escribe <code>print("hola mundo")</code> y ejecútalo directamente con <code>snowman app.snow</code>.',
-        link_api5: "API en 5 líneas", desc_api5: "Levanta un servidor HTTP funcional con endpoints y respuesta JSON en segundos.",
-        card_lang_title: "El lenguaje",
-        link_syntax: "Sintaxis e indentación", desc_syntax: "Bloques basados en indentación consistente de 2 o 4 espacios sin llaves.",
-        link_types: "Tipos y operadores", desc_types: "Enteros, flotantes, cadenas, booleanos, listas, mapas y operador <code>??</code>.",
-        link_funcs: "Funciones y closures", desc_funcs: "Definición con <code>fn</code>, retorno de valores y soporte para funciones de primera clase.",
-        link_fstrings: "F-strings e interpolación", desc_fstrings: 'Interpolación limpia de variables y expresiones usando la sintaxis <code>f"..."</code>.',
-        card_mods_title: "Módulos integrados",
-        link_mod_api: "api — Servidor HTTP", desc_mod_api: "Rutas GET, POST, PUT, DELETE, soporte CORS nativo y manejo JSON automático.",
-        link_mod_http: "http — Cliente HTTP", desc_mod_http: "Consumo de APIs REST externas con <code>http.get()</code> y <code>http.post()</code>.",
-        link_mod_db: "db — Almacén clave-valor", desc_mod_db: "Persistencia local en disco embebida sin necesidad de bases de datos externas.",
-        link_mod_sys: "sys &amp; fs — Sistema y archivos", desc_mod_sys: "Lectura y escritura segura de archivos, variables de entorno y utilidades del sistema.",
-        card_cli_title: "CLI Toolkit",
-        link_cli_boxes: "cli.box y cli.table", desc_cli_boxes: "Cajas y tablas formateadas con cálculo exacto de ancho dinámico para la terminal.",
-        link_cli_colors: "Colores y estilos ANSI", desc_cli_colors: "Formateo de texto en consola sin dependencias complejas ni configuración.",
-        link_cli_args: "Parseo de argumentos", desc_cli_args: "<code>cli.parse()</code> para construir utilidades de línea de comandos con flags y comandos.",
-        link_cli_prompts: "Prompts interactivos", desc_cli_prompts: "Pide datos al usuario con <code>cli.ask()</code> o confirmaciones con <code>cli.confirm()</code>.",
-        card_ref_title: "Referencia rápida",
-        link_builtins: "Funciones nativas", desc_builtins: "<code>print</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>range</code>, <code>keys</code>, <code>values</code>...",
-        link_errors: "Manejo de errores", desc_errors: "<code>try</code> / <code>catch</code> y <code>fail()</code>: errores como valores, sin jerarquías.",
-        link_examples: "Ejemplos completos", desc_examples: "Proyectos de muestra en el repositorio: CRUD REST, CLI tools y procesadores de texto.",
-        link_source: "Código fuente", desc_source: "Repositorio oficial en GitHub, código abierto bajo la licencia MIT.",
-        footer_credits: "Hecho por <strong>JDVA0</strong> · Proyecto por diversión y experimentación",
-        footer_license: "Licencia MIT"
-      },
-      en: {
-        nav_home: "Home", nav_doc: "Documentation", nav_lang: "Language", nav_mods: "Modules", nav_packages: "Packages",
-        hero_eyebrow: "Lightweight language · Go · Open source", hero_title: "Snow turns ideas into working code.", hero_primary: "Get started", hero_secondary: "Explore the LSP",
-        signal_syntax_title: "Clean syntax", signal_syntax_desc: "Indentation, clear expressions, and no braces.", signal_tools_title: "Native tools", signal_tools_desc: "HTTP, CLI, files, and packages in one language.", signal_lsp_title: "LSP ready", signal_lsp_desc: "Diagnostics and contextual completion for VS Code.",
-        hdr_desc1: 'Snow is a lightweight, interpreted programming language built in Go. Clean syntax: no curly braces <code>{}</code> and no semicolons <code>;</code>.',
-        hdr_desc2: 'Made by <strong>JDVA0</strong> · A personal project for fun and experimentation. Designed to prototype web APIs and scripts without hassle.',
-        btn_install: "Installation guide",
-        card_start_title: "Getting Started",
-        link_inst: "Installation", desc_inst: "Instructions to compile from source code or use the snowman binary.",
-        link_repl: "Interactive REPL", desc_repl: "Interactive shell with command history, auto-completion, and indented block support.",
-        link_script: "Your first script", desc_script: 'Write <code>print("hello world")</code> and run it directly with <code>snowman app.snow</code>.',
-        link_api5: "5-line HTTP API", desc_api5: "Spin up a functional HTTP server with routes and JSON responses in seconds.",
-        card_lang_title: "The Language",
-        link_syntax: "Syntax & Indentation", desc_syntax: "Block indentation based on 2 or 4 spaces without curly braces.",
-        link_types: "Types & Operators", desc_types: "Integers, floats, strings, booleans, lists, maps, and the Elvis <code>??</code> fallback.",
-        link_funcs: "Functions & Closures", desc_funcs: "Define functions with <code>fn</code>, return values, first-class function support.",
-        link_fstrings: "F-strings & Interpolation", desc_fstrings: 'Clean variable and expression interpolation via <code>f"..."</code> syntax.',
-        card_mods_title: "Built-in Modules",
-        link_mod_api: "api — HTTP Server", desc_mod_api: "GET, POST, PUT, DELETE routing, native CORS support, automatic JSON encoding.",
-        link_mod_http: "http — HTTP Client", desc_mod_http: "Consume external REST APIs with <code>http.get()</code> and <code>http.post()</code>.",
-        link_mod_db: "db — Key-Value Store", desc_mod_db: "Embedded on-disk persistence without needing any external database servers.",
-        link_mod_sys: "sys &amp; fs — System & Files", desc_mod_sys: "Safe file I/O, environment variables, and OS process utilities.",
-        card_cli_title: "CLI Toolkit",
-        link_cli_boxes: "cli.box & cli.table", desc_cli_boxes: "Dynamic width formatted boxes and auto-aligned tables for terminal output.",
-        link_cli_colors: "ANSI Colors & Styles", desc_cli_colors: "Terminal text styling with single-line helpers and no extra dependencies.",
-        link_cli_args: "Argument Parsing", desc_cli_args: "<code>cli.parse()</code> to build command-line applications with flags and positional args.",
-        link_cli_prompts: "Interactive Prompts", desc_cli_prompts: "Prompt user input with <code>cli.ask()</code> or confirmations with <code>cli.confirm()</code>.",
-        card_ref_title: "Quick Reference",
-        link_builtins: "Built-in Functions", desc_builtins: "<code>print</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>range</code>, <code>keys</code>, <code>values</code>...",
-        link_errors: "Error Handling", desc_errors: "<code>try</code> / <code>catch</code> and <code>fail()</code>: errors as values, no hierarchies.",
-        link_examples: "Complete Examples", desc_examples: "Sample scripts: REST CRUD, CLI diagnostics, and file processors.",
-        link_source: "Source Code", desc_source: "Official repository on GitHub, open source under the MIT license.",
-        footer_credits: "Made by <strong>JDVA0</strong> · Project for fun and experimentation",
-        footer_license: "MIT License"
-      }
-    };
+<h2 id="testing">13 · Testing and diagnostics</h2>
+<p>Parser errors mean source cannot be formed into a program. Runtime errors happen during execution. Static diagnostics report undefined names, unused variables, unreachable code, unknown modules, and type mismatches without executing the program.</p>
+<pre><code><span class="comment"># math_test.snow</span>
+<span class="fn">assert</span>(<span class="num">2</span> + <span class="num">2</span> == <span class="num">4</span>, <span class="str">"addition"</span>)
+<span class="fn">assert</span>(<span class="str">"snow"</span>.upper() == <span class="str">"SNOW"</span>, <span class="str">"text"</span>)
+<span class="fn">print</span>(<span class="str">"ok"</span>)</code></pre>
+<p>Keep tests focused and deterministic. Use <code>try/catch</code> only where recovery is meaningful. The LSP publishes parser and checker diagnostics after documents open or change.</p>
 
-    function setLang(lang) {
-      document.documentElement.lang = lang;
-      const btnEs = document.getElementById('btn-es');
-      const btnEn = document.getElementById('btn-en');
-      if (btnEs) btnEs.classList.toggle('active', lang === 'es');
-      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
-      const dict = i18n[lang];
-      if (!dict) return;
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (dict[key]) el.innerHTML = dict[key];
-      });
-      localStorage.setItem('snow_lang', lang);
-    }
+<h2 id="lsp">14 · Editor and LSP</h2>
+<p>The Snow language server uses JSON-RPC over stdin/stdout with standard <code>Content-Length</code> framing. Build it with:</p><pre><code>cd LSP
+go build -o snow-lsp ./server</code></pre>
+<p>The VS Code extension registers <code>.snow</code>, provides the Snowflake icon, starts the server, reports diagnostics, and completes built-ins, modules, and members. After <code>using http</code>, typing <code>http.</code> suggests <code>get</code>, <code>post</code>, <code>put</code>, <code>delete</code>, <code>patch</code>, and <code>request</code>.</p>
+<pre><code>cd LSP/vscode_extension
+pnpm install
+pnpm run compile
+npx @vscode/vsce package --no-dependencies
+code --install-extension snow-0.1.0.vsix --force</code></pre>
+<p>Full synchronization uses <code>didOpen</code>, <code>didChange</code>, and <code>didClose</code>. Hover, go-to-definition, references, formatting, and rename are not currently implemented.</p>
 
-    const saved = localStorage.getItem('snow_lang');
-    if (saved === 'en') setLang('en');
-  </script>
+<h2 id="reference">15 · Quick reference</h2>
+<h3>Keywords</h3><p><code>using</code>, <code>import</code>, <code>pub</code>, <code>priv</code>, <code>const</code>, <code>fn</code>, <code>return</code>, <code>if</code>, <code>elif</code>, <code>else</code>, <code>for</code>, <code>where</code>, <code>while</code>, <code>break</code>, <code>continue</code>, <code>try</code>, <code>catch</code>, <code>always</code>, <code>match</code>, <code>case</code>, <code>with</code>, <code>and</code>, <code>or</code>, <code>not</code>, <code>in</code>, <code>as</code>.</p>
+<h3>Built-ins</h3><p><code>print</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>flt</code>, <code>bool</code>, <code>type</code>, <code>range</code>, <code>min</code>, <code>max</code>, <code>abs</code>, <code>floor</code>, <code>ceil</code>, <code>round</code>, <code>upper</code>, <code>lower</code>, <code>trim</code>, <code>split</code>, <code>join</code>, <code>replace</code>, <code>contains</code>, <code>has</code>, <code>keys</code>, <code>values</code>, <code>append</code>, <code>enumerate</code>, <code>zip</code>, <code>reverse</code>, <code>sort</code>, <code>map</code>, <code>filter</code>, <code>fold</code>, <code>call</code>, <code>get</code>, <code>json_encode</code>, <code>json_decode</code>, <code>env</code>, <code>args</code>, <code>now</code>, <code>sleep</code>, <code>input</code>, <code>exit</code>, <code>fail</code>, <code>assert</code>.</p>
+<h3>Literal forms</h3><pre><code>decimal = <span class="num">42</span>
+binary = <span class="num">0b1010</span>
+octal = <span class="num">0o17</span>
+hexadecimal = <span class="num">0xFF</span></code></pre>
+<p>Start with the examples in <code>examples/</code>, then use <code>snow_test.go</code> as executable behavioral documentation. The language is intentionally small: learn the core values and blocks first, then add modules only when the program needs them.</p>
+<footer>Snow is open source under the MIT license. Built in Go by JDVA0.</footer>
+</div></main>
+</div>
 </body>
 </html>

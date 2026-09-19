@@ -413,7 +413,7 @@ func generateIndex() error {
 		return err
 	}
 	// GitHub Pages serves docs/ rather than the repository root, so publish the
-	// same generated index beside packages.html when this is the Snow repository.
+	// same generated index beside the documentation book when this is the Snow repository.
 	webIndex := filepath.Join(filepath.Dir(repo), "docs", "packages-index.toml")
 	if _, err := os.Stat(filepath.Dir(webIndex)); err == nil {
 		return os.WriteFile(webIndex, index, 0o644)
