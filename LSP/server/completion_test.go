@@ -71,3 +71,15 @@ func TestHoverDefinitionAndRename(t *testing.T) {
 		t.Fatalf("expected two rename edits, got %#v", rename.Result)
 	}
 }
+
+func TestHoverInfersListType(t *testing.T) {
+	s := NewServer()
+	doc := &Document{URI: "file:///tmp/list.snow", Text: "frutas = [\"manzana\"]\nprint(frutas)\n"}
+	s.documents[doc.URI] = doc
+	params, _ := json.Marshal(map[string]interface{}{"textDocument": map[string]string{"uri": doc.URI}, "position": map[string]int{"line": 1, "character": 8}})
+	result := s.handleHover(&Request{ID: 1, Params: params})
+	hover, ok := result.Result.(protocol.Hover)
+	if !ok || hover.Contents != "frutas: list" {
+		t.Fatalf("expected list type hover, got %#v", result.Result)
+	}
+}

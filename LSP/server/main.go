@@ -557,9 +557,36 @@ func (s *Server) handleHover(req *Request) *Response {
 	}
 	text := description[name]
 	if text == "" {
-		text = "Snow symbol: " + name
+		if kind := inferredDocumentType(doc.Text, name); kind != "" {
+			text = fmt.Sprintf("%s: %s", name, kind)
+		} else {
+			text = "Snow symbol: " + name
+		}
 	}
 	return &Response{Jsonrpc: "2.0", ID: req.ID, Result: protocol.Hover{Contents: text, Range: span}}
+}
+
+func inferredDocumentType(text, name string) string {
+	pattern := regexp.MustCompile(`(?m)^\s*` + regexp.QuoteMeta(name) + `\s*=\s*(.*)$`)
+	match := pattern.FindStringSubmatch(text)
+	if len(match) < 2 {
+		return ""
+	}
+	value := strings.TrimSpace(match[1])
+	switch {
+	case strings.HasPrefix(value, "["):
+		return "list"
+	case strings.HasPrefix(value, "{"):
+		return "dict"
+	case strings.HasPrefix(value, "\"") || strings.HasPrefix(value, "'"):
+		return "str"
+	case value == "true" || value == "false":
+		return "bool"
+	case regexp.MustCompile(`^-?[0-9]`).MatchString(value):
+		return "number"
+	default:
+		return ""
+	}
 }
 
 func (s *Server) handleDefinition(req *Request) *Response {
