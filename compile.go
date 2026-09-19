@@ -370,7 +370,15 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 }
 
 // caseCond compiles the equality chain for a match case: (v1 == tmp) or (v2 == tmp) ...
+// A single identifier "_" is a wildcard that matches any value.
 func (c *compiler) caseCond(tmp string, vals []Expr, line, col int) error {
+	for _, v := range vals {
+		if name, ok := v.(*NameE); ok && name.X == "_" {
+			// wildcard: the whole case always matches
+			c.emit(Op{Kind: OpPushBool, Bol: true, Line: line, Col: col})
+			return nil
+		}
+	}
 	for i, v := range vals {
 		if err := c.expr(v); err != nil {
 			return err

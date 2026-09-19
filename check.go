@@ -284,6 +284,9 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 		}
 		for _, cs := range t.Cases {
 			for _, v := range cs.Vals {
+				if name, ok := v.(*NameE); ok && name.X == "_" {
+					continue // wildcard case: matches anything
+				}
 				if err := c.walkExpr(v); err != nil {
 					return err
 				}

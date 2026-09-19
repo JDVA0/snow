@@ -1294,6 +1294,18 @@ match x:
     case 5:
         print("cinco")
 `, "cinco")
+
+	check(t, `fn start(): print("starting")
+fn stop(): print("stopping")
+command = "reboot"
+match command:
+    case "start":
+        start()
+    case "stop":
+        stop()
+    case _:
+        print("Unknown command")
+`, "Unknown command")
 }
 
 func TestTypedListNil(t *testing.T) {

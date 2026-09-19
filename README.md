@@ -11,7 +11,11 @@
 
 Snow es un lenguaje de programación simple, directo y conciso, diseñado específicamente para facilitar la creación de APIs web REST y herramientas de línea de comandos sin dependencias externas.
 
-> **Nota:** Hecho por **JDVA0** con asistencia de inteligencia artificial. Creado por diversión y para experimentar, totalmente libre y abierto para que cualquier persona en el mundo lo use, aprenda y cree APIs sin complicaciones.
+> Proyecto creado por **JDVA0**.
+> Hecho por diversión y experimentación.
+> Libre y de código abierto.
+>
+> ⓘ Nota: este proyecto fue desarrollado con asistencia de inteligencia artificial.
 
 ### Características
 
@@ -82,6 +86,30 @@ snowman api.snow
 snowman repl
 ```
 
+### Sentencia `match` (comparación por casos)
+
+```python
+fn start():  print("Arrancando...")
+fn stop():   print("Deteniendo...")
+fn status(): print("Estado: OK")
+
+command = "stop"
+match command:
+    case "start":
+        start()
+    case "stop":
+        stop()
+    case "status":
+        status()
+    case _:
+        print("Unknown command")
+```
+
+Ejecutar:
+```bash
+snowman app.snow
+```
+
 ### Documentación completa
 
 Visita la documentación bilingüe en [https://jdva0.github.io/snow/](https://jdva0.github.io/snow/) o consulta los archivos en la carpeta `docs/`.
@@ -92,7 +120,11 @@ Visita la documentación bilingüe en [https://jdva0.github.io/snow/](https://jd
 
 Snow is a simple, straightforward, and concise programming language designed to make creating REST web APIs and command-line tools fast and effortless, with zero external dependencies.
 
-> **Note:** Made by **JDVA0** with artificial intelligence assistance. Built for fun and experimentation, completely free and open for anyone in the world to use, learn, and create APIs without hassle.
+> Project created by **JDVA0**.
+> Built for fun and experimentation.
+> Free and open source.
+>
+> ⓘ Note: this project was developed with the assistance of artificial intelligence.
 
 ### Features
 
@@ -161,6 +193,30 @@ snowman api.snow
 ### Interactive REPL
 ```bash
 snowman repl
+```
+
+### `match` statement (case comparison)
+
+```python
+fn start():  print("Starting...")
+fn stop():   print("Stopping...")
+fn status(): print("Status: OK")
+
+command = "stop"
+match command:
+    case "start":
+        start()
+    case "stop":
+        stop()
+    case "status":
+        status()
+    case _:
+        print("Unknown command")
+```
+
+Run:
+```bash
+snowman app.snow
 ```
 
 ### Full Documentation

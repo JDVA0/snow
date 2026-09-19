@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documentación — Snow (Hecho por JDVA0)</title>
+  <title>Snow</title>
   <meta name="description" content="Documentación completa, sintaxis, módulos y ejemplos del lenguaje Snow.">
   <link rel="icon" type="image/svg+xml" href="snowflake.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -107,7 +107,10 @@
         <p data-i18n="p_intro">Snow es un lenguaje de programación simple y plano, diseñado específicamente para facilitar la creación de APIs web y scripts de sistema sin dependencias externas complejas.</p>
 
         <div class="notice-box">
-          <span data-i18n="notice_credit">Proyecto creado por <strong>JDVA0</strong> con asistencia de inteligencia artificial. Hecho por diversión y para experimentar, totalmente libre y abierto para que cualquier persona en el mundo lo use, aprenda y cree APIs sin complicaciones.</span>
+          <span data-i18n="notice_credit">Proyecto creado por <strong>JDVA0</strong>.<br>
+Hecho por diversión y experimentación.<br>
+Libre y de código abierto.<br>
+<span class="credit-note"><svg class="credit-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><circle cx="12" cy="8" r=".5" fill="currentColor"></circle></svg>Nota: este proyecto fue desarrollado con asistencia de inteligencia artificial.</span></span>
         </div>
 
         <h2 data-i18n="h_features">Puntos clave</h2>
@@ -435,27 +438,16 @@ for k, v in ["a", "b"]:
     print(k, v)                     # 0 a, 1 b  (índice y elemento)</code></pre>
 
         <h3 data-i18n="h_match">4. Sentencia match</h3>
-        <p data-i18n="p_match_desc">Compara un valor contra varios casos en un solo bloque. El primer caso que coincida ejecuta su cuerpo, y <code>else</code> atrapa todo lo demás:</p>
-        <pre><code>estado = 404
-match estado:
-    case 200:
-        print("OK")
-    case 404:
-        print("No encontrado")
-    case 500:
-        print("Error del servidor")
-    else:
-        print("Otro estado")
-
-# Varios valores por caso y tipos mezclados
-comando = "start"
-match comando:
-    case "start", "run":
-        print("Arrancando...")
-    case "stop", "exit":
-        print("Deteniendo...")
-    else:
-        print("Comando desconocido")</code></pre>
+        <p data-i18n="p_match_desc">Compara un valor contra varios casos en un solo bloque. El primer caso que coincida ejecuta su cuerpo, <code>case _</code> es el comodín que atrapa todo lo demás:</p>
+        <pre><code>match command:
+    case "start":
+        start()
+    case "stop":
+        stop()
+    case "status":
+        status()
+    case _:
+        print("Unknown command")</code></pre>
 
         <h3 data-i18n="h_while">3. Bucle while con break y continue</h3>
         <pre><code>cuenta = 0
@@ -1389,7 +1381,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         cli_ask_desc: "Solicita una entrada de texto interactiva al usuario en stdin con valor por defecto opcional.",
         cli_confirm_desc: "Muestra un prompt interactivo de confirmación sí/no (retorna <code>true</code> o <code>false</code>).",
         p_intro: "Snow es un lenguaje de programación simple y plano, diseñado específicamente para facilitar la creación de APIs web y scripts de sistema sin dependencias externas complejas.",
-        notice_credit: "Proyecto creado por <strong>JDVA0</strong> con asistencia de inteligencia artificial. Hecho por diversión y para experimentar, totalmente libre y abierto para que cualquier persona en el mundo lo use, aprenda y cree APIs sin complicaciones.",
+        notice_credit: "Proyecto creado por <strong>JDVA0</strong>.<br>Hecho por diversión y experimentación.<br>Libre y de código abierto.<br><span class=\"credit-note\"><svg class=\"credit-ico\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 8v8\"></path><circle cx=\"12\" cy=\"8\" r=\".5\" fill=\"currentColor\"></circle></svg>Nota: este proyecto fue desarrollado con asistencia de inteligencia artificial.</span>",
         h_features: "Puntos clave",
         f_1: "<strong>Indentación por espacios:</strong> se usan 4 espacios para definir bloques. No hay llaves <code>{}</code> para delimitar código ni puntos y comas <code>;</code> al final de línea.",
         f_2: "<strong>Servidor HTTP nativo:</strong> el módulo <code>api</code> permite levantar servidores web, definir rutas (GET, POST, PUT, DELETE, PATCH), habilitar CORS y retornar JSON con funciones sencillas.",
@@ -1429,7 +1421,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         h_control: "Control de Flujo", h_if: "1. Condicional if / elif / else",
         h_for: "2. Bucle for", p_for_desc: "Recorre los elementos de una lista:",
         p_for_dict_desc: "Con una variable recorre las claves de un diccionario (o los caracteres de una cadena). Con dos variables obtiene clave y valor:",
-        h_match: "4. Sentencia match", p_match_desc: "Compara un valor contra varios casos en un solo bloque. El primer caso que coincida ejecuta su cuerpo, y <code>else</code> atrapa todo lo demás:",
+        h_match: "4. Sentencia match", p_match_desc: "Compara un valor contra varios casos en un solo bloque. El primer caso que coincida ejecuta su cuerpo, <code>case _</code> es el comodín que atrapa todo lo demás:",
         h_while: "3. Bucle while con break y continue",
         h_funcs: "Funciones y Lambdas",
         h_fn_std: "1. Funciones estándar con bloques (<code>fn</code>)",
@@ -1520,7 +1512,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         input_flt_desc: "Solicita y convierte la entrada a un número decimal (<code>float</code>).",
         input_bool_desc: "Lee una confirmación booleana (<code>y/n</code>, <code>si/no</code>, <code>true/false</code>).",
         input_hidden_desc: "Lectura de entradas confidenciales (claves, tokens) desde la terminal.",
-        f_author: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Libre y gratuito para todo el mundo."
+        f_author: "Hecho por <strong>JDVA0</strong> · Un proyecto hecho por diversión y experimentación. Libre y de código abierto."
       },
       en: {
         nav_top_guide: "Guide", nav_top_lang: "Language", nav_top_mods: "Modules",
@@ -1594,7 +1586,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         cli_ask_desc: "Prompts user for interactive text input via stdin with optional default value.",
         cli_confirm_desc: "Interactive yes/no confirmation prompt (returns <code>true</code> or <code>false</code>).",
         p_intro: "Snow is a simple, flat programming language designed to make building web APIs and system scripts easy without complex external dependencies.",
-        notice_credit: "Project created by <strong>JDVA0</strong> with AI assistance. Made for fun and experimentation, completely free and open for everyone to use, learn, and build APIs without friction.",
+        notice_credit: "Project created by <strong>JDVA0</strong>.<br>Built for fun and experimentation.<br>Free and open source.<br><span class=\"credit-note\"><svg class=\"credit-ico\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 8v8\"></path><circle cx=\"12\" cy=\"8\" r=\".5\" fill=\"currentColor\"></circle></svg>Note: this project was developed with the assistance of artificial intelligence.</span>",
         h_features: "Key features",
         f_1: "<strong>Indentation by spaces:</strong> 4 spaces define blocks. No braces <code>{}</code> to delimit code, no semicolons <code>;</code> at line ends.",
         f_2: "<strong>Native HTTP server:</strong> the <code>api</code> module spins up web servers, registers routes (GET, POST, PUT, DELETE, PATCH), enables CORS, and returns JSON with straightforward functions.",
@@ -1631,7 +1623,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         h_control: "Control Flow", h_if: "1. Conditional if / elif / else",
         h_for: "2. for Loop", p_for_desc: "Iterates through items in a list:",
         p_for_dict_desc: "With one variable it iterates a dict's keys (or a string's characters). With two variables it gets key and value:",
-        h_match: "4. match statement", p_match_desc: "Compares a value against several cases in one block. The first case that matches runs its body, and <code>else</code> catches everything else:",
+        h_match: "4. match statement", p_match_desc: "Compares a value against several cases in a single block. The first case that matches runs its body, and <code>case _</code> is the wildcard that catches everything else:",
         h_while: "3. while Loop with break and continue",
         h_funcs: "Functions & Lambdas",
         h_fn_std: "1. Standard functions with blocks (<code>fn</code>)",
@@ -1721,7 +1713,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         input_flt_desc: "Prompts and converts input to decimal number (<code>float</code>).",
         input_bool_desc: "Reads boolean confirmation (<code>y/n</code>, <code>yes/no</code>, <code>true/false</code>).",
         input_hidden_desc: "Reads sensitive inputs (passwords, tokens) from terminal.",
-        f_author: "Made by <strong>JDVA0</strong> · Created for fun and experimentation with AI assistance. Free and open for everyone."
+        f_author: "Made by <strong>JDVA0</strong> · Built for fun and experimentation. Free and open source."
       }
     };
 

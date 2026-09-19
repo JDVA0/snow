@@ -365,6 +365,20 @@ p { margin-bottom: .8rem; color: var(--text); }
   line-height: 1.6;
 }
 .notice-box strong { color: var(--text); }
+.notice-box .credit-note {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: .35rem;
+  margin-top: .5rem;
+  padding-top: .5rem;
+  border-top: 1px dashed var(--border);
+  font-size: .8rem;
+  color: var(--muted);
+}
+.notice-box .credit-ico {
+  flex: none;
+  margin-top: 2px;
+}
 
 /* ── Code Blocks ── */
 pre {
