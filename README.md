@@ -263,6 +263,9 @@ Snow detecta ciclos de importación y muestra el módulo que se estaba cargando.
 
 ```bash
 snowman init my_app
+snowman run
+snowman run --env .env
+snowman install
 snowman add text_tools ../text_tools
 snowman list
 snowman remove text_tools
@@ -276,6 +279,8 @@ snowman update
 ```
 
 `get` instala la biblioteca en `packages/snow/src/`, registra `dep.snow = "packages/snow"` y genera un lockfile reproducible con la versión, el origen y el checksum SHA-256. Usa `@0.1.0` para una versión exacta. `update` reinstala las bibliotecas fijadas en el lockfile.
+
+`snowman install` reinstala exactamente las versiones de `snow.lock`. `snowman run` ejecuta `src/main.snow` automáticamente cuando encuentra `snow.toml`; `snowman run --env .env` carga variables del archivo antes de iniciar el programa.
 
 Las bibliotecas oficiales viven ordenadas en `repo/packages/<nombre>/`, con su código en `src/` y metadatos en `package.toml`. `snowman index` genera `repo/index.toml`. El catálogo oficial incluye 18 bibliotecas, entre ellas `sets` y `paths`. Consulta una biblioteca instalada con `snowman info snow/text.snow`.
 

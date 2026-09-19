@@ -24,7 +24,7 @@ type Package struct {
 
 func Run(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("package command required (init, get, search, list, info, add, remove, index, update)")
+		return fmt.Errorf("package command required (init, install, get, search, list, info, add, remove, index, update)")
 	}
 	switch args[0] {
 	case "init":
@@ -37,6 +37,11 @@ func Run(args []string) error {
 			return fmt.Errorf("get expects snow/name.snow[@version]")
 		}
 		return get(args[1], false)
+	case "install":
+		if len(args) != 1 {
+			return fmt.Errorf("install does not accept arguments")
+		}
+		return install()
 	case "get-local":
 		if len(args) != 2 {
 			return fmt.Errorf("get-local expects snow/name.snow[@version]")
@@ -402,8 +407,66 @@ func lock(pkg Package, source []byte, local bool) error {
 	if local {
 		origin = "local"
 	}
-	entry := "# Snow lockfile v1\n\n[[package]]\nid = \"" + pkg.ID + "\"\nversion = \"" + pkg.Version + "\"\nsource = \"" + origin + "\"\nchecksum = \"sha256:" + hex.EncodeToString(sum[:]) + "\"\n"
-	return os.WriteFile("snow.lock", []byte(entry), 0o644)
+	entry := "[[package]]\nid = \"" + pkg.ID + "\"\nversion = \"" + pkg.Version + "\"\nsource = \"" + origin + "\"\nchecksum = \"sha256:" + hex.EncodeToString(sum[:]) + "\"\n"
+	old, _ := os.ReadFile("snow.lock")
+	var kept []string
+	for _, section := range strings.Split(string(old), "[[package]]") {
+		if strings.Contains(section, "id = \""+pkg.ID+"\"") || strings.TrimSpace(section) == "" {
+			continue
+		}
+		kept = append(kept, strings.TrimSpace(section))
+	}
+	content := "# Snow lockfile v1\n\n"
+	for _, section := range kept {
+		content += "[[package]]\n" + section + "\n\n"
+	}
+	content += entry
+	return os.WriteFile("snow.lock", []byte(content), 0o644)
+}
+
+func lockedIDs() (map[string]string, error) {
+	b, err := os.ReadFile("snow.lock")
+	if err != nil {
+		return nil, fmt.Errorf("snow.lock not found; run snowman get first")
+	}
+	locked := map[string]string{}
+	for _, section := range strings.Split(string(b), "[[package]]") {
+		var id, version string
+		for _, line := range strings.Split(section, "\n") {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "id = ") {
+				id = strings.Trim(strings.TrimPrefix(line, "id = "), "\"")
+			}
+			if strings.HasPrefix(line, "version = ") {
+				version = strings.Trim(strings.TrimPrefix(line, "version = "), "\"")
+			}
+		}
+		if id != "" {
+			locked[id] = version
+		}
+	}
+	return locked, nil
+}
+
+func install() error {
+	locked, err := lockedIDs()
+	if err != nil {
+		return err
+	}
+	if len(locked) == 0 {
+		return fmt.Errorf("no packages are locked")
+	}
+	ids := make([]string, 0, len(locked))
+	for id := range locked {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	for _, id := range ids {
+		if err := get(id+"@"+locked[id], false); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func index() error {
@@ -443,24 +506,32 @@ func index() error {
 }
 
 func update() error {
-	b, err := os.ReadFile("snow.lock")
+	locked, err := lockedIDs()
 	if err != nil {
-		return fmt.Errorf("snow.lock not found")
+		return err
 	}
-	var ids []string
-	for _, line := range strings.Split(string(b), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "id = ") {
-			ids = append(ids, strings.Trim(strings.TrimPrefix(line, "id = "), "\""))
-		}
+	packages, err := registry(false)
+	if err != nil {
+		return err
 	}
-	if len(ids) == 0 {
-		return fmt.Errorf("no packages are locked")
+	ids := make([]string, 0, len(locked))
+	for id := range locked {
+		ids = append(ids, id)
 	}
+	sort.Strings(ids)
 	for _, id := range ids {
+		pkg, ok := packages[id]
+		if !ok {
+			return fmt.Errorf("locked package %q was not found", id)
+		}
+		if pkg.Version == locked[id] {
+			status("unchanged", id+" "+pkg.Version, "36")
+			continue
+		}
 		if err := get(id, false); err != nil {
 			return err
 		}
+		status("updated", id+" "+locked[id]+" -> "+pkg.Version, "32")
 	}
 	return nil
 }

@@ -95,6 +95,7 @@ type ServerCapabilities struct {
 	DefinitionProvider         bool                     `json:"definitionProvider,omitempty"`
 	ReferencesProvider         bool                     `json:"referencesProvider,omitempty"`
 	DocumentFormattingProvider bool                     `json:"documentFormattingProvider,omitempty"`
+	RenameProvider             bool                     `json:"renameProvider,omitempty"`
 }
 
 // TextDocumentSyncOptions represents text document sync options
@@ -151,4 +152,8 @@ type FormattingOptions struct {
 type TextEdit struct {
 	Range   Range  `json:"range"`
 	NewText string `json:"newText"`
+}
+
+type WorkspaceEdit struct {
+	Changes map[string][]TextEdit `json:"changes,omitempty"`
 }

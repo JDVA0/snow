@@ -177,6 +177,12 @@ func (s *Server) handleRequest(req *Request) *Response {
 		return s.handleDidClose(req)
 	case "textDocument/completion":
 		return s.handleCompletion(req)
+	case "textDocument/hover":
+		return s.handleHover(req)
+	case "textDocument/definition":
+		return s.handleDefinition(req)
+	case "textDocument/rename":
+		return s.handleRename(req)
 	default:
 		return &Response{
 			Jsonrpc: "2.0",
@@ -213,10 +219,11 @@ func (s *Server) handleInitialize(req *Request) *Response {
 				ResolveProvider:   false,
 				TriggerCharacters: []string{".", ":", " "},
 			},
-			HoverProvider:              false,
-			DefinitionProvider:         false,
+			HoverProvider:              true,
+			DefinitionProvider:         true,
 			ReferencesProvider:         false,
 			DocumentFormattingProvider: false,
+			RenameProvider:             true,
 		},
 	}
 
@@ -478,6 +485,133 @@ func moduleMemberItems(module string) []protocol.CompletionItem {
 		})
 	}
 	return items
+}
+
+func wordAt(text string, line, character int) (string, protocol.Range) {
+	lines := strings.Split(text, "\n")
+	if line < 0 || line >= len(lines) {
+		return "", protocol.Range{}
+	}
+	value := lines[line]
+	if character > len(value) {
+		character = len(value)
+	}
+	start := character
+	for start > 0 && isWordByte(value[start-1]) {
+		start--
+	}
+	end := character
+	for end < len(value) && isWordByte(value[end]) {
+		end++
+	}
+	if start == end {
+		return "", protocol.Range{}
+	}
+	return value[start:end], protocol.Range{Start: protocol.Position{Line: line, Character: start}, End: protocol.Position{Line: line, Character: end}}
+}
+
+func isWordByte(value byte) bool {
+	return value == '_' || value >= 'a' && value <= 'z' || value >= 'A' && value <= 'Z' || value >= '0' && value <= '9'
+}
+
+func positionParams(req *Request) (string, int, int, error) {
+	var params struct {
+		TextDocument struct {
+			URI string `json:"uri"`
+		} `json:"textDocument"`
+		Position struct {
+			Line      int `json:"line"`
+			Character int `json:"character"`
+		} `json:"position"`
+	}
+	if err := json.Unmarshal(req.Params, &params); err != nil {
+		return "", 0, 0, err
+	}
+	return params.TextDocument.URI, params.Position.Line, params.Position.Character, nil
+}
+
+func (s *Server) handleHover(req *Request) *Response {
+	uri, line, character, err := positionParams(req)
+	if err != nil {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Error: &Error{Code: -32602, Message: err.Error()}}
+	}
+	doc := s.documents[uri]
+	if doc == nil {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Result: nil}
+	}
+	name, span := wordAt(doc.Text, line, character)
+	if name == "" {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Result: nil}
+	}
+	description := map[string]string{
+		"first":     "first(value) returns the first item of a list or string.",
+		"last":      "last(value) returns the last item of a list or string.",
+		"sum":       "sum(values) adds numeric list values.",
+		"any":       "any(values) returns true when one value is truthy.",
+		"all":       "all(values) returns true when every value is truthy.",
+		"clamp":     "clamp(value, low, high) limits a number to a range.",
+		"enumerate": "enumerate(values) returns index/value pairs.",
+		"zip":       "zip(left, right) combines two lists.",
+		"print":     "print(...) writes values to standard output.",
+		"len":       "len(value) returns the length of a list, string, or dictionary.",
+	}
+	text := description[name]
+	if text == "" {
+		text = "Snow symbol: " + name
+	}
+	return &Response{Jsonrpc: "2.0", ID: req.ID, Result: protocol.Hover{Contents: text, Range: span}}
+}
+
+func (s *Server) handleDefinition(req *Request) *Response {
+	uri, line, character, err := positionParams(req)
+	if err != nil {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Error: &Error{Code: -32602, Message: err.Error()}}
+	}
+	doc := s.documents[uri]
+	if doc == nil {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Result: nil}
+	}
+	name, _ := wordAt(doc.Text, line, character)
+	if name == "" {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Result: nil}
+	}
+	definition := regexp.MustCompile(`^\s*(?:(?:pub|priv)\s+)?(?:fn\s+)?` + regexp.QuoteMeta(name) + `\b`)
+	for index, sourceLine := range strings.Split(doc.Text, "\n") {
+		if definition.MatchString(sourceLine) {
+			column := strings.Index(sourceLine, name)
+			return &Response{Jsonrpc: "2.0", ID: req.ID, Result: protocol.Location{URI: uri, Range: protocol.Range{Start: protocol.Position{Line: index, Character: column}, End: protocol.Position{Line: index, Character: column + len(name)}}}}
+		}
+	}
+	return &Response{Jsonrpc: "2.0", ID: req.ID, Result: nil}
+}
+
+func (s *Server) handleRename(req *Request) *Response {
+	uri, line, character, err := positionParams(req)
+	if err != nil {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Error: &Error{Code: -32602, Message: err.Error()}}
+	}
+	var params struct {
+		NewName string `json:"newName"`
+	}
+	if err := json.Unmarshal(req.Params, &params); err != nil || params.NewName == "" {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Error: &Error{Code: -32602, Message: "rename expects newName"}}
+	}
+	doc := s.documents[uri]
+	if doc == nil {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Result: nil}
+	}
+	name, _ := wordAt(doc.Text, line, character)
+	if name == "" {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Result: nil}
+	}
+	pattern := regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\b`)
+	var edits []protocol.TextEdit
+	for lineNumber, sourceLine := range strings.Split(doc.Text, "\n") {
+		for _, match := range pattern.FindAllStringIndex(sourceLine, -1) {
+			edits = append(edits, protocol.TextEdit{Range: protocol.Range{Start: protocol.Position{Line: lineNumber, Character: match[0]}, End: protocol.Position{Line: lineNumber, Character: match[1]}}, NewText: params.NewName})
+		}
+	}
+	return &Response{Jsonrpc: "2.0", ID: req.ID, Result: protocol.WorkspaceEdit{Changes: map[string][]protocol.TextEdit{uri: edits}}}
 }
 
 func detectModulePrefix(doc *Document, line, character int) string {

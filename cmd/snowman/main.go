@@ -20,11 +20,14 @@ const usage = `snowman - the Snow language runner
 Usage:
   snowman [file] [args...]         run a .snow file
   snowman run <file> [args...]     run a .snow file
+	snowman run                      run src/main.snow from the current project
+	snowman run --env .env           load environment variables before running
   snowman eval <code>              evaluate a snippet
   snowman -e <code>                same as eval
   snowman fmt [-w] [file...]       format Snow source (stdout, or -w in place)
   snowman check <file>             lint a .snow file (exit 1 when issues found)
   snowman test [--filter text] [path...] run *_test.snow files
+	snowman install                   reinstall packages from snow.lock
 	snowman init <name>               create a Snow project
 	snowman get snow/name.snow        install an official package
 	snowman search [query]            search official packages
@@ -121,22 +124,88 @@ func main() {
 			printError(fmt.Errorf("snowman: %w", err))
 			os.Exit(1)
 		}
-	case "get", "get-local", "search", "add", "remove", "list", "info", "index", "update":
+	case "get", "get-local", "search", "add", "remove", "list", "info", "index", "update", "install":
 		if err := pkgmgr.Run(args); err != nil {
 			printError(fmt.Errorf("snowman: %w", err))
 			os.Exit(1)
 		}
 	case "run":
-		if len(args) < 2 {
-			printError(errors.New("run expects a file path"))
+		if err := runProject(args[1:]); err != nil {
+			printError(err)
 			os.Exit(1)
 		}
-		i.Args(args[2:])
-		runFile(i, args[1])
 	default:
 		i.Args(args[1:])
 		runFile(i, args[0])
 	}
+}
+
+func runProject(args []string) error {
+	envFile := ""
+	var program string
+	var programArgs []string
+	for index := 0; index < len(args); index++ {
+		switch args[index] {
+		case "--env":
+			if index+1 >= len(args) {
+				return errors.New("run --env expects a .env file")
+			}
+			envFile = args[index+1]
+			index++
+		default:
+			if program == "" {
+				program = args[index]
+			} else {
+				programArgs = append(programArgs, args[index])
+			}
+		}
+	}
+	if envFile != "" {
+		if err := loadEnvFile(envFile); err != nil {
+			return err
+		}
+	}
+	if program == "" {
+		manifest, err := os.ReadFile("snow.toml")
+		if err != nil {
+			return errors.New("run expects a file path or a project with snow.toml")
+		}
+		source := "src"
+		for _, line := range strings.Split(string(manifest), "\n") {
+			parts := strings.SplitN(strings.TrimSpace(line), "=", 2)
+			if len(parts) == 2 && strings.TrimSpace(parts[0]) == "source" {
+				source = strings.Trim(strings.TrimSpace(parts[1]), "\"")
+			}
+		}
+		program = filepath.Join(source, "main.snow")
+	}
+	i := snow.New()
+	i.Args(programArgs)
+	runFile(i, program)
+	return nil
+}
+
+func loadEnvFile(path string) error {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("read env file: %w", err)
+	}
+	for _, raw := range strings.Split(string(b), "\n") {
+		line := strings.TrimSpace(raw)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 || strings.TrimSpace(parts[0]) == "" {
+			return fmt.Errorf("invalid env line %q", raw)
+		}
+		key := strings.TrimSpace(parts[0])
+		value := strings.Trim(strings.TrimSpace(parts[1]), "\"")
+		if err := os.Setenv(key, value); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func printError(err error) {

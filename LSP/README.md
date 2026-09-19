@@ -12,6 +12,8 @@ connected to other editors that support custom language servers.
   unreachable code, and unknown modules.
 - Completion for Snow keywords, built-ins, constants, standard modules, and
   module members.
+- Hover documentation for built-ins, local definitions, and symbols.
+- Local go-to-definition and rename support for symbols in the open document.
 - Module member completion after a dot, for example `http.` suggests `get`,
   `post`, `put`, `delete`, `patch`, and `request`.
 - Trigger characters: `.`, `:`, and space.
