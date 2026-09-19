@@ -15,7 +15,7 @@ header{border-bottom:1px solid var(--line);padding:1.3rem 3rem;display:flex;alig
 </style>
 </head>
 <body>
-<header><a class="brand" href="#top"><img src="snowflake.svg" alt="">Snow</a><div class="header-tools"><span class="header-note">The complete language reference · Snow 0.1</span><div class="language-switch" aria-label="Language"><a class="active" href="index.html" aria-current="page">EN</a><a class="disabled" href="index.html" aria-disabled="true" title="Spanish edition coming soon">ES</a></div></div></header>
+<header><a class="brand" href="#top"><img src="snowflake.svg" alt="">Snow</a><div class="header-tools"><span class="header-note">The complete language reference · Snow 0.1</span><div class="language-switch" aria-label="Language"><a class="active" href="#" data-language="en" aria-current="page">EN</a><a href="#" data-language="es">ES</a></div></div></header>
 <div class="layout">
 <aside><h2>Contents</h2><nav>
 <a href="#start">01 · Start here</a><a href="#model">02 · Language model</a><a href="#syntax">03 · Syntax and values</a><a href="#expressions">04 · Expressions</a><a href="#control">05 · Control flow</a><a href="#functions">06 · Functions</a><a href="#errors">07 · Errors and cleanup</a><a href="#collections">08 · Collections</a><a href="#modules">09 · Modules and imports</a><a href="#stdlib">10 · Standard library</a><a href="#projects">11 · Projects and packages</a><a href="#tools">12 · Command-line tools</a><a href="#testing">13 · Testing and diagnostics</a><a href="#lsp">14 · Editor and LSP</a><a href="#reference">15 · Quick reference</a>
@@ -237,5 +237,86 @@ hexadecimal = <span class="num">0xFF</span></code></pre>
 <footer>Snow is open source under the MIT license. Built in Go by JDVA0.</footer>
 </div></main>
 </div>
+<script>
+(function(){
+    var translations = {
+        "The complete language reference · Snow 0.1":"La referencia completa del lenguaje · Snow 0.1",
+        "Contents":"Contenido",
+        "Snow language reference":"Referencia del lenguaje Snow",
+        "Build useful programs with less ceremony.":"Construye programas útiles con menos ceremonias.",
+        "Snow is a small interpreted language implemented in Go. It is designed for scripts, command-line tools, web APIs, and automation. This page is the complete guide: read it from the beginning to learn Snow, or use the contents as a reference.":"Snow es un lenguaje interpretado pequeño, implementado en Go. Está diseñado para scripts, herramientas de línea de comandos, APIs web y automatización. Esta página es la guía completa: léela desde el principio para aprender Snow o úsala como referencia.",
+        "01 · Start here":"01 · Primeros pasos",
+        "02 · Language model":"02 · Modelo del lenguaje",
+        "03 · Syntax and values":"03 · Sintaxis y valores",
+        "04 · Expressions":"04 · Expresiones",
+        "05 · Control flow":"05 · Control de flujo",
+        "06 · Functions":"06 · Funciones",
+        "07 · Errors and cleanup":"07 · Errores y limpieza",
+        "08 · Collections":"08 · Colecciones",
+        "09 · Modules and imports":"09 · Módulos e imports",
+        "10 · Standard library":"10 · Biblioteca estándar",
+        "11 · Projects and packages":"11 · Proyectos y paquetes",
+        "12 · Command-line tools":"12 · Herramientas de línea de comandos",
+        "13 · Testing and diagnostics":"13 · Pruebas y diagnósticos",
+        "14 · Editor and LSP":"14 · Editor y LSP",
+        "15 · Quick reference":"15 · Referencia rápida",
+        "Install the command-line runner from the repository:":"Instala el ejecutable de línea de comandos desde el repositorio:",
+        "Create hello.snow:":"Crea hello.snow:",
+        "A Snow file is read from top to bottom. Statements can assign values, call functions, import modules, define functions, or control execution. Blocks begin after a colon and use four spaces.":"Un archivo Snow se lee de arriba abajo. Las sentencias pueden asignar valores, llamar funciones, importar módulos, definir funciones o controlar la ejecución. Los bloques empiezan después de dos puntos y usan cuatro espacios.",
+        "For experiments, use snowman repl. For a project, keep source in src/, tests in files ending with _test.snow, and configuration in snow.toml.":"Para experimentar, usa snowman repl. En un proyecto, guarda el código en src/, las pruebas en archivos que terminen en _test.snow y la configuración en snow.toml.",
+        "Comments and names":"Comentarios y nombres",
+        "Primitive values":"Valores primitivos",
+        "Lists and dictionaries":"Listas y diccionarios",
+        "Constants and annotations":"Constantes y anotaciones",
+        "Destructuring":"Desestructuración",
+        "Strings":"Cadenas",
+        "Arithmetic and comparison":"Aritmética y comparación",
+        "Boolean and nullish operators":"Operadores booleanos y nullish",
+        "Access and slicing":"Acceso y slicing",
+        "Ternary expressions":"Expresiones ternarias",
+        "Compound assignment":"Asignación compuesta",
+        "Conditions":"Condiciones",
+        "For and where":"For y where",
+        "While, break, continue":"While, break y continue",
+        "Match":"Match",
+        "Parameters and gradual types":"Parámetros y tipos graduales",
+        "map, filter, fold":"map, filter y fold",
+        "Dictionary operations":"Operaciones con diccionarios",
+        "Pair helpers":"Ayudantes de pares",
+        "Built-ins":"Funciones integradas",
+        "Literal forms":"Formas literales",
+        "Module":"Módulo",
+        "Main members":"Miembros principales",
+        "Purpose":"Propósito",
+        "Command":"Comando",
+        "Behavior":"Comportamiento",
+        "Snow is open source under the MIT license. Built in Go by JDVA0.":"Snow es código abierto bajo la licencia MIT. Creado en Go por JDVA0."
+    };
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('h1,h2,h3,p,nav a,th,td,footer,.header-note'));
+    function setLanguage(language){
+        nodes.forEach(function(node){
+            if(node.children.length) return;
+            var original = node.getAttribute('data-original-text') || node.textContent.trim();
+            node.setAttribute('data-original-text', original);
+            if(language === 'es' && translations[original]) node.textContent = translations[original];
+            if(language === 'en') node.textContent = original;
+        });
+        document.documentElement.lang = language;
+        document.querySelectorAll('[data-language]').forEach(function(link){
+            var active = link.getAttribute('data-language') === language;
+            link.classList.toggle('active', active);
+            if(active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+        });
+        localStorage.setItem('snow-docs-language', language);
+    }
+    document.querySelectorAll('[data-language]').forEach(function(link){
+        link.addEventListener('click', function(event){
+            event.preventDefault();
+            setLanguage(link.getAttribute('data-language'));
+        });
+    });
+    setLanguage(localStorage.getItem('snow-docs-language') || 'en');
+}());
+</script>
 </body>
 </html>
