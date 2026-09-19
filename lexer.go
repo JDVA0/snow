@@ -40,6 +40,7 @@ const (
 	tPlus
 	tMinus
 	tStar
+	tPow
 	tSlash
 	tSlashSlash
 	tPct
@@ -456,6 +457,8 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 			}
 			if kind == 0 {
 				switch two {
+				case "**":
+					kind, n = tPow, 2
 				case "//":
 					kind, n = tSlashSlash, 2
 				case "==":

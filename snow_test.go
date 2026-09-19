@@ -1452,6 +1452,64 @@ print("ok")
 	}
 }
 
+func TestOperatorsAndDestructuring(t *testing.T) {
+	mustRun(t, `[a, b] = [2, 3]
+assert(a != b)
+assert(a <= b)
+assert(b >= a)
+assert(true and not false)
+assert(false or true)
+assert(a + b == 5)
+`)
+}
+
+func TestListHelpers(t *testing.T) {
+	mustRun(t, `items = [1, 2, 3]
+assert(first(items) == 1)
+assert(last(items) == 3)
+assert(first([]) == nil)
+assert(take(items, 2) == [1, 2])
+assert(drop(items, 2) == [3])
+`)
+}
+
+func TestCollectionBuiltins(t *testing.T) {
+	check(t, `print(sum([1, 2, 3]))
+print(any([false, true]))
+print(all([true, true]))
+print(clamp(12, 0, 10))
+`, "6\ntrue\ntrue\n10")
+}
+
+func TestStringFirstLastAndPower(t *testing.T) {
+	check(t, `print(first("Snow"))
+print(last("Snow"))
+print(2 ** 3)
+print(2 ** 3 ** 2)
+`, "S\nw\n8\n512")
+}
+
+func TestAssertExpectedReceived(t *testing.T) {
+	_, err := run(t, `assert(3, 4)`)
+	if err == nil || !strings.Contains(err.Error(), "assertion failed: expected 3, received 4") {
+		t.Fatalf("expected visible assertion values, got %v", err)
+	}
+}
+
+func TestUnknownModuleSuggestion(t *testing.T) {
+	_, err := run(t, "using snow.htp\n")
+	if err == nil || !strings.Contains(err.Error(), "did you mean 'snow.http'?") {
+		t.Fatalf("expected module suggestion, got %v", err)
+	}
+}
+
+func TestUndefinedNameSuggestion(t *testing.T) {
+	_, err := run(t, "message = \"ok\"\nprint(mesage)")
+	if err == nil || !strings.Contains(err.Error(), "did you mean 'message'") {
+		t.Fatalf("expected name suggestion, got %v", err)
+	}
+}
+
 func TestCheckGradualTypes(t *testing.T) {
 	issues, err := Check(`age: int = "old"`, "types.snow")
 	if err != nil {

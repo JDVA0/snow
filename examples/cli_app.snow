@@ -61,7 +61,7 @@ elif cmd == "run":
         cli.success("Command finished successfully (code 0):")
         print(trim(res.stdout))
     else:
-        cli.error("Command failed with code " + str(res.code) +snowman examples/cli_app.snow files ":")
+        cli.error("Command failed with code " + str(res.code) + ":")
         print(trim(res.stderr))
 
 else:

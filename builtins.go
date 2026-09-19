@@ -26,6 +26,10 @@ func stdBuiltins() map[string]bfunc {
 		"range":       bRange,
 		"min":         bMin,
 		"max":         bMax,
+		"sum":         bSum,
+		"any":         bAny,
+		"all":         bAll,
+		"clamp":       bClamp,
 		"abs":         bAbs,
 		"floor":       bFloor,
 		"ceil":        bCeil,
@@ -41,6 +45,10 @@ func stdBuiltins() map[string]bfunc {
 		"keys":        bKeys,
 		"values":      bValues,
 		"append":      bAppend,
+		"first":       bFirst,
+		"last":        bLast,
+		"take":        bTake,
+		"drop":        bDrop,
 		"enumerate":   bEnumerate,
 		"zip":         bZip,
 		"reverse":     bReverse,
@@ -92,6 +100,74 @@ func bLen(i *Interp, args []Val) ([]Val, error) {
 		return nil, err
 	}
 	return []Val{Int(n)}, nil
+}
+
+func bSum(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "sum", 1); err != nil {
+		return nil, err
+	}
+	l, ok := args[0].(List)
+	if !ok {
+		return nil, fmt.Errorf("sum expects a list, got %s", TypeName(args[0]))
+	}
+	var total Val = Int(0)
+	for _, value := range l {
+		var err error
+		total, err = binVal(total, value, boAdd)
+		if err != nil {
+			return nil, fmt.Errorf("sum: %w", err)
+		}
+	}
+	return []Val{total}, nil
+}
+
+func bAny(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "any", 1); err != nil {
+		return nil, err
+	}
+	l, ok := args[0].(List)
+	if !ok {
+		return nil, fmt.Errorf("any expects a list, got %s", TypeName(args[0]))
+	}
+	for _, value := range l {
+		if Truthy(value) {
+			return []Val{Bool(true)}, nil
+		}
+	}
+	return []Val{Bool(false)}, nil
+}
+
+func bAll(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "all", 1); err != nil {
+		return nil, err
+	}
+	l, ok := args[0].(List)
+	if !ok {
+		return nil, fmt.Errorf("all expects a list, got %s", TypeName(args[0]))
+	}
+	for _, value := range l {
+		if !Truthy(value) {
+			return []Val{Bool(false)}, nil
+		}
+	}
+	return []Val{Bool(true)}, nil
+}
+
+func bClamp(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "clamp", 3); err != nil {
+		return nil, err
+	}
+	if c, err := Cmp(args[0], args[1]); err != nil {
+		return nil, err
+	} else if c < 0 {
+		return []Val{args[1]}, nil
+	}
+	if c, err := Cmp(args[0], args[2]); err != nil {
+		return nil, err
+	} else if c > 0 {
+		return []Val{args[2]}, nil
+	}
+	return []Val{args[0]}, nil
 }
 
 func bStr(i *Interp, args []Val) ([]Val, error) {
@@ -476,6 +552,98 @@ func bAppend(i *Interp, args []Val) ([]Val, error) {
 	return []Val{out}, nil
 }
 
+func bFirst(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "first", 1); err != nil {
+		return nil, err
+	}
+	switch value := args[0].(type) {
+	case List:
+		if len(value) == 0 {
+			return []Val{Nil}, nil
+		}
+		return []Val{value[0]}, nil
+	case Str:
+		runes := []rune(string(value))
+		if len(runes) == 0 {
+			return []Val{Nil}, nil
+		}
+		return []Val{Str(string(runes[0]))}, nil
+	default:
+		return nil, fmt.Errorf("first expects a list or string, got %s", TypeName(args[0]))
+	}
+}
+
+func bLast(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "last", 1); err != nil {
+		return nil, err
+	}
+	switch value := args[0].(type) {
+	case List:
+		if len(value) == 0 {
+			return []Val{Nil}, nil
+		}
+		return []Val{value[len(value)-1]}, nil
+	case Str:
+		runes := []rune(string(value))
+		if len(runes) == 0 {
+			return []Val{Nil}, nil
+		}
+		return []Val{Str(string(runes[len(runes)-1]))}, nil
+	default:
+		return nil, fmt.Errorf("last expects a list or string, got %s", TypeName(args[0]))
+	}
+}
+
+func listCountArg(value Val, name string) (int, error) {
+	n, ok := value.(Int)
+	if !ok {
+		return 0, fmt.Errorf("%s expects an integer count, got %s", name, TypeName(value))
+	}
+	return int(n), nil
+}
+
+func bTake(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "take", 2); err != nil {
+		return nil, err
+	}
+	l, ok := args[0].(List)
+	if !ok {
+		return nil, fmt.Errorf("take expects a list, got %s", TypeName(args[0]))
+	}
+	count, err := listCountArg(args[1], "take")
+	if err != nil {
+		return nil, err
+	}
+	if count < 0 {
+		count = 0
+	}
+	if count > len(l) {
+		count = len(l)
+	}
+	return []Val{append(List(nil), l[:count]...)}, nil
+}
+
+func bDrop(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "drop", 2); err != nil {
+		return nil, err
+	}
+	l, ok := args[0].(List)
+	if !ok {
+		return nil, fmt.Errorf("drop expects a list, got %s", TypeName(args[0]))
+	}
+	count, err := listCountArg(args[1], "drop")
+	if err != nil {
+		return nil, err
+	}
+	if count < 0 {
+		count = 0
+	}
+	if count > len(l) {
+		count = len(l)
+	}
+	return []Val{append(List(nil), l[count:]...)}, nil
+}
+
 // bEnumerate returns [index, value] pairs suitable for a two-variable for loop.
 func bEnumerate(i *Interp, args []Val) ([]Val, error) {
 	if err := want(args, "enumerate", 1); err != nil {
@@ -793,6 +961,14 @@ func bFail(i *Interp, args []Val) ([]Val, error) {
 func bAssert(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 || len(args) > 2 {
 		return nil, fmt.Errorf("assert expects 1 or 2 argument(s), got %d", len(args))
+	}
+	if len(args) == 2 {
+		if _, message := args[1].(Str); !message {
+			if Eql(args[0], args[1]) {
+				return []Val{}, nil
+			}
+			return nil, &errFail{val: Str("assertion failed: expected " + SnowStr(args[0]) + ", received " + SnowStr(args[1]))}
+		}
 	}
 	if Truthy(args[0]) {
 		return []Val{}, nil

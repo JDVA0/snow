@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -497,11 +498,59 @@ func detectModulePrefix(doc *Document, line, character int) string {
 	return matches[2]
 }
 
+func completionWordPrefix(doc *Document, line, character int) string {
+	lines := strings.Split(doc.Text, "\n")
+	if line < 0 || line >= len(lines) {
+		return ""
+	}
+	text := lines[line]
+	if character > len(text) {
+		character = len(text)
+	}
+	match := regexp.MustCompile(`[A-Za-z_][A-Za-z0-9_]*$`).FindString(text[:character])
+	return match
+}
+
+func documentNameItems(doc *Document) []protocol.CompletionItem {
+	seen := map[string]bool{}
+	pattern := regexp.MustCompile(`(?m)\b(?:fn|const)?\s*([A-Za-z_][A-Za-z0-9_]*)\s*=`)
+	for _, match := range pattern.FindAllStringSubmatch(doc.Text, -1) {
+		if len(match) > 1 {
+			seen[match[1]] = true
+		}
+	}
+	for _, match := range regexp.MustCompile(`(?m)^\s*(?:pub\s+|priv\s+)?fn\s+([A-Za-z_][A-Za-z0-9_]*)`).FindAllStringSubmatch(doc.Text, -1) {
+		if len(match) > 1 {
+			seen[match[1]] = true
+		}
+	}
+	items := make([]protocol.CompletionItem, 0, len(seen))
+	for name := range seen {
+		items = append(items, protocol.CompletionItem{Label: name, Kind: 6, Detail: "document symbol", InsertText: name})
+	}
+	sort.Slice(items, func(a, b int) bool { return items[a].Label < items[b].Label })
+	return items
+}
+
+func filterCompletionItems(items []protocol.CompletionItem, prefix string) []protocol.CompletionItem {
+	if prefix == "" {
+		return items
+	}
+	filtered := make([]protocol.CompletionItem, 0, len(items))
+	for _, item := range items {
+		if strings.HasPrefix(strings.ToLower(item.Label), strings.ToLower(prefix)) {
+			filtered = append(filtered, item)
+		}
+	}
+	return filtered
+}
+
 // getCompletionItems returns completion items based on the document context
 func (s *Server) getCompletionItems(doc *Document, line, character int) []protocol.CompletionItem {
+	prefix := completionWordPrefix(doc, line, character)
 	if moduleName := detectModulePrefix(doc, line, character); moduleName != "" {
 		if items := moduleMemberItems(moduleName); len(items) > 0 {
-			return items
+			return filterCompletionItems(items, prefix)
 		}
 	}
 
@@ -541,9 +590,11 @@ func (s *Server) getCompletionItems(doc *Document, line, character int) []protoc
 
 	// Add built-in functions
 	builtins := []string{
-		"print", "len", "str", "int", "float", "bool", "list", "dict",
-		"upper", "lower", "split", "join", "enumerate", "zip", "range",
-		"type", "fail", "exit",
+		"print", "len", "str", "int", "flt", "float", "bool", "list", "dict",
+		"upper", "lower", "trim", "split", "join", "replace", "contains", "has",
+		"keys", "values", "append", "first", "last", "take", "drop", "sum", "any", "all", "clamp",
+		"enumerate", "zip", "reverse", "sort", "map", "filter", "fold", "range",
+		"type", "min", "max", "abs", "floor", "ceil", "round", "fail", "exit", "assert",
 	}
 
 	for _, builtin := range builtins {
@@ -565,6 +616,6 @@ func (s *Server) getCompletionItems(doc *Document, line, character int) []protoc
 			InsertText: constant,
 		})
 	}
-
-	return items
+	items = append(items, documentNameItems(doc)...)
+	return filterCompletionItems(items, prefix)
 }

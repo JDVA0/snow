@@ -68,6 +68,7 @@ const (
 	boAdd byte = 1 + iota
 	boSub
 	boMul
+	boPow
 	boDiv
 	boFloorDiv
 	boMod
@@ -93,7 +94,7 @@ const (
 )
 
 var binCodes = map[string]byte{
-	"+": boAdd, "-": boSub, "*": boMul, "/": boDiv, "//": boFloorDiv, "%": boMod,
+	"+": boAdd, "-": boSub, "*": boMul, "**": boPow, "/": boDiv, "//": boFloorDiv, "%": boMod,
 	"==": boEq, "!=": boNe, "<": boLt, "<=": boLe, ">": boGt, ">=": boGe,
 	"and": boAnd, "or": boOr, "in": boIn, "not in": boNotIn,
 }

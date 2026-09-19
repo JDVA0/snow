@@ -52,7 +52,8 @@ Snow es un lenguaje de programación simple, directo y conciso, diseñado espec�
 - **Bloque `always`:** puede seguir a `try` / `catch` y se ejecuta tanto después del camino normal como después del bloque de captura.
 - **Expresión ternaria:** `estado = "open" if activo else "closed"` devuelve uno de dos valores sin un bloque `if`.
 - **`enumerate()` y `zip()`:** `enumerate(lista)` produce pares índice-valor y `zip(a, b)` combina dos listas hasta la más corta.
-- **`snowball outdated`:** muestra paquetes bloqueados que tienen una versión más nueva en el índice oficial.
+- **Colecciones y números:** `first` y `last` funcionan con listas y strings; `take`, `drop`, `sum`, `any`, `all`, `clamp` y `2 ** 3` cubren operaciones frecuentes.
+- **`snowman update`:** actualiza los paquetes bloqueados desde el índice oficial.
 
 ```python
 const LIMIT = 2
@@ -256,34 +257,33 @@ import ../shared.validators
 
 Snow detecta ciclos de importación y muestra el módulo que se estaba cargando.
 
-### Gestor de paquetes `snowball`
+### Gestor de paquetes `snowman`
 
-`snowball get` descarga siempre las bibliotecas oficiales desde el repositorio Snow en GitHub. Las dependencias por ruta siguen disponibles con `add`; `get-local` está reservado para desarrollar bibliotecas desde una carpeta `repo/` local.
+`snowman get` descarga las bibliotecas oficiales desde el repositorio Snow en GitHub. Las dependencias por ruta siguen disponibles con `add`; `get-local` está reservado para desarrollar bibliotecas desde una carpeta `repo/` local.
 
 ```bash
-snowball init my_app
-snowball add text_tools ../text_tools
-snowball list
-snowball remove text_tools
-snowball get snow/text.snow
-snowball get snow/math.snow
-snowball get snow/arrays.snow@^0.1.0
-snowball get-local snow/text.snow
-snowball search pagination
-snowball outdated
-snowball index
-snowball update
+snowman init my_app
+snowman add text_tools ../text_tools
+snowman list
+snowman remove text_tools
+snowman get snow/text.snow
+snowman get snow/math.snow
+snowman get snow/arrays.snow@0.1.0
+snowman get-local snow/text.snow
+snowman search pagination
+snowman index
+snowman update
 ```
 
-`get` instala la biblioteca en `packages/snow/src/`, registra `dep.snow = "packages/snow"` y genera un lockfile reproducible con la versión, el origen y el checksum SHA-256. Usa `@0.1.0` para una versión exacta o `@^0.1.0` para una versión compatible. `update` reinstala las bibliotecas fijadas en el lockfile.
+`get` instala la biblioteca en `packages/snow/src/`, registra `dep.snow = "packages/snow"` y genera un lockfile reproducible con la versión, el origen y el checksum SHA-256. Usa `@0.1.0` para una versión exacta. `update` reinstala las bibliotecas fijadas en el lockfile.
 
-Las bibliotecas oficiales viven ordenadas en `repo/packages/<nombre>/`, con su código en `src/` y metadatos en `package.toml`. `snowball index` genera `repo/index.toml`, que alimenta tanto las búsquedas de Snowball como el catálogo web. El catálogo oficial incluye 16 bibliotecas: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template` y `stats`. Consulta una biblioteca instalada con `snowball info snow/text.snow`.
+Las bibliotecas oficiales viven ordenadas en `repo/packages/<nombre>/`, con su código en `src/` y metadatos en `package.toml`. `snowman index` genera `repo/index.toml`. El catálogo oficial incluye 18 bibliotecas, entre ellas `sets` y `paths`. Consulta una biblioteca instalada con `snowman info snow/text.snow`.
 
 El proyecto [PkgsExamples](/PkgsExamples) contiene una integración completa: sus paquetes están instalados en `PkgsExamples/packages/snow/` y `PkgsExamples/src/main.snow` importa y ejecuta las cuatro bibliotecas oficiales.
 
-Al finalizar, Snowball imprime la URL de origen y la ruta absoluta donde quedó instalada. Comprueba además el resultado con `snowball list` y revisando `packages/snow/src/`.
+Al finalizar, Snowman imprime el paquete y la versión instalada. Comprueba además el resultado con `snowman list` y revisando `packages/snow/src/`.
 
-Para desarrollo local usa `snowball get-local` y configura `SNOW_REPO` apuntando a la carpeta `repo/`; sin esa variable, Snowball busca una carpeta `repo/` en los directorios padre.
+Para desarrollo local usa `snowman get-local` y configura `SNOW_REPO` apuntando a la carpeta `repo/`.
 
 ---
 
@@ -428,8 +428,9 @@ Snow is a simple, straightforward, and concise programming language designed to 
 - **`where` filter inside `for`:** `for x in list where cond:` filters elements inline without a nested `if`.
 - **Automatic resource management (`with`):** `with open_resource() as r:` calls `r.close()` automatically at block end (cleanup guaranteed, even if block returns).
 - **Composable:** `with` blocks, `where` filters and `pub`/`priv` modules work together seamlessly out of the box.
-- **Recent language features:** `const` immutable bindings, `always` cleanup blocks after `try`/`catch`, ternary expressions (`value if condition else other_value`), and `enumerate()` / `zip()` list helpers.
-- **Package updates:** `snowball outdated` reports locked packages with newer versions in the official registry.
+- **Recent language features:** `const` immutable bindings, `always` cleanup blocks after `try`/`catch`, ternary expressions (`value if condition else other_value`), `enumerate()` / `zip()` list helpers, collection helpers, and the `**` power operator.
+- **Package updates:** `snowman update` refreshes locked packages from the official registry.
+- **CLI colors:** Snowman colors errors, package status, and diagnostics in interactive terminals. Set `NO_COLOR=1` for plain output in scripts and CI.
 
 ### Installation
 
@@ -588,34 +589,33 @@ import ../shared.validators
 
 Snow detects import cycles and reports the module that was being loaded.
 
-### `snowball` package manager
+### `snowman` package manager
 
-`snowball get` always downloads official libraries from Snow's GitHub repository. Path dependencies remain available through `add`; `get-local` is reserved for developing libraries from a local `repo/` directory.
+`snowman get` downloads official libraries from Snow's GitHub repository. Path dependencies remain available through `add`; `get-local` is reserved for developing libraries from a local `repo/` directory.
 
 ```bash
-snowball init my_app
-snowball add text_tools ../text_tools
-snowball list
-snowball remove text_tools
-snowball get snow/text.snow
-snowball get snow/math.snow
-snowball get snow/arrays.snow@^0.1.0
-snowball get-local snow/text.snow
-snowball search pagination
-snowball outdated
-snowball index
-snowball update
+snowman init my_app
+snowman add text_tools ../text_tools
+snowman list
+snowman remove text_tools
+snowman get snow/text.snow
+snowman get snow/math.snow
+snowman get snow/arrays.snow@0.1.0
+snowman get-local snow/text.snow
+snowman search pagination
+snowman index
+snowman update
 ```
 
-`get` installs the library in `packages/snow/src/`, writes `dep.snow = "packages/snow"`, and creates a reproducible lockfile with version, source, and SHA-256 checksum. Use `@0.1.0` for an exact version or `@^0.1.0` for a compatible version. `update` reinstalls packages pinned in the lockfile.
+`get` installs the library in `packages/snow/src/`, writes `dep.snow = "packages/snow"`, and creates a reproducible lockfile with version, source, and SHA-256 checksum. Use `@0.1.0` for an exact version. `update` manages locked packages.
 
-Official libraries are organized in `repo/packages/<name>/`, with source in `src/` and metadata in `package.toml`. `snowball index` generates `repo/index.toml`, which powers both Snowball searches and the web catalog. The official catalog includes 16 libraries: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template`, and `stats`. Inspect an installed library with `snowball info snow/text.snow`.
+Official libraries are organized in `repo/packages/<name>/`, with source in `src/` and metadata in `package.toml`. The official catalog includes 16 libraries: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template`, and `stats`. Inspect an installed library with `snowman info snow/text.snow`.
 
 [PkgsExamples](/PkgsExamples) is a complete integration project: its packages live in `PkgsExamples/packages/snow/`, and `PkgsExamples/src/main.snow` imports and runs all four official libraries.
 
-When it finishes, Snowball prints the source URL and the absolute installation path. You can also verify the result with `snowball list` and by inspecting `packages/snow/src/`.
+When it finishes, Snowman prints the installed package and version. You can verify the result with `snowman list` and by inspecting `packages/snow/src/`.
 
-For local development use `snowball get-local` and set `SNOW_REPO` to the `repo/` directory; without it, Snowball searches parent directories for `repo/`.
+For local development use `snowman get-local` and set `SNOW_REPO` to the `repo/` directory.
 
 ---
 

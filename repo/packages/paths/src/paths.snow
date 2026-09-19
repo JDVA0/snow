@@ -1,0 +1,21 @@
+pub fn extension(path):
+    parts = split(path, ".")
+    if len(parts) < 2:
+        return ""
+    return last(parts)
+
+pub fn basename(path):
+    parts = split(path, "/")
+    return last(parts)
+
+pub fn without_extension(path):
+    name = basename(path)
+    parts = split(name, ".")
+    if len(parts) < 2:
+        return name
+    result = ""
+    for index in range(0, len(parts) - 1):
+        if index > 0:
+            result += "."
+        result += parts[index]
+    return result

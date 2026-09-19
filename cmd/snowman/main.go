@@ -9,7 +9,10 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/term"
+
 	"github.com/JDVA0/snow"
+	"github.com/JDVA0/snow/internal/pkgmgr"
 )
 
 const usage = `snowman - the Snow language runner
@@ -22,6 +25,15 @@ Usage:
   snowman fmt [-w] [file...]       format Snow source (stdout, or -w in place)
   snowman check <file>             lint a .snow file (exit 1 when issues found)
   snowman test [--filter text] [path...] run *_test.snow files
+	snowman init <name>               create a Snow project
+	snowman get snow/name.snow        install an official package
+	snowman search [query]            search official packages
+	snowman add <name> <path>         add a local dependency
+	snowman remove <name>             remove a dependency
+	snowman list                      list dependencies
+	snowman info snow/name.snow       show installed package metadata
+	snowman index                     inspect package registry
+	snowman update                    update locked packages
   snowman repl                     start an interactive session
   snowman -h, --help               show this help
   snowman -v, --version            print version
@@ -54,6 +66,8 @@ Language features:
   try/catch     errors as values; fail(valor) to raise
   typed lists   nombres: str[] = ["Julian", "Ana"]  (validates elements)
   fn types      fn sumar(a: int, b: int) -> int:    (optional, validated at call)
+	power         2 ** 3
+	collections   first, last, take, drop, sum, any, all, clamp
   multi-line    """..."""  or  '''...'''
 
 Examples:
@@ -82,32 +96,39 @@ func main() {
 		snow.Repl(i)
 	case "fmt":
 		if err := runFmt(args[1:]); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			printError(err)
 			os.Exit(1)
 		}
 	case "check":
 		if err := runCheck(args[1:]); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			printError(err)
 			os.Exit(1)
 		}
 	case "test":
 		if err := runTests(args[1:]); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			printError(err)
 			os.Exit(1)
 		}
 	case "-e", "eval":
 		if len(args) < 2 {
-			fmt.Fprintln(os.Stderr, "error: eval expects a code string")
+			printError(errors.New("eval expects a code string"))
 			os.Exit(1)
 		}
 		i.Args(args[2:])
 		runSrc(i, args[1], "<eval>")
 	case "init":
-		fmt.Fprintln(os.Stderr, "error: init is only available via snowball. Use \"snowball init <name>\" instead")
-		os.Exit(1)
+		if err := pkgmgr.Run(args); err != nil {
+			printError(fmt.Errorf("snowman: %w", err))
+			os.Exit(1)
+		}
+	case "get", "get-local", "search", "add", "remove", "list", "info", "index", "update":
+		if err := pkgmgr.Run(args); err != nil {
+			printError(fmt.Errorf("snowman: %w", err))
+			os.Exit(1)
+		}
 	case "run":
 		if len(args) < 2 {
-			fmt.Fprintln(os.Stderr, "error: run expects a file path")
+			printError(errors.New("run expects a file path"))
 			os.Exit(1)
 		}
 		i.Args(args[2:])
@@ -118,9 +139,26 @@ func main() {
 	}
 }
 
+func printError(err error) {
+	message := err.Error()
+	if term.IsTerminal(int(os.Stderr.Fd())) && os.Getenv("NO_COLOR") == "" {
+		message = "\033[31;1merror:\033[0m " + message
+	} else {
+		message = "error: " + message
+	}
+	fmt.Fprintln(os.Stderr, message)
+}
+
+func printDiagnostic(message string) {
+	if term.IsTerminal(int(os.Stderr.Fd())) && os.Getenv("NO_COLOR") == "" {
+		message = "\033[31;1m" + message + "\033[0m"
+	}
+	fmt.Fprintln(os.Stderr, message)
+}
+
 func runSrc(i *snow.Interp, src, name string) {
 	if err := i.Run(src, name); err != nil {
-		fmt.Fprintln(os.Stderr, snow.FormatDiagnostic(err, src))
+		printDiagnostic(snow.FormatDiagnostic(err, src))
 		var ex *snow.ExitError
 		if errors.As(err, &ex) {
 			os.Exit(ex.Code)
@@ -132,11 +170,11 @@ func runSrc(i *snow.Interp, src, name string) {
 func runFile(i *snow.Interp, path string) {
 	b, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		printError(err)
 		os.Exit(1)
 	}
 	if err := i.RunFile(path); err != nil {
-		fmt.Fprintln(os.Stderr, snow.FormatDiagnostic(err, string(b)))
+		printDiagnostic(snow.FormatDiagnostic(err, string(b)))
 		var ex *snow.ExitError
 		if errors.As(err, &ex) {
 			os.Exit(ex.Code)
@@ -160,10 +198,18 @@ func runCheck(args []string) error {
 			return fmt.Errorf("%s", snow.FormatDiagnostic(err, string(b)))
 		}
 		for _, is := range issues {
-			fmt.Println(is)
-		}
-		if len(issues) > 0 {
-			had = true
+			message := is.String()
+			if term.IsTerminal(int(os.Stdout.Fd())) && os.Getenv("NO_COLOR") == "" {
+				color := "\033[33m"
+				if is.IsErr {
+					color = "\033[31;1m"
+				}
+				message = color + message + "\033[0m"
+			}
+			fmt.Println(message)
+			if is.IsErr {
+				had = true
+			}
 		}
 	}
 	if had {

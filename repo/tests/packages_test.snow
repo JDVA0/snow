@@ -14,6 +14,8 @@ import ../packages.strings.src.strings
 import ../packages.template.src.template
 import ../packages.text.src.text
 import ../packages.validate.src.validate
+import ../packages.sets.src.sets
+import ../packages.paths.src.paths
 
 assert(arrays.last([1, 2], 0) == 2)
 assert(len(arrays.chunk([1, 2, 3], 2)) == 2)
@@ -32,3 +34,7 @@ assert(template.render("Hello {{name}}", {name: "Snow"}) == "Hello Snow")
 assert(stats.summary([1, 2, 3]).mean == 2)
 assert(text.slug("Hello, Snow!") == "hello-snow")
 assert(validate.email("snow@example.com"))
+assert(sets.intersection([1, 2, 2], [2, 3]) == [2])
+assert(sets.difference([1, 2, 3], [2]) == [1, 3])
+assert(paths.extension("notes.snow") == "snow")
+assert(paths.basename("src/main.snow") == "main.snow")

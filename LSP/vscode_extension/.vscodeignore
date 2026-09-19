@@ -6,6 +6,7 @@ pnpm-lock.yaml
 pnpm-workspace.yaml
 tsconfig.json
 *.map
+*.sh
 README.md
 readme.md
 snow.vsix

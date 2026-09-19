@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -449,7 +450,11 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 	case OpLoad:
 		v, ok := i.lookup(op.Name)
 		if !ok {
-			return i.opErr(op, fmt.Errorf("undefined name '%s'", op.Name))
+			message := fmt.Sprintf("undefined name '%s'", op.Name)
+			if suggestion := i.nameSuggestion(op.Name); suggestion != "" {
+				message += fmt.Sprintf("; did you mean '%s'?", suggestion)
+			}
+			return i.opErr(op, errors.New(message))
 		}
 		i.push(v)
 	case OpStore:
@@ -810,6 +815,73 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 	return nil
 }
 
+func (i *Interp) nameSuggestion(name string) string {
+	candidates := map[string]bool{}
+	for env := i.env; env != nil; env = env.parent {
+		for candidate := range env.vars {
+			candidates[candidate] = true
+		}
+	}
+	for candidate := range stdNames {
+		candidates[candidate] = true
+	}
+
+	names := make([]string, 0, len(candidates))
+	for candidate := range candidates {
+		if candidate != name {
+			names = append(names, candidate)
+		}
+	}
+	sort.Strings(names)
+	best := ""
+	bestDistance := 0
+	for _, candidate := range names {
+		distance := editDistance(name, candidate)
+		if best == "" || distance < bestDistance {
+			best = candidate
+			bestDistance = distance
+		}
+	}
+	limit := len(name)/3 + 1
+	if limit < 2 {
+		limit = 2
+	}
+	if best == "" || bestDistance > limit {
+		return ""
+	}
+	return best
+}
+
+func editDistance(left, right string) int {
+	previous := make([]int, len(right)+1)
+	for index := range previous {
+		previous[index] = index
+	}
+	for leftIndex, leftRune := range []rune(left) {
+		current := make([]int, len(right)+1)
+		current[0] = leftIndex + 1
+		for rightIndex, rightRune := range []rune(right) {
+			cost := 0
+			if leftRune != rightRune {
+				cost = 1
+			}
+			current[rightIndex+1] = minInt(current[rightIndex]+1, previous[rightIndex+1]+1, previous[rightIndex]+cost)
+		}
+		previous = current
+	}
+	return previous[len(right)]
+}
+
+func minInt(values ...int) int {
+	minimum := values[0]
+	for _, value := range values[1:] {
+		if value < minimum {
+			minimum = value
+		}
+	}
+	return minimum
+}
+
 func (i *Interp) popBool(op Op) (Val, error) {
 	v, err := i.pop()
 	if err != nil {
@@ -903,6 +975,14 @@ func (i *Interp) useOp(op Op) error {
 		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task", "input", "env", "csv":
 			stdMod = path[1]
 		}
+		if stdMod == "" {
+			name := path[1]
+			message := fmt.Sprintf("unknown standard module 'snow.%s'", name)
+			if suggestion := moduleSuggestion(name); suggestion != "" {
+				message += fmt.Sprintf("; did you mean 'snow.%s'?", suggestion)
+			}
+			return fmt.Errorf("%s", message)
+		}
 	} else if len(path) == 1 {
 		switch path[0] {
 		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task", "input", "env", "csv":
@@ -990,7 +1070,9 @@ func (i *Interp) useOp(op Op) error {
 	exp := NewDict(len(sub.env.vars))
 	for name, v := range sub.env.vars {
 		if stdNames[name] {
-			continue
+			if _, builtin := v.(Native); builtin {
+				continue
+			}
 		}
 		if privNames[name] {
 			continue
@@ -1001,6 +1083,26 @@ func (i *Interp) useOp(op Op) error {
 	i.modules[rel] = m
 	i.env.vars[op.Name] = m
 	return nil
+}
+
+func moduleSuggestion(name string) string {
+	modules := []string{"api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task", "input", "env", "csv"}
+	best := ""
+	bestDistance := 0
+	for _, module := range modules {
+		distance := editDistance(name, module)
+		if best == "" || distance < bestDistance {
+			best, bestDistance = module, distance
+		}
+	}
+	limit := len(name)/3 + 1
+	if limit < 2 {
+		limit = 2
+	}
+	if best == "" || bestDistance > limit {
+		return ""
+	}
+	return best
 }
 
 func collectPrivateNames(sts []Stmt) map[string]bool {
@@ -1104,6 +1206,22 @@ func binVal(a, b Val, code byte) (Val, error) {
 			}
 		}
 		return Float(af * bf), nil
+	case boPow:
+		af, ok := asFlt(a)
+		if !ok {
+			return nil, fmt.Errorf("cannot exponentiate %s", TypeName(a))
+		}
+		bf, ok := asFlt(b)
+		if !ok {
+			return nil, fmt.Errorf("cannot exponentiate by %s", TypeName(b))
+		}
+		result := math.Pow(af, bf)
+		if _, ai := a.(Int); ai {
+			if _, bi := b.(Int); bi && bf >= 0 {
+				return Int(result), nil
+			}
+		}
+		return Float(result), nil
 	case boDiv:
 		af, ok := asFlt(a)
 		if !ok {

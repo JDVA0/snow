@@ -25,3 +25,21 @@ func TestModuleCompletionForHTTP(t *testing.T) {
 		}
 	}
 }
+
+func TestCompletionIncludesBuiltinsAndDocumentNames(t *testing.T) {
+	s := NewServer()
+	doc := &Document{URI: "file:///tmp/test.snow", Text: "frutas = [1, 2]\nfru"}
+	items := s.getCompletionItems(doc, 1, 3)
+	if len(items) != 1 || items[0].Label != "frutas" {
+		t.Fatalf("expected filtered document symbol completion, got %#v", items)
+	}
+
+	doc.Text = "sum"
+	items = s.getCompletionItems(doc, 0, 3)
+	for _, item := range items {
+		if item.Label == "sum" {
+			return
+		}
+	}
+	t.Fatalf("expected sum builtin completion, got %#v", items)
+}

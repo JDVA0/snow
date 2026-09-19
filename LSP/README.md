@@ -19,8 +19,7 @@ connected to other editors that support custom language servers.
 The language features covered by the current parser, compiler, and tests also
 include `const` immutable bindings, `always` cleanup blocks, ternary
 expressions (`value if condition else other_value`), `enumerate()` and `zip()`.
-The package manager provides `snowball outdated` for checking newer registry
-versions.
+The package manager provides `snowman update` for refreshing locked packages.
 
 The server currently does not provide hover, go-to-definition, references,
 formatting, or rename support.

@@ -191,17 +191,16 @@ response = http.<span class="fn">get</span>(<span class="str">"https://example.c
 <p>A minimal project uses <code>snow.toml</code> and <code>src/</code>:</p><pre><code>name = <span class="str">"weather_tool"</span>
 source = <span class="str">"src"</span></code></pre>
 <p>Use dotted imports for project modules. Keep reusable code in separate files and a small entry point in <code>src/main.snow</code>.</p>
-<pre><code>snowball init my_app
-snowball search http
-snowball get snow/text.snow@^0.1.0
-snowball list
-snowball info snow/text.snow
-snowball outdated
-snowball update</code></pre>
-<p><code>snowball</code> installs packages from the official registry, records versions and checksums in <code>snow.lock</code>, and supports local dependencies. Commit the lockfile for reproducible installs. <code>outdated</code> reports locked packages with newer registry versions.</p>
+<pre><code>snowman init my_app
+snowman search http
+snowman get snow/text.snow@0.1.0
+snowman list
+snowman info snow/text.snow
+snowman update</code></pre>
+<p><code>snowman</code> installs packages from the official registry, records versions and checksums in <code>snow.lock</code>, and supports local dependencies. Commit the lockfile for reproducible installs.</p>
 
 <h2 id="tools">12 · Command-line tools</h2>
-<table><tr><th>Command</th><th>Behavior</th></tr><tr><td><code>snowman file.snow</code></td><td>Run a Snow file.</td></tr><tr><td><code>snowman repl</code></td><td>Open the interactive REPL.</td></tr><tr><td><code>snowman check file.snow</code></td><td>Parse and statically analyze without running.</td></tr><tr><td><code>snowman fmt [-w] file.snow</code></td><td>Format source; <code>-w</code> writes it in place.</td></tr><tr><td><code>snowman test</code></td><td>Run <code>*_test.snow</code> scripts.</td></tr><tr><td><code>snowball outdated</code></td><td>Check package updates.</td></tr></table>
+<table><tr><th>Command</th><th>Behavior</th></tr><tr><td><code>snowman file.snow</code></td><td>Run a Snow file.</td></tr><tr><td><code>snowman repl</code></td><td>Open the interactive REPL.</td></tr><tr><td><code>snowman check file.snow</code></td><td>Parse and statically analyze without running.</td></tr><tr><td><code>snowman fmt [-w] file.snow</code></td><td>Format source; <code>-w</code> writes it in place.</td></tr><tr><td><code>snowman test</code></td><td>Run <code>*_test.snow</code> scripts.</td></tr><tr><td><code>snowman get snow/name.snow</code></td><td>Install an official package.</td></tr><tr><td><code>snowman update</code></td><td>Refresh locked packages.</td></tr></table>
 <p>A useful loop is format, check, test, then run:</p><pre><code>snowman fmt -w src tests
 snowman check src/main.snow
 snowman test

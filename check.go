@@ -2,6 +2,7 @@ package snow
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 )
 
@@ -48,6 +49,13 @@ var stdMods = map[string]bool{
 	"env": true, "csv": true, "input": true,
 }
 
+var repoMods = map[string]bool{
+	"arrays": true, "collections": true, "csvutil": true, "dict": true,
+	"guards": true, "ids": true, "math": true, "numbers": true,
+	"pagination": true, "query": true, "result": true, "stats": true,
+	"strings": true, "template": true, "text": true, "validate": true,
+}
+
 type checker struct {
 	name   string
 	issues []Issue
@@ -58,19 +66,43 @@ type checker struct {
 	used map[string]bool
 	// topVars records the first assignment position of a top-level name.
 	topVars map[string]Pos
+	// topPriv records top-level names that are explicitly private.
+	topPriv     map[string]bool
+	packageFile bool
+	moduleFile  bool
 }
 
 func (c *checker) program(p *Program) error {
 	c.used = map[string]bool{}
 	c.topVars = map[string]Pos{}
+	c.topPriv = map[string]bool{}
+	c.packageFile = isPackageFile(c.name)
+	c.moduleFile = c.packageFile
 	c.push()
+	for _, s := range p.Stmts {
+		switch decl := s.(type) {
+		case *FnStmt:
+			if decl.Vis != "" {
+				c.moduleFile = true
+			}
+			c.defineVisibility(decl.Name, decl.Pos, decl.Vis == "priv")
+		case *AssignStmt:
+			if decl.Vis != "" {
+				c.moduleFile = true
+			}
+		}
+	}
 
 	// Collect every using alias so modules are known regardless of ordering.
 	var uses []*UseStmt
 	collectUsing(p.Stmts, &uses)
 	for _, u := range uses {
-		if len(u.Path) == 2 && u.Path[0] == "snow" && !stdMods[u.Path[1]] {
-			c.err(u.Pos, "unknown standard module 'snow.%s'", u.Path[1])
+		if len(u.Path) == 2 && u.Path[0] == "snow" && !stdMods[u.Path[1]] && !repoMods[u.Path[1]] {
+			message := fmt.Sprintf("unknown standard module 'snow.%s'", u.Path[1])
+			if suggestion := moduleSuggestion(u.Path[1]); suggestion != "" {
+				message += fmt.Sprintf("; did you mean 'snow.%s'?", suggestion)
+			}
+			c.err(u.Pos, "%s", message)
 		}
 		c.scopes[len(c.scopes)-1][u.Alias] = true
 	}
@@ -83,7 +115,7 @@ func (c *checker) program(p *Program) error {
 
 	// Report unused top-level variables.
 	for name, pos := range c.topVars {
-		if name == "_" {
+		if name == "_" || (c.moduleFile && !c.topPriv[name]) {
 			continue
 		}
 		if !c.used[name] {
@@ -91,6 +123,11 @@ func (c *checker) program(p *Program) error {
 		}
 	}
 	return nil
+}
+
+func isPackageFile(name string) bool {
+	path := filepath.ToSlash(name)
+	return strings.Contains(path, "repo/packages/") || strings.Contains(path, "PkgsExamples/packages/")
 }
 
 func (c *checker) err(p Pos, format string, a ...any) {
@@ -116,10 +153,15 @@ func (c *checker) pop() {
 }
 
 func (c *checker) define(name string, pos Pos) {
+	c.defineVisibility(name, pos, false)
+}
+
+func (c *checker) defineVisibility(name string, pos Pos, private bool) {
 	c.scopes[len(c.scopes)-1][name] = true
 	if len(c.scopes) == 1 {
 		if _, seen := c.topVars[name]; !seen {
 			c.topVars[name] = pos
+			c.topPriv[name] = private
 		}
 	}
 }
@@ -220,7 +262,7 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 			}
 		}
 		for _, n := range t.Names {
-			c.define(n, t.Pos)
+			c.defineVisibility(n, t.Pos, t.Vis == "priv")
 		}
 
 	case *SetAttrStmt:
@@ -243,7 +285,7 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 		}
 
 	case *FnStmt:
-		c.define(t.Name, t.Pos)
+		c.defineVisibility(t.Name, t.Pos, t.Vis == "priv")
 		c.push()
 		for _, p := range t.Params {
 			c.define(p, t.Pos)

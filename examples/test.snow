@@ -1,3 +1,15 @@
-using cli
+frutas = [    "manzana",
+    "banana",
+    "cereza",
+    "durazno",
+    "fresa"
+]
 
-cli.box("hello world","welcome to snow cli")
+print(len(frutas))
+print(first(frutas))
+print(last(frutas))
+print(take(frutas, 2))
+print(drop(frutas, 2))
+print(reverse(frutas))
+print(sort(frutas))
+print(append(frutas, "uva"))

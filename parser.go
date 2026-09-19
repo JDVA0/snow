@@ -1481,7 +1481,7 @@ func (p *parser) parseAdd() (Expr, error) {
 }
 
 func (p *parser) parseMul() (Expr, error) {
-	l, err := p.parseFactor()
+	l, err := p.parsePow()
 	if err != nil {
 		return nil, err
 	}
@@ -1490,6 +1490,8 @@ func (p *parser) parseMul() (Expr, error) {
 		switch p.peek().Kind {
 		case tStar:
 			op = "*"
+		case tPow:
+			op = "**"
 		case tSlash:
 			op = "/"
 		case tSlashSlash:
@@ -1500,12 +1502,28 @@ func (p *parser) parseMul() (Expr, error) {
 			return l, nil
 		}
 		p.next()
-		r, err := p.parseFactor()
+		r, err := p.parsePow()
 		if err != nil {
 			return nil, err
 		}
 		l = &BinE{Pos{posLine(l), posCol(l)}, op, l, r}
 	}
+}
+
+func (p *parser) parsePow() (Expr, error) {
+	l, err := p.parseFactor()
+	if err != nil {
+		return nil, err
+	}
+	if p.peek().Kind != tPow {
+		return l, nil
+	}
+	p.next()
+	r, err := p.parsePow()
+	if err != nil {
+		return nil, err
+	}
+	return &BinE{Pos{posLine(l), posCol(l)}, "**", l, r}, nil
 }
 
 func (p *parser) parseFactor() (Expr, error) {
