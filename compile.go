@@ -41,6 +41,7 @@ const (
 	OpUn
 	OpTrySetup
 	OpTryEnd
+	OpClose
 )
 
 // Op is a single VM instruction.
@@ -288,8 +289,18 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 			c.emit(Op{Kind: OpStore, Name: t.Name2, Line: t.Line, Col: t.Col})
 			c.emit(Op{Kind: OpStore, Name: t.Name, Line: t.Line, Col: t.Col})
 		}
+		var whereSkip int
+		if t.Where != nil {
+			if err := c.expr(t.Where); err != nil {
+				return err
+			}
+			whereSkip = c.emit(Op{Kind: OpJumpIfNot, Line: posLine(t.Where), Col: posCol(t.Where)})
+		}
 		if err := c.stmts(t.Body, false); err != nil {
 			return err
+		}
+		if t.Where != nil {
+			c.patch(whereSkip, len(c.ops))
 		}
 		fr := c.loops[len(c.loops)-1]
 		c.loops = c.loops[:len(c.loops)-1]
@@ -360,6 +371,22 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 		for _, j := range endJumps {
 			c.patch(j, len(c.ops))
 		}
+	case *WithStmt:
+		withTmp := fmt.Sprintf("_with%d", c.tmpN)
+		c.tmpN++
+		if err := c.expr(t.Expr); err != nil {
+			return err
+		}
+		c.emit(Op{Kind: OpStore, Name: withTmp, Line: posLine(t.Expr), Col: posCol(t.Expr)})
+		if t.Name != "" {
+			c.emit(Op{Kind: OpLoad, Name: withTmp, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpStore, Name: t.Name, Line: t.Line, Col: t.Col})
+		}
+		if err := c.stmts(t.Body, false); err != nil {
+			return err
+		}
+		c.emit(Op{Kind: OpLoad, Name: withTmp, Line: t.Line, Col: t.Col})
+		c.emit(Op{Kind: OpClose, Line: t.Line, Col: t.Col})
 	default:
 		return c.perr(Pos{}, "unsupported statement")
 	}

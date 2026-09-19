@@ -702,6 +702,31 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 		if len(i.tryFrames) > 0 {
 			i.tryFrames = i.tryFrames[:len(i.tryFrames)-1]
 		}
+	case OpClose:
+		res, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		var closeFn Val
+		switch r := res.(type) {
+		case *Dict:
+			if v, ok := r.Get("close"); ok {
+				closeFn = v
+			}
+		case *Module:
+			if v, ok := r.Get("close"); ok {
+				closeFn = v
+			}
+		}
+		if closeFn != nil {
+			switch f := closeFn.(type) {
+			case Native, *Fn:
+				_, cerr := i.invoke(f, nil)
+				if cerr != nil {
+					return i.opErr(op, cerr)
+				}
+			}
+		}
 	default:
 		return i.opErr(op, errors.New("unknown opcode"))
 	}
@@ -870,6 +895,7 @@ func (i *Interp) useOp(op Op) error {
 	if err != nil {
 		return err
 	}
+	privNames := collectPrivateNames(prog.Stmts)
 	ops, err := Compile(prog)
 	if err != nil {
 		return err
@@ -882,12 +908,34 @@ func (i *Interp) useOp(op Op) error {
 		if stdNames[name] {
 			continue
 		}
+		if privNames[name] {
+			continue
+		}
 		exp.Set(name, v)
 	}
 	m := &Module{Name: rel, Dict: exp}
 	i.modules[rel] = m
 	i.env.vars[op.Name] = m
 	return nil
+}
+
+func collectPrivateNames(sts []Stmt) map[string]bool {
+	priv := map[string]bool{}
+	for _, s := range sts {
+		switch t := s.(type) {
+		case *FnStmt:
+			if t.Vis == "priv" {
+				priv[t.Name] = true
+			}
+		case *AssignStmt:
+			if t.Vis == "priv" {
+				for _, n := range t.Names {
+					priv[n] = true
+				}
+			}
+		}
+	}
+	return priv
 }
 
 // binVal implements binary operators.

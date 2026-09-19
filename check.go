@@ -189,6 +189,8 @@ func stmtPos(s Stmt) Pos {
 		return t.Pos
 	case *ExprStmt:
 		return t.Pos
+	case *WithStmt:
+		return t.Pos
 	}
 	return Pos{}
 }
@@ -251,6 +253,11 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 		if t.Name2 != "" && t.Name2 != "_" {
 			c.define(t.Name2, t.Pos)
 		}
+		if t.Where != nil {
+			if err := c.walkExpr(t.Where); err != nil {
+				return err
+			}
+		}
 		if err := c.walkStmts(t.Body, topLevel); err != nil {
 			return err
 		}
@@ -294,6 +301,16 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 			if err := c.walkStmts(cs.Body, topLevel); err != nil {
 				return err
 			}
+		}
+	case *WithStmt:
+		if err := c.walkExpr(t.Expr); err != nil {
+			return err
+		}
+		if t.Name != "" && t.Name != "_" {
+			c.define(t.Name, t.Pos)
+		}
+		if err := c.walkStmts(t.Body, topLevel); err != nil {
+			return err
 		}
 	case *ExprStmt:
 		if err := c.walkExpr(t.X); err != nil {
@@ -462,6 +479,9 @@ func (c *checker) markStmt(s Stmt) {
 		c.markUsed(t.Else)
 	case *ForStmt:
 		c.markExpr(t.Iter)
+		if t.Where != nil {
+			c.markExpr(t.Where)
+		}
 		c.markUsed(t.Body)
 	case *WhileStmt:
 		c.markExpr(t.Cond)
@@ -479,6 +499,9 @@ func (c *checker) markStmt(s Stmt) {
 			}
 			c.markUsed(cs.Body)
 		}
+	case *WithStmt:
+		c.markExpr(t.Expr)
+		c.markUsed(t.Body)
 	}
 }
 
@@ -572,6 +595,8 @@ func collectUsing(sts []Stmt, out *[]*UseStmt) {
 			for _, cs := range t.Cases {
 				collectUsing(cs.Body, out)
 			}
+		case *WithStmt:
+			collectUsing(t.Body, out)
 		}
 	}
 }

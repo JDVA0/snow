@@ -23,8 +23,9 @@ type Program struct {
 
 type UseStmt struct {
 	Pos
-	Path  []string // snow.api or a/b (file module)
-	Alias string
+	Path   []string // snow.api or a/b (file module)
+	Alias  string
+	Import bool // import loads a .snow file; using may load stdlib or a file
 }
 type AssignStmt struct {
 	Pos
@@ -32,6 +33,7 @@ type AssignStmt struct {
 	Op    byte // 0 for '=', otherwise the binary op code
 	Vals  []Expr
 	Type  string // list element type, e.g. "str[]" when declared typed; "" otherwise
+	Vis   string // "pub", "priv" or "" (default: pub)
 }
 type FnStmt struct {
 	Pos
@@ -40,6 +42,7 @@ type FnStmt struct {
 	ParamTypes []string // len(Params), "" when a param is untyped
 	Ret        string   // declared return type, "" when untyped
 	Body       []Stmt
+	Vis        string // "pub", "priv" or "" (default: pub)
 }
 type ReturnStmt struct {
 	Pos
@@ -56,7 +59,14 @@ type ForStmt struct {
 	Name  string
 	Name2 string
 	Iter  Expr
+	Where Expr
 	Body  []Stmt
+}
+type WithStmt struct {
+	Pos
+	Expr Expr
+	Name string
+	Body []Stmt
 }
 type WhileStmt struct {
 	Pos
@@ -217,6 +227,7 @@ func (*LoopStmt) stmt()   {}
 func (*TryStmt) stmt()    {}
 func (*MatchStmt) stmt()  {}
 func (*ExprStmt) stmt()   {}
+func (*WithStmt) stmt()   {}
 func (*NumLit) expr()     {}
 func (*StrLit) expr()     {}
 func (*BoolLit) expr()    {}
@@ -244,6 +255,7 @@ type parser struct {
 	fnN        int
 	loopN      int
 	incomplete bool
+	atTop      bool // true while parsing the file's top level
 }
 
 // Parse parses Snow source into a program.
@@ -277,6 +289,8 @@ func (p *parser) next() Tok {
 
 func (p *parser) parseProgram() (*Program, error) {
 	prog := &Program{SrcName: p.name}
+	p.atTop = true
+	defer func() { p.atTop = false }()
 	for {
 		k := p.peek()
 		switch k.Kind {
@@ -377,6 +391,10 @@ func (p *parser) parseStmt() (Stmt, error) {
 		switch k.Text {
 		case "using":
 			return p.parseUsing()
+		case "import":
+			return p.parseImport()
+		case "pub", "priv":
+			return p.parseVisStmt(k.Text)
 		case "fn":
 			return p.parseFn()
 		case "return":
@@ -397,6 +415,8 @@ func (p *parser) parseStmt() (Stmt, error) {
 			return p.parseTry()
 		case "match":
 			return p.parseMatch()
+		case "with":
+			return p.parseWith()
 		case "catch":
 			return nil, p.errf(k, "'catch' without matching 'try'")
 		}
@@ -551,7 +571,69 @@ func (p *parser) parseUsing() (Stmt, error) {
 		}
 		alias = a
 	}
-	return &UseStmt{Pos{st.Line, st.Col}, path, alias}, nil
+	return &UseStmt{Pos: Pos{st.Line, st.Col}, Path: path, Alias: alias}, nil
+}
+
+// parseImport parses an import statement. It follows the same dotted
+// path syntax as using, but always resolves to a .snow file relative
+// to the current file's directory:
+//
+//	import lib.utils
+//	import lib.utils as u
+func (p *parser) parseImport() (Stmt, error) {
+	st := p.next()
+	first, err := p.expectIdent()
+	if err != nil {
+		return nil, err
+	}
+	path := []string{first}
+	for p.peek().Kind == tDot {
+		p.next()
+		seg, err := p.expectIdent()
+		if err != nil {
+			return nil, err
+		}
+		path = append(path, seg)
+	}
+	alias := path[len(path)-1]
+	if p.peek().Kind == tIdent && p.peek().Text == "as" {
+		p.next()
+		a, err := p.expectIdent()
+		if err != nil {
+			return nil, err
+		}
+		alias = a
+	}
+	return &UseStmt{Pos{st.Line, st.Col}, path, alias, true}, nil
+}
+
+// parseVisStmt parses a 'pub' or 'priv' visibility modifier applied to a
+// top-level function or variable declaration. Anything else is an error.
+func (p *parser) parseVisStmt(mod string) (Stmt, error) {
+	st := p.next() // consume 'pub' / 'priv'
+	if !p.atTop {
+		return nil, p.errf(st, "'%s' is only allowed at the top level", mod)
+	}
+	k := p.peek()
+	var s Stmt
+	var err error
+	if k.Kind == tIdent && k.Text == "fn" {
+		s, err = p.parseFn()
+	} else {
+		s, err = p.parseSimple()
+	}
+	if err != nil {
+		return nil, err
+	}
+	switch t := s.(type) {
+	case *FnStmt:
+		t.Vis = mod
+	case *AssignStmt:
+		t.Vis = mod
+	default:
+		return nil, p.errf(k, "'%s' only applies to functions and variables", mod)
+	}
+	return s, nil
 }
 
 func (p *parser) expectIdent() (string, error) {
@@ -792,6 +874,14 @@ func (p *parser) parseFor() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+	var whereExpr Expr
+	if p.peek().Kind == tIdent && p.peek().Text == "where" {
+		p.next()
+		whereExpr, err = p.parseOr()
+		if err != nil {
+			return nil, err
+		}
+	}
 	if _, err := p.expectColon(); err != nil {
 		return nil, err
 	}
@@ -801,7 +891,7 @@ func (p *parser) parseFor() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ForStmt{Pos{st.Line, st.Col}, name, name2, iter, body}, nil
+	return &ForStmt{Pos{st.Line, st.Col}, name, name2, iter, whereExpr, body}, nil
 }
 
 func (p *parser) parseWhile() (Stmt, error) {
@@ -933,6 +1023,30 @@ func (p *parser) parseTry() (Stmt, error) {
 		return nil, err
 	}
 	return &TryStmt{Pos{st.Line, st.Col}, tryBody, catchVar, catchBody}, nil
+}
+
+func (p *parser) parseWith() (Stmt, error) {
+	st := p.next() // consume 'with'
+	expr, err := p.parseOr()
+	if err != nil {
+		return nil, err
+	}
+	name := ""
+	if p.peek().Kind == tIdent && p.peek().Text == "as" {
+		p.next()
+		if p.peek().Kind != tIdent || isReserved(p.peek().Text) {
+			return nil, p.errf(p.peek(), "expected a name after 'as'")
+		}
+		name = p.next().Text
+	}
+	if _, err := p.expectColon(); err != nil {
+		return nil, err
+	}
+	body, err := p.parseSuite()
+	if err != nil {
+		return nil, err
+	}
+	return &WithStmt{Pos{st.Line, st.Col}, expr, name, body}, nil
 }
 
 func (p *parser) parseReturn() (Stmt, error) {
@@ -1399,7 +1513,7 @@ func (p *parser) parsePrimary() (Expr, error) {
 		case "nil":
 			p.next()
 			return &NilLit{Pos{k.Line, k.Col}}, nil
-		case "and", "or", "not", "in", "using", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue", "try", "catch", "match", "case":
+		case "and", "or", "not", "in", "using", "import", "pub", "priv", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue", "try", "catch", "match", "case", "where", "with":
 			return nil, p.errf(k, "unexpected %q", k.Text)
 		}
 		p.next()
@@ -1507,7 +1621,7 @@ func exprStart(k Tok) bool {
 
 func isReserved(w string) bool {
 	switch w {
-	case "using", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not", "try", "catch", "match", "case":
+	case "using", "import", "pub", "priv", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not", "try", "catch", "match", "case", "where", "with":
 		return true
 	}
 	return false

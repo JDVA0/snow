@@ -1,0 +1,38 @@
+# Demo de import + pub/priv visibility
+#
+# Ejecutar desde la raíz del proyecto:
+#   snowman examples/import_demo.snow
+
+import math_utils as m
+using cli
+
+cli.box("IMPORT + pub/priv DEMO", "Ejemplos de visibilidad en Snow")
+
+# =======================================
+#  ACCESO A SIMBOLOS PÚBLICOS (funciona)
+# =======================================
+cli.info("Accediendo a símbolos PÚBLICOS desde math_utils:")
+print("  VERSION    = " + m.VERSION)
+print("  AUTHOR     = " + m.AUTHOR)
+print("  add(5, 3) = " + str(m.add(5, 3)))
+print("  subtract(10, 4) = " + str(m.subtract(10, 4)))
+print("  multiply(6, 7) = " + str(m.multiply(6, 7)))
+print("  divide(20, 4)  = " + str(m.divide(20, 4)))
+print()
+
+# =======================================
+#  ACCESO A SIMBOLOS PRIVADOS (FALLA)
+# =======================================
+cli.warn("Intentando acceder a símbolos PRIVADOS desde fuera... (debe dar error)")
+try:
+    print("  _secret_key = " + m._secret_key)
+catch e:
+    cli.error("  ✅ Como se esperaba: " + str(e))
+
+try:
+    print("  _double(5)  = " + str(m._double(5)))
+catch e:
+    cli.error("  ✅ Como se esperaba: " + str(e))
+
+print()
+cli.success("Demo completada. pub = exportado, priv = encapsulado en el módulo.")
