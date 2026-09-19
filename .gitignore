@@ -3,9 +3,12 @@ snowman
 snowman.exe
 *.exe
 *.bin
-/build/
 /packages/
 /snow.lock
+
+# Excepto en build/
+!build/snowman
+!build/snowball
 
 # Temporales de Go y SO
 *.test

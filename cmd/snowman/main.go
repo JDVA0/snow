@@ -20,9 +20,8 @@ Usage:
   snowman eval <code>              evaluate a snippet
   snowman -e <code>                same as eval
   snowman fmt [-w] [file...]       format Snow source (stdout, or -w in place)
-	  snowman check <file>                    lint a .snow file (exit 1 when issues found)
-	  snowman test [--filter text] [path...] run *_test.snow files
-  snowman init [dir]               scaffold a new project (app.snow + README)
+  snowman check <file>             lint a .snow file (exit 1 when issues found)
+  snowman test [--filter text] [path...] run *_test.snow files
   snowman repl                     start an interactive session
   snowman -h, --help               show this help
   snowman -v, --version            print version
@@ -104,10 +103,8 @@ func main() {
 		i.Args(args[2:])
 		runSrc(i, args[1], "<eval>")
 	case "init":
-		if err := runInit(args[1:]); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
+		fmt.Fprintln(os.Stderr, "error: init is only available via snowball. Use \"snowball init <name>\" instead")
+		os.Exit(1)
 	case "run":
 		if len(args) < 2 {
 			fmt.Fprintln(os.Stderr, "error: run expects a file path")
