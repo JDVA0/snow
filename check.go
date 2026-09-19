@@ -295,10 +295,6 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 				return err
 			}
 		}
-		if err := c.walkStmts(t.Else, topLevel); err != nil {
-			return err
-		}
-
 	case *ExprStmt:
 		if err := c.walkExpr(t.X); err != nil {
 			return err
@@ -483,7 +479,6 @@ func (c *checker) markStmt(s Stmt) {
 			}
 			c.markUsed(cs.Body)
 		}
-		c.markUsed(t.Else)
 	}
 }
 
@@ -577,7 +572,6 @@ func collectUsing(sts []Stmt, out *[]*UseStmt) {
 			for _, cs := range t.Cases {
 				collectUsing(cs.Body, out)
 			}
-			collectUsing(t.Else, out)
 		}
 	}
 }

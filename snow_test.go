@@ -1253,7 +1253,7 @@ match x:
         print("small")
     case 3:
         print("three")
-    else:
+    case _:
         print("other")
 `, "small")
 
@@ -1263,7 +1263,7 @@ match x:
         print("one")
     case 2:
         print("two")
-    else:
+    case _:
         print("many")
 `, "many")
 
@@ -1280,7 +1280,7 @@ match x:
             return "cero"
         case 1, 2:
             return "pocos"
-        else:
+        case _:
             return "muchos"
 print(clasificar(0))
 print(clasificar(2))
@@ -1392,7 +1392,7 @@ for i, it in w:
 match x:
     case 1:
         print ( "one" )
-    else:
+    case _:
         print ( "other" )
 `
 	out, err := Format(src)

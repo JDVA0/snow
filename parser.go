@@ -77,7 +77,6 @@ type MatchStmt struct {
 	Pos
 	Target Expr
 	Cases  []MatchCase
-	Else   []Stmt
 }
 type MatchCase struct {
 	Vals []Expr
@@ -841,7 +840,7 @@ func (p *parser) parseLoopCtrl(break_ bool) (Stmt, error) {
 //	    ...
 //	  case "x":
 //	    ...
-//	  else:
+//	  case _:
 //	    ...
 func (p *parser) parseMatch() (Stmt, error) {
 	p.next() // consume 'match'
@@ -876,41 +875,31 @@ func (p *parser) parseMatch() (Stmt, error) {
 			// closing paren of an enclosing call — stop, don't consume
 			return ms, nil
 		default:
-			if k.Kind != tIdent || (k.Text != "case" && k.Text != "else") {
-				return nil, p.errf(k, "expected 'case' or 'else' in match")
+			if k.Kind != tIdent || k.Text != "case" {
+				return nil, p.errf(k, "expected 'case' in match")
 			}
 			p.next()
-			if k.Text == "else" {
-				if _, err := p.expectColon(); err != nil {
-					return nil, err
-				}
-				var err error
-				if ms.Else, err = p.parseSuite(); err != nil {
-					return nil, err
-				}
-			} else {
-				var vals []Expr
-				for {
-					v, err := p.parseOr()
-					if err != nil {
-						return nil, err
-					}
-					vals = append(vals, v)
-					if p.peek().Kind == tComma {
-						p.next()
-						continue
-					}
-					break
-				}
-				if _, err := p.expectColon(); err != nil {
-					return nil, err
-				}
-				body, err := p.parseSuite()
+			var vals []Expr
+			for {
+				v, err := p.parseOr()
 				if err != nil {
 					return nil, err
 				}
-				ms.Cases = append(ms.Cases, MatchCase{Vals: vals, Body: body})
+				vals = append(vals, v)
+				if p.peek().Kind == tComma {
+					p.next()
+					continue
+				}
+				break
 			}
+			if _, err := p.expectColon(); err != nil {
+				return nil, err
+			}
+			body, err := p.parseSuite()
+			if err != nil {
+				return nil, err
+			}
+			ms.Cases = append(ms.Cases, MatchCase{Vals: vals, Body: body})
 			if p.peek().Kind == tNewline {
 				p.next()
 			}

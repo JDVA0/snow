@@ -258,11 +258,6 @@ func (f *formatter) stmt(s Stmt, indent int) {
 			f.b.WriteString(":\n")
 			f.stmts(cs.Body, indent+2)
 		}
-		if len(t.Else) > 0 {
-			f.ind(indent + 1)
-			f.b.WriteString("else:\n")
-			f.stmts(t.Else, indent+2)
-		}
 	case *ExprStmt:
 		f.ind(indent)
 		f.expr(t.X, 0)

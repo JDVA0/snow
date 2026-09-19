@@ -357,9 +357,6 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 			endJumps = append(endJumps, c.emit(Op{Kind: OpJump, Line: t.Line, Col: t.Col}))
 			c.patch(skip, len(c.ops))
 		}
-		if err := c.stmts(t.Else, false); err != nil {
-			return err
-		}
 		for _, j := range endJumps {
 			c.patch(j, len(c.ops))
 		}

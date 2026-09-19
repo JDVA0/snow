@@ -26,7 +26,7 @@ Snow es un lenguaje de programación simple, directo y conciso, diseñado espec�
 - **Interpolación F-Strings y Operador Elvis (`??`):** `f"Hola {usuario}"`, cadenas multilínea con `"""` y valor por defecto para nulos.
 - **Encadenado seguro (`?.`, `?[]`):** `data?.user?.profile?.name` recorre JSON anidado sin lanzar error y `??=` asigna solo si la variable es `nil`.
 - **Cortes (`[i:j]`):** `lista[1:3]`, `texto[:2]`, índices negativos y slicing seguro `d?.a?.b?[1:]`.
-- **`match` / `case`:** Comparación por casos en un solo bloque con soporte de múltiples valores y `else`.
+- **`match` / `case`:** Comparación por casos en un solo bloque con múltiples valores por caso y comodín `case _`.
 - **`for k, v in dict`:** Itera claves, valores o pares de diccionarios y listas en una sola línea.
 - **`not in` y literales en base 2/8/16:** `if x not in lista`, `0b1010`, `0o17`, `0xFF`.
 - **Stack traces:** Los errores no capturados muestran la pila de llamadas con archivo, línea y columna.
@@ -135,7 +135,7 @@ Snow is a simple, straightforward, and concise programming language designed to 
 - **F-Strings and Elvis operator (`??`):** `f"Hello {user}"`, multiline strings (`"""..."""`), and clean fallback default values.
 - **Safe chaining (`?.`, `?[]`):** `data?.user?.profile?.name` walks nested JSON without error, and `??=` assigns only when the variable is nil.
 - **Slicing (`[i:j]`):** `list[1:3]`, `text[:2]`, negative indices, and safe slicing `d?.a?.b?[1:]`.
-- **`match` / `case`:** Case-based comparison in a single block with multi-values and `else`.
+- **`match` / `case`:** Case-based comparison in a single block with multiple values per case and a `case _` wildcard.
 - **`for k, v in dict`:** Iterate keys, values or pairs of dicts and lists in one line.
 - **`not in` and base-2/8/16 literals:** `if x not in list`, `0b1010`, `0o17`, `0xFF`.
 - **Stack traces:** Uncaught errors print the call stack with file, line and column.
