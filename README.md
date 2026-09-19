@@ -39,6 +39,9 @@ Snow es un lenguaje de programación simple, directo y conciso, diseñado espec�
 - **Formato:** `snowman fmt [-w] archivo.snow` reindenta el código con 4 espacios.
 - **REPL interactivo avanzado:** Historial persistente en `~/.snow_history`, comandos (`help`, `.exit`, `.history`) y colores por tipo de dato.
 - **Visibilidad de módulos (`pub` / `priv`):** Encapsulación por archivo. `pub` exporta, `priv` oculta del `import`, sin modificador = `pub` por defecto.
+- **Tipos graduales:** Las anotaciones son opcionales. `age: int = 18`, `names: str[] = ["Ada"]` y las firmas de funciones se validan en ejecución sin restringir el código no anotado.
+- **Paquetes locales:** Un proyecto con `snow.toml` y `src/` puede importar sus módulos por nombre: `import mi_app.utils`.
+- **Pruebas de scripts:** `snowman test` ejecuta todos los archivos `*_test.snow` y reporta cada resultado.
 - **Filtro `where` en `for`:** `for x in lista where cond:` filtra elementos directamente sin un `if` anidado.
 - **Gestión automática de recursos (`with`):** `with abrir_recurso() as r:` libera el recurso (llama `r.close()`) automáticamente al salir del bloque.
 - **Composición:** Los bloques `with`, filtros `where` y `import` de módulos con `pub/priv` funcionan juntos de forma natural.
@@ -156,6 +159,39 @@ Comportamiento clave:
 - **`priv` es encapsulación, no seguridad**: el valor sigue existiendo en memoria del submódulo; solo no se exporta.
 
 Ejemplos completos: `examples/math_utils.snow`, `examples/string_utils.snow` y `examples/modules_demo.snow`. Este último prueba imports con y sin alias, y comprueba que los símbolos privados no se exportan.
+
+### Diagnósticos, tipos graduales y paquetes
+
+Los errores del ejecutable incluyen archivo, línea, columna, la línea de código y un marcador. Los mensajes del runtime y del parser están en inglés para que sean consistentes en herramientas y CI.
+
+Las anotaciones de tipo son opcionales; una variable sin anotación conserva comportamiento dinámico:
+
+```python
+age: int = 18
+name: str = "Ada"
+tags: str[] = ["snow", "cli"]
+```
+
+Para organizar un proyecto local, crea `snow.toml` en la raíz:
+
+```toml
+name = "my_app"
+source = "src" # opcional; src es el valor por defecto
+```
+
+Con `src/utils.snow`, un script puede importarlo desde cualquier subdirectorio del proyecto:
+
+```python
+import my_app.utils
+print(utils.slugify("Hello Snow"))
+```
+
+Los tests de Snow son scripts que terminan sin error. Usa `assert(condicion, [mensaje])` para marcar expectativas, guárdalos con el sufijo `_test.snow` y ejecútalos con:
+
+```bash
+snowman test
+snowman test tests unit/math_test.snow
+```
 
 ---
 
@@ -278,6 +314,9 @@ Snow is a simple, straightforward, and concise programming language designed to 
 - **Formatter:** `snowman fmt [-w] file.snow` reprints source with 4-space indentation.
 - **Enhanced REPL:** Persistent command history in `~/.snow_history`, built-in navigation (`help`, `.exit`, `.history`), and colorized output.
 - **Module visibility (`pub` / `priv`):** File-level encapsulation. `pub` exports symbols for `import`, `priv` hides them; no modifier = `pub` by default.
+- **Gradual types:** Optional annotations such as `age: int = 18` and `names: str[] = ["Ada"]` are checked at runtime while unannotated code remains dynamic.
+- **Local packages:** A project with `snow.toml` and `src/` can import its modules by package name: `import my_app.utils`.
+- **Script tests:** `snowman test` runs every `*_test.snow` file and reports each result.
 - **`where` filter inside `for`:** `for x in list where cond:` filters elements inline without a nested `if`.
 - **Automatic resource management (`with`):** `with open_resource() as r:` calls `r.close()` automatically at block end (cleanup guaranteed, even if block returns).
 - **Composable:** `with` blocks, `where` filters and `pub`/`priv` modules work together seamlessly out of the box.
@@ -395,6 +434,39 @@ Key behavior:
 - **`priv` = encapsulation, not security**: the value still lives in the sub-interpreter memory; it's just not reachable via the module surface.
 
 Complete examples: `examples/math_utils.snow`, `examples/string_utils.snow`, and `examples/modules_demo.snow`. The last one tests aliased and unaliased imports, and verifies that private symbols are not exported.
+
+### Diagnostics, gradual types, and packages
+
+The command-line runner reports errors with the file, line, column, source line, and a caret. Parser and runtime diagnostic messages are in English so they remain consistent in tooling and CI.
+
+Type annotations are optional; unannotated variables stay dynamic:
+
+```python
+age: int = 18
+name: str = "Ada"
+tags: str[] = ["snow", "cli"]
+```
+
+To organize a local package, add `snow.toml` at the project root:
+
+```toml
+name = "my_app"
+source = "src" # optional; src is the default
+```
+
+With `src/utils.snow`, any script under the project can use:
+
+```python
+import my_app.utils
+print(utils.slugify("Hello Snow"))
+```
+
+Snow tests are scripts that complete without an error. Use `assert(condition, [message])` for expectations, name them with `_test.snow`, and run:
+
+```bash
+snowman test
+snowman test tests unit/math_test.snow
+```
 
 ---
 

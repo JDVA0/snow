@@ -2,7 +2,6 @@ package snow
 
 import (
 	"fmt"
-	"strings"
 )
 
 // OpKind identifies a VM operation.
@@ -55,7 +54,7 @@ type Op struct {
 	Str        string
 	Args       []string
 	Body       []Op
-	Elem       string   // declared list element type for typed assignments (e.g. "str")
+	Type       string   // declared gradual type for typed assignments (e.g. "str", "str[]")
 	ParamTypes []string // per-param types for OpMakeFn, "" when untyped
 	Ret        string   // declared return type for OpMakeFn, "" when untyped
 	Line       int
@@ -193,11 +192,7 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 			if !dyn && len(t.Vals) != len(t.Names) {
 				return c.perr(t.Pos, "assignment expects %d value(s), found %d", len(t.Names), len(t.Vals))
 			}
-			elem := ""
-			if t.Type != "" {
-				elem = strings.TrimSuffix(t.Type, "[]")
-			}
-			c.emit(Op{Kind: OpAssign, Args: t.Names, Elem: elem, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpAssign, Args: t.Names, Type: t.Type, Line: t.Line, Col: t.Col})
 		} else {
 			c.emit(Op{Kind: OpStoreOp, Name: t.Names[0], Num: int64(t.Op), Line: t.Line, Col: t.Col})
 		}

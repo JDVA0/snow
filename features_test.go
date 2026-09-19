@@ -250,3 +250,30 @@ print(lib.internal_helper(5))
 		t.Fatalf("expected 'attribute not found' error for private fn, got: %v", err)
 	}
 }
+
+func TestProjectPackageImport(t *testing.T) {
+	tmp := t.TempDir()
+	if err := os.Mkdir(filepath.Join(tmp, "src"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(tmp, "snow.toml"), []byte("name = \"demo\"\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(tmp, "src", "math.snow"), []byte("pub fn twice(n):\n    return n * 2\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	main := filepath.Join(tmp, "app.snow")
+	src := "import demo.math\nprint(math.twice(21))\n"
+	if err := os.WriteFile(main, []byte(src), 0644); err != nil {
+		t.Fatal(err)
+	}
+	i := New()
+	buf := &bytes.Buffer{}
+	i.Out(buf)
+	if err := i.RunFile(main); err != nil {
+		t.Fatalf("package import failed: %v", err)
+	}
+	if got := strings.TrimSpace(buf.String()); got != "42" {
+		t.Fatalf("package import output: got %q, want 42", got)
+	}
+}

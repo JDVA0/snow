@@ -57,6 +57,7 @@ func stdBuiltins() map[string]bfunc {
 		"input":       bInput,
 		"exit":        bExit,
 		"fail":        bFail,
+		"assert":      bAssert,
 	}
 	for name := range m {
 		stdNames[name] = true
@@ -743,4 +744,20 @@ func bFail(i *Interp, args []Val) ([]Val, error) {
 		return nil, fmt.Errorf("fail expects 1 argument, got %d", len(args))
 	}
 	return nil, &errFail{val: args[0]}
+}
+
+// bAssert provides the minimal assertion primitive used by *_test.snow files.
+// An optional second argument supplies a readable failure message.
+func bAssert(i *Interp, args []Val) ([]Val, error) {
+	if len(args) < 1 || len(args) > 2 {
+		return nil, fmt.Errorf("assert expects 1 or 2 argument(s), got %d", len(args))
+	}
+	if Truthy(args[0]) {
+		return []Val{}, nil
+	}
+	msg := "assertion failed"
+	if len(args) == 2 {
+		msg = SnowStr(args[1])
+	}
+	return nil, &errFail{val: Str(msg)}
 }

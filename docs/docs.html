@@ -65,6 +65,7 @@
           <li><a href="#with-statement" style="padding-left:1.5rem; font-size:.82rem;">Gestión de recursos <code>with</code></a></li>
           <li><a href="#funciones" data-i18n="nav_funcs">Funciones y Closures</a></li>
           <li><a href="#visibilidad" style="padding-left:1.5rem; font-size:.82rem;"><code>pub</code> / <code>priv</code> e <code>import</code></a></li>
+          <li><a href="#proyectos" style="padding-left:1.5rem; font-size:.82rem;">Proyectos, tipos y pruebas</a></li>
           <li><a href="#asign-campos" style="padding-left:1.5rem; font-size:.82rem;">Asignación de campos <code>x.y = v</code></a></li>
           <li><a href="#nativas" data-i18n="nav_builtins">Funciones Nativas</a></li>
           <li><a href="#errores" data-i18n="nav_errors">Manejo de Errores</a></li>
@@ -641,6 +642,35 @@ catch e:
 </code></pre>
 
         <p class="notice-box"><span class="notice-icon" aria-hidden="true">#</span> <strong>Semántica de <code>priv</code>:</strong> el modificador <code>priv</code> se trata como una herramienta de organización de código, no como un mecanismo de seguridad fuerte. Marca símbolos como "detalles internos" y Snow simplemente los <em>omite del diccionario exportado</em> del módulo durante el <code>import</code>. Dentro del mismo archivo, un símbolo <code>priv</code> es accesible normalmente por cualquier función.</p>
+      </section>
+
+      <section id="proyectos" class="doc-section">
+        <h2>Diagnósticos, tipos graduales, paquetes y pruebas</h2>
+        <p>Los errores del ejecutable muestran archivo, línea, columna, el código fuente y un marcador. Los diagnósticos se emiten en inglés para ofrecer una salida estable en terminales y CI.</p>
+
+        <h3>Tipos graduales</h3>
+        <p>Las anotaciones son opcionales: el código sin anotaciones sigue siendo dinámico. Cuando una anotación existe, Snow valida el valor en ejecución.</p>
+        <pre><code>age: int = 18
+name: str = "Ada"
+tags: str[] = ["snow", "cli"]</code></pre>
+
+        <h3>Paquetes locales</h3>
+        <p>Crea <code>snow.toml</code> en la raíz y guarda los módulos en <code>src/</code>. El campo <code>source</code> es opcional y usa <code>src</code> por defecto.</p>
+        <pre><code># snow.toml
+name = "my_app"
+source = "src"
+
+# app.snow
+import my_app.utils
+print(utils.slugify("Hello Snow"))</code></pre>
+
+        <h3>Pruebas de scripts</h3>
+        <p>Todo archivo que termina en <code>_test.snow</code> es un test: pasa cuando termina sin errores. Usa <code>assert(condicion, [mensaje])</code> para expresar expectativas. Ejecuta todos los tests del directorio actual o limita la búsqueda a rutas concretas.</p>
+        <pre><code># math_test.snow
+assert(2 + 2 == 4, "arithmetic must work")
+
+$ snowman test
+$ snowman test tests unit/math_test.snow</code></pre>
       </section>
 
       <!-- Asignación de campos -->

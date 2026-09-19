@@ -1350,6 +1350,40 @@ print(f([1, nil, 2]))
 `, "3")
 }
 
+func TestGradualVariableTypes(t *testing.T) {
+	check(t, `age: int = 42
+name: str = "Ada"
+enabled: bool = true
+print(age)
+print(name)
+print(enabled)
+`, "42\nAda\ntrue")
+	if _, err := run(t, "age: int = \"old\""); err == nil {
+		t.Fatal("expected scalar type mismatch")
+	}
+	if _, err := run(t, "age: int = 1\nage = \"old\""); err == nil {
+		t.Fatal("expected scalar type mismatch after reassignment")
+	}
+}
+
+func TestFormatDiagnostic(t *testing.T) {
+	src := "value = 1\nprint(missing)\n"
+	err := New().Run(src, "demo.snow")
+	got := FormatDiagnostic(err, src)
+	if !strings.Contains(got, "demo.snow:2:") || !strings.Contains(got, "2 | print(missing)") || !strings.Contains(got, "^") {
+		t.Fatalf("unexpected diagnostic:\n%s", got)
+	}
+}
+
+func TestAssert(t *testing.T) {
+	check(t, `assert(1 + 1 == 2)
+print("ok")
+`, "ok")
+	if _, err := run(t, `assert(false, "expected failure")`); err == nil || !strings.Contains(err.Error(), "expected failure") {
+		t.Fatalf("assert should report its message, got %v", err)
+	}
+}
+
 func TestStackTraces(t *testing.T) {
 	_, err := run(t, `fn b():
     x = [1]

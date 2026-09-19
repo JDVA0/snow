@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"sort"
+	"strings"
 
 	"github.com/JDVA0/snow"
 )
@@ -18,6 +21,7 @@ Usage:
   snowman -e <code>                same as eval
   snowman fmt [-w] [file...]       format Snow source (stdout, or -w in place)
   snowman check <file>             lint a .snow file (exit 1 when issues found)
+	  snowman test [path...]          run *_test.snow files (current directory by default)
   snowman init [dir]               scaffold a new project (app.snow + README)
   snowman repl                     start an interactive session
   snowman -h, --help               show this help
@@ -87,6 +91,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "test":
+		if err := runTests(args[1:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	case "-e", "eval":
 		if len(args) < 2 {
 			fmt.Fprintln(os.Stderr, "error: eval expects a code string")
@@ -114,7 +123,7 @@ func main() {
 
 func runSrc(i *snow.Interp, src, name string) {
 	if err := i.Run(src, name); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, snow.FormatDiagnostic(err, src))
 		var ex *snow.ExitError
 		if errors.As(err, &ex) {
 			os.Exit(ex.Code)
@@ -124,8 +133,13 @@ func runSrc(i *snow.Interp, src, name string) {
 }
 
 func runFile(i *snow.Interp, path string) {
-	if err := i.RunFile(path); err != nil {
+	b, err := os.ReadFile(path)
+	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	if err := i.RunFile(path); err != nil {
+		fmt.Fprintln(os.Stderr, snow.FormatDiagnostic(err, string(b)))
 		var ex *snow.ExitError
 		if errors.As(err, &ex) {
 			os.Exit(ex.Code)
@@ -146,7 +160,7 @@ func runCheck(args []string) error {
 		}
 		issues, err := snow.Check(string(b), path)
 		if err != nil {
-			return fmt.Errorf("%s: %w", path, err)
+			return fmt.Errorf("%s", snow.FormatDiagnostic(err, string(b)))
 		}
 		for _, is := range issues {
 			fmt.Println(is)
@@ -157,6 +171,61 @@ func runCheck(args []string) error {
 	}
 	if had {
 		return fmt.Errorf("found issues in %d file(s)", len(args))
+	}
+	return nil
+}
+
+func runTests(args []string) error {
+	paths := args
+	if len(paths) == 0 {
+		paths = []string{"."}
+	}
+	var files []string
+	for _, path := range paths {
+		info, err := os.Stat(path)
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			files = append(files, path)
+			continue
+		}
+		err = filepath.WalkDir(path, func(file string, entry os.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return walkErr
+			}
+			if entry.IsDir() && (entry.Name() == ".git" || entry.Name() == "vendor") {
+				return filepath.SkipDir
+			}
+			if !entry.IsDir() && strings.HasSuffix(entry.Name(), "_test.snow") {
+				files = append(files, file)
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+	sort.Strings(files)
+	if len(files) == 0 {
+		return fmt.Errorf("no Snow test files found (expected *_test.snow)")
+	}
+	failed := 0
+	for _, file := range files {
+		b, err := os.ReadFile(file)
+		if err == nil {
+			i := snow.New()
+			err = i.RunFile(file)
+		}
+		if err != nil {
+			failed++
+			fmt.Fprintf(os.Stderr, "FAIL %s\n%s\n", file, snow.FormatDiagnostic(err, string(b)))
+			continue
+		}
+		fmt.Printf("PASS %s\n", file)
+	}
+	if failed > 0 {
+		return fmt.Errorf("%d of %d test file(s) failed", failed, len(files))
 	}
 	return nil
 }

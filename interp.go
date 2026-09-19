@@ -72,11 +72,12 @@ func (e *errFail) Error() string { return SnowStr(e.val) }
 type Env struct {
 	parent *Env
 	vars   map[string]Val
+	types  map[string]string
 }
 
 // NewEnv creates an environment bound to a parent.
 func NewEnv(parent *Env) *Env {
-	return &Env{parent: parent, vars: map[string]Val{}}
+	return &Env{parent: parent, vars: map[string]Val{}, types: map[string]string{}}
 }
 
 // Interp is a Snow interpreter (a stack VM).
@@ -216,14 +217,33 @@ func (i *Interp) lookup(name string) (Val, bool) {
 	return nil, false
 }
 
-func (i *Interp) setVar(name string, val Val) {
+func (i *Interp) setVar(name string, val Val, declared ...string) error {
+	typ := ""
+	if len(declared) > 0 {
+		typ = declared[0]
+	}
 	for e := i.env; e != nil; e = e.parent {
 		if _, ok := e.vars[name]; ok {
+			if typ != "" {
+				e.types[name] = typ
+			}
+			if typ = e.types[name]; typ != "" {
+				if err := checkValType(val, typ); err != nil {
+					return err
+				}
+			}
 			e.vars[name] = val
-			return
+			return nil
 		}
 	}
+	if typ != "" {
+		if err := checkValType(val, typ); err != nil {
+			return err
+		}
+		i.env.types[name] = typ
+	}
 	i.env.vars[name] = val
+	return nil
 }
 
 func (i *Interp) opErr(op Op, err error) error {
@@ -367,7 +387,7 @@ func (i *Interp) catchError(err error) (int, bool) {
 	i.depth = tf.depth
 
 	if tf.catchVar != "" {
-		i.setVar(tf.catchVar, failValue(err))
+		_ = i.setVar(tf.catchVar, failValue(err))
 	}
 	return tf.catchPC, true
 }
@@ -507,12 +527,9 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 			vals[k], _ = i.pop()
 		}
 		for k, name := range op.Args {
-			if op.Elem != "" {
-				if err := checkTypedList(vals[k], op.Elem); err != nil {
-					return i.opErr(op, err)
-				}
+			if err := i.setVar(name, vals[k], op.Type); err != nil {
+				return i.opErr(op, err)
 			}
-			i.setVar(name, vals[k])
 		}
 	case OpStoreOp:
 		v, err := i.pop()
@@ -525,7 +542,9 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 		}
 		if op.Num == int64(boQQEq) {
 			if cur == Nil {
-				i.setVar(op.Name, v)
+				if err := i.setVar(op.Name, v); err != nil {
+					return i.opErr(op, err)
+				}
 			}
 			return nil
 		}
@@ -533,7 +552,9 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 		if err != nil {
 			return i.opErr(op, err)
 		}
-		i.setVar(op.Name, res)
+		if err := i.setVar(op.Name, res); err != nil {
+			return i.opErr(op, err)
+		}
 	case OpMakeList:
 		n := int(op.Num)
 		if len(i.stack) < n {
@@ -800,6 +821,9 @@ func (i *Interp) invoke(callable Val, args []Val) ([]Val, error) {
 		env := NewEnv(f.Env)
 		for k, p := range f.Params {
 			env.vars[p] = args[k]
+			if k < len(f.ParamTypes) && f.ParamTypes[k] != "" {
+				env.types[p] = f.ParamTypes[k]
+			}
 		}
 		saved := i.env
 		prevBase := i.frameBase
@@ -908,10 +932,7 @@ func (i *Interp) useOp(op Op) error {
 		i.env.vars[op.Name] = m
 		return nil
 	}
-	rel := strings.Join(path, "/") + ".snow"
-	if !filepath.IsAbs(rel) {
-		rel = filepath.Join(i.dir, rel)
-	}
+	rel := resolveImportPath(i.dir, path)
 	if m, ok := i.modules[rel]; ok {
 		i.env.vars[op.Name] = m
 		return nil

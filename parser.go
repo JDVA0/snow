@@ -32,7 +32,7 @@ type AssignStmt struct {
 	Names []string
 	Op    byte // 0 for '=', otherwise the binary op code
 	Vals  []Expr
-	Type  string // list element type, e.g. "str[]" when declared typed; "" otherwise
+	Type  string // declared type, e.g. "str", "str[]"; "" keeps the variable dynamic
 	Vis   string // "pub", "priv" or "" (default: pub)
 }
 type SetAttrStmt struct {
@@ -549,8 +549,9 @@ func (p *parser) parseSimple() (Stmt, error) {
 	return &ExprStmt{posOf(vals[0]), vals[0]}, nil
 }
 
-// parseTypedAssign handles the typed-list declaration form:
-// nombre: str[] = [...]
+// parseTypedAssign handles an optional gradual type annotation:
+// name: int = 1, names: str[] = ["Ada"]. An annotation is checked at runtime;
+// unannotated variables remain fully dynamic.
 func (p *parser) parseTypedAssign(vals []Expr) (Stmt, error) {
 	peek := p.peek()
 	if len(vals) != 1 {
@@ -562,21 +563,9 @@ func (p *parser) parseTypedAssign(vals []Expr) (Stmt, error) {
 		return nil, p.errf(Tok{Line: ps.Line, Col: ps.Col}, "invalid assignment target")
 	}
 	p.next() // consume ':'
-	elem, err := p.expectIdent()
+	typeName, err := p.parseType()
 	if err != nil {
 		return nil, err
-	}
-	if p.peek().Kind != tLBrack {
-		return nil, p.errf(p.peek(), "expected '[' after the type")
-	}
-	p.next()
-	if p.peek().Kind != tRBrack {
-		return nil, p.errf(p.peek(), "expected ']' in list type")
-	}
-	p.next()
-	typeName := elem + "[]"
-	if !validTypeName(elem) {
-		return nil, p.errf(peek, "unknown list type %q (use str, int, float, bool, dict, list or any)", typeName)
 	}
 	if p.peek().Kind != tAssign {
 		return nil, p.errf(p.peek(), "expected '=' in type declaration")
