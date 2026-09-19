@@ -8,6 +8,7 @@ snowman.exe
 
 # Scripts y artefactos locales
 **/*.sh
+**/test.sh
 *.sh
 *.bash
 *.zsh
