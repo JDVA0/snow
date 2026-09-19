@@ -49,7 +49,8 @@ const (
 	tLe
 	tGt
 	tGe
-	tQQ    // ??
+	tArrow  // ->
+	tQQ     // ??
 	tQBrack // ?[
 )
 
@@ -452,6 +453,8 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 				case "?[":
 					kind, n = tQBrack, 2
 					*depth++ // ?[ opens a bracket scope, matched by ]
+				case "->":
+					kind, n = tArrow, 2
 				}
 			}
 			if kind == 0 {

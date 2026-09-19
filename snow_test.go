@@ -951,3 +951,108 @@ catch err:
 		t.Fatal("expected typed declaration on a single name")
 	}
 }
+
+func TestFnTypes(t *testing.T) {
+	check(t, `
+fn sumar(a: int, b: int) -> int:
+    return a + b
+print(sumar(2, 3))
+`, "5")
+
+	check(t, `
+fn juntar(nombres: str[]) -> str:
+    return join(nombres, ",")
+print(juntar(["a", "b", "c"]))
+`, "a,b,c")
+
+	check(t, `
+fn procesar(datos: str[]) -> int:
+    return len(datos)
+print(procesar(["x", "y", "z"]))
+`, "3")
+
+	check(t, `
+fn config() -> dict:
+    return {modo: "prod"}
+print(config().modo)
+`, "prod")
+
+	check(t, `
+doppel = fn(n: int) -> int: n * 2
+print(map(doppel, [1, 2, 3]))
+`, "[2, 4, 6]")
+
+	check(t, `
+fn f(x: int) -> int:
+    return x * 2
+try:
+    f("a")
+catch err:
+    print(err)
+`, "parameter 'x': expected int, got str")
+
+	check(t, `
+fn f() -> int:
+    return "hi"
+try:
+    f()
+catch err:
+    print(err)
+`, "return of f: expected int, got str")
+
+	check(t, `
+fn f(v: int[]) -> int:
+    return len(v)
+try:
+    f(["a"])
+catch err:
+    print(err)
+`, "parameter 'v': cannot hold str in int[] (element 0)")
+
+	check(t, `
+fn f(x: any) -> any:
+    return x
+print(f(1))
+print(f("a"))
+print(f(nil))
+print(type(f([1, 2])))
+`, "1\na\nnil\nlist")
+
+	check(t, `
+fn f(a, b):
+    return a + b
+print(f(1, 2))
+print(f("x", "y"))
+`, "3\nxy")
+
+	check(t, `
+fn f() -> int:
+    return 1, 2
+a, b = f()
+print(a, b)
+`, "1 2")
+
+	out, err := Format(`fn  procesar( datos:str[] , n:int ) -> int :
+  return len( datos ) + n
+`)
+	if err != nil {
+		t.Fatalf("Format: %v", err)
+	}
+	want := `fn procesar(datos: str[], n: int) -> int:
+    return len(datos) + n
+`
+	if out != want {
+		t.Fatalf("Format got:\n%q\nwant:\n%q", out, want)
+	}
+	again, err := Format(out)
+	if err != nil {
+		t.Fatalf("Format second pass: %v", err)
+	}
+	if again != out {
+		t.Fatalf("Format not stable:\n%q\nvs\n%q", out, again)
+	}
+
+	if _, err := run(t, "fn f(x: strx) -> int: return 1"); err == nil {
+		t.Fatal("expected unknown type error")
+	}
+}

@@ -35,9 +35,11 @@ type AssignStmt struct {
 }
 type FnStmt struct {
 	Pos
-	Name   string
-	Params []string
-	Body   []Stmt
+	Name       string
+	Params     []string
+	ParamTypes []string // len(Params), "" when a param is untyped
+	Ret        string   // declared return type, "" when untyped
+	Body       []Stmt
 }
 type ReturnStmt struct {
 	Pos
@@ -138,8 +140,10 @@ type DictLit struct {
 
 type FnExpr struct {
 	Pos
-	Params []string
-	Body   []Stmt
+	Params     []string
+	ParamTypes []string
+	Ret        string
+	Body       []Stmt
 }
 
 // FStrLit is an f-string literal: Parts alternates [literal, expr, literal, ...].
@@ -426,7 +430,7 @@ func (p *parser) parseTypedAssign(vals []Expr) (Stmt, error) {
 	}
 	p.next()
 	typeName := elem + "[]"
-	if !validListElem(elem) {
+	if !validTypeName(elem) {
 		return nil, p.errf(peek, "unknown list type %q (use str, int, float, bool, dict, list or any)", typeName)
 	}
 	if p.peek().Kind != tAssign {
@@ -443,7 +447,7 @@ func (p *parser) parseTypedAssign(vals []Expr) (Stmt, error) {
 	return &AssignStmt{Pos: Pos{n.Line, n.Col}, Names: []string{n.X}, Vals: rhs, Type: typeName}, nil
 }
 
-func validListElem(e string) bool {
+func validTypeName(e string) bool {
 	switch e {
 	case "str", "int", "float", "bool", "dict", "list", "any":
 		return true
@@ -514,7 +518,7 @@ func (p *parser) parseFn() (Stmt, error) {
 		return nil, p.errf(k, "expected '(' after function name")
 	}
 	p.next()
-	params, err := p.parseParams()
+	params, ptypes, err := p.parseParams()
 	if err != nil {
 		return nil, err
 	}
@@ -522,6 +526,10 @@ func (p *parser) parseFn() (Stmt, error) {
 		return nil, p.errf(k, "expected ')' after parameters")
 	}
 	p.next()
+	ret, err := p.parseOptReturn()
+	if err != nil {
+		return nil, err
+	}
 	if _, err := p.expectColon(); err != nil {
 		return nil, err
 	}
@@ -531,35 +539,73 @@ func (p *parser) parseFn() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &FnStmt{Pos{st.Line, st.Col}, name, params, body}, nil
+	return &FnStmt{Pos: Pos{st.Line, st.Col}, Name: name, Params: params, ParamTypes: ptypes, Ret: ret, Body: body}, nil
 }
 
-func (p *parser) parseParams() ([]string, error) {
-	var params []string
+func (p *parser) parseParams() ([]string, []string, error) {
+	var names, types []string
 	if p.peek().Kind == tRParen {
-		return params, nil
+		return names, types, nil
 	}
 	for {
 		n, err := p.expectIdent()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		params = append(params, n)
+		typ := ""
+		if p.peek().Kind == tColon {
+			p.next()
+			if typ, err = p.parseType(); err != nil {
+				return nil, nil, err
+			}
+		}
+		names = append(names, n)
+		types = append(types, typ)
 		k := p.peek()
 		switch k.Kind {
 		case tRParen:
-			return params, nil
+			return names, types, nil
 		case tComma:
 			p.next()
 			if p.peek().Kind == tRParen {
-				return params, nil
+				return names, types, nil
 			}
 		case tIdent:
 			// optional commas: fn f(a b):
 		default:
-			return nil, p.errf(k, "expected a parameter name or ')'")
+			return nil, nil, p.errf(k, "expected a parameter name or ')'")
 		}
 	}
+}
+
+// parseOptReturn parses an optional "-> type" after a function signature.
+func (p *parser) parseOptReturn() (string, error) {
+	if p.peek().Kind != tArrow {
+		return "", nil
+	}
+	p.next()
+	return p.parseType()
+}
+
+// parseType parses a type: a scalar (str, int, ...) or a list of them (str[]).
+func (p *parser) parseType() (string, error) {
+	start := p.peek()
+	elem, err := p.expectIdent()
+	if err != nil {
+		return "", err
+	}
+	if !validTypeName(elem) {
+		return "", p.errf(start, "unknown type %q (use str, int, float, bool, dict, list or any)", elem)
+	}
+	if p.peek().Kind == tLBrack {
+		p.next()
+		if p.peek().Kind != tRBrack {
+			return "", p.errf(p.peek(), "expected ']' in type")
+		}
+		p.next()
+		return elem + "[]", nil
+	}
+	return elem, nil
 }
 
 func (p *parser) expectColon() (Tok, error) {
@@ -1097,7 +1143,7 @@ func (p *parser) parsePrimary() (Expr, error) {
 		if k.Text == "fn" && p.pos+1 < len(p.toks) && p.toks[p.pos+1].Kind == tLParen {
 			p.next() // consume 'fn'
 			p.next() // consume '('
-			params, err := p.parseParams()
+			params, ptypes, err := p.parseParams()
 			if err != nil {
 				return nil, err
 			}
@@ -1105,6 +1151,10 @@ func (p *parser) parsePrimary() (Expr, error) {
 				return nil, p.errf(p.peek(), "expected ')'")
 			}
 			p.next()
+			ret, err := p.parseOptReturn()
+			if err != nil {
+				return nil, err
+			}
 			if _, err := p.expectColon(); err != nil {
 				return nil, err
 			}
@@ -1114,7 +1164,7 @@ func (p *parser) parsePrimary() (Expr, error) {
 					return nil, err
 				}
 				body := []Stmt{&ReturnStmt{Pos: posOf(expr), Vals: []Expr{expr}}}
-				return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, Body: body}, nil
+				return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, ParamTypes: ptypes, Ret: ret, Body: body}, nil
 			}
 			p.fnN++
 			body, err := p.parseSuite()
@@ -1122,7 +1172,7 @@ func (p *parser) parsePrimary() (Expr, error) {
 			if err != nil {
 				return nil, err
 			}
-			return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, Body: body}, nil
+			return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, ParamTypes: ptypes, Ret: ret, Body: body}, nil
 		}
 		switch k.Text {
 		case "true":

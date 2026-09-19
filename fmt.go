@@ -173,9 +173,8 @@ func (f *formatter) stmt(s Stmt, indent int) {
 		f.ind(indent)
 		f.b.WriteString("fn ")
 		f.b.WriteString(t.Name)
-		f.b.WriteByte('(')
-		f.b.WriteString(strings.Join(t.Params, ", "))
-		f.b.WriteString("):\n")
+		f.writeFnSig(t.Params, t.ParamTypes, t.Ret)
+		f.b.WriteString(":\n")
 		f.stmts(t.Body, indent+1)
 	case *ReturnStmt:
 		f.ind(indent)
@@ -240,6 +239,26 @@ func (f *formatter) stmt(s Stmt, indent int) {
 		f.ind(indent)
 		f.expr(t.X, 0)
 		f.b.WriteByte('\n')
+	}
+}
+
+// writeFnSig writes "(a: str, b: int[]) -> ret" without the surrounding 'fn'.
+func (f *formatter) writeFnSig(params, types []string, ret string) {
+	f.b.WriteByte('(')
+	for i, p := range params {
+		if i > 0 {
+			f.b.WriteString(", ")
+		}
+		f.b.WriteString(p)
+		if i < len(types) && types[i] != "" {
+			f.b.WriteString(": ")
+			f.b.WriteString(types[i])
+		}
+	}
+	f.b.WriteByte(')')
+	if ret != "" {
+		f.b.WriteString(" -> ")
+		f.b.WriteString(ret)
 	}
 }
 
@@ -378,9 +397,9 @@ func (f *formatter) expr(e Expr, parentPrec int) {
 		}
 		f.b.WriteByte('}')
 	case *FnExpr:
-		f.b.WriteString("fn(")
-		f.b.WriteString(strings.Join(t.Params, ", "))
-		f.b.WriteString("):")
+		f.b.WriteString("fn")
+		f.writeFnSig(t.Params, t.ParamTypes, t.Ret)
+		f.b.WriteString(":")
 		if len(t.Body) == 1 {
 			if r, ok := t.Body[0].(*ReturnStmt); ok && len(r.Vals) == 1 {
 				f.b.WriteByte(' ')

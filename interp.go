@@ -37,12 +37,14 @@ func (e *ExitError) Error() string { return fmt.Sprintf("exit %d", e.Code) }
 
 // Fn is a Snow function value (a closure over its definition env).
 type Fn struct {
-	Name   string
-	Params []string
-	Body   []Op
-	Env    *Env
-	Line   int
-	Col    int
+	Name       string
+	Params     []string
+	ParamTypes []string
+	Ret        string
+	Body       []Op
+	Env        *Env
+	Line       int
+	Col        int
 }
 
 // Native is a Go function exposed to Snow.
@@ -239,6 +241,21 @@ func (i *Interp) opErr(op Op, err error) error {
 	return &Errat{i.src, op.Line, op.Col, err}
 }
 
+// checkValType validates a value against a declared type: a scalar
+// (str, int, ...), a list of a type (str[]), or any.
+func checkValType(v Val, typ string) error {
+	if typ == "" || typ == "any" {
+		return nil
+	}
+	if strings.HasSuffix(typ, "[]") {
+		return checkTypedList(v, strings.TrimSuffix(typ, "[]"))
+	}
+	if TypeName(v) != typ {
+		return fmt.Errorf("expected %s, got %s", typ, TypeName(v))
+	}
+	return nil
+}
+
 // checkTypedList validates a value assigned to a typed-list variable
 // (nombre: str[] = [...]). Every element must match the declared type.
 func checkTypedList(v Val, elem string) error {
@@ -350,7 +367,7 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 		}
 		i.env.vars[op.Name] = v
 	case OpMakeFn:
-		i.push(&Fn{Name: op.Name, Params: op.Args, Body: op.Body, Env: i.env, Line: op.Line, Col: op.Col})
+		i.push(&Fn{Name: op.Name, Params: op.Args, ParamTypes: op.ParamTypes, Ret: op.Ret, Body: op.Body, Env: i.env, Line: op.Line, Col: op.Col})
 	case OpCall:
 		n := int(op.Num)
 		if len(i.stack) < n {
@@ -587,6 +604,13 @@ func (i *Interp) invoke(callable Val, args []Val) ([]Val, error) {
 		if len(args) != len(f.Params) {
 			return nil, fmt.Errorf("%s expects %d argument(s), got %d", f.Name, len(f.Params), len(args))
 		}
+		for k, p := range f.Params {
+			if k < len(f.ParamTypes) && f.ParamTypes[k] != "" {
+				if err := checkValType(args[k], f.ParamTypes[k]); err != nil {
+					return nil, fmt.Errorf("parameter '%s': %v", p, err)
+				}
+			}
+		}
 		if i.depth >= maxDepth {
 			return nil, errors.New("recursion limit exceeded")
 		}
@@ -606,10 +630,18 @@ func (i *Interp) invoke(callable Val, args []Val) ([]Val, error) {
 		i.frameBase = prevBase
 		if r, ok := err.(*errReturn); ok {
 			i.stack = i.stack[:base]
-			if len(r.vals) == 0 {
-				return []Val{Nil}, nil
+			vals := r.vals
+			if len(vals) == 0 {
+				vals = []Val{Nil}
 			}
-			return r.vals, nil
+			if f.Ret != "" {
+				for _, v := range vals {
+					if cerr := checkValType(v, f.Ret); cerr != nil {
+						return nil, fmt.Errorf("return of %s: %v", f.Name, cerr)
+					}
+				}
+			}
+			return vals, nil
 		}
 		if err != nil {
 			return nil, err

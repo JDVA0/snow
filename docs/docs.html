@@ -399,6 +399,24 @@ print(dobles)        # [2, 4, 6, 8]
 
 mayores = filter(fn(n): n > 2, numeros)
 print(mayores)       # [3, 4]</code></pre>
+
+        <h3 data-i18n="h_fn_types">3. Tipos en parámetros y retorno (opcional)</h3>
+        <p data-i18n="p_fn_types_desc">Puedes declarar el tipo de cada parámetro y del valor que devuelve la función. Snow valida en runtime: un argumento o retorno que no coincide produce un error capturable con <code>try</code> / <code>catch</code>. Las anotaciones son opcionales — sin ellas la función sigue siendo dinámica.</p>
+        <pre><code># Parámetros y retorno tipados
+fn procesar(datos: str[]) -> int:
+    return len(datos)
+
+fn sumar(a: int, b: int) -> int:
+    return a + b
+
+print(procesar(["a", "b"]))   # 2
+print(sumar(2, 3))            # 5
+
+# Un tipo incorrecto produce un error capturable
+try:
+    sumar("x", 1)
+catch err:
+    print(err)   # parameter 'a': expected int, got str</code></pre>
       </section>
 
       <!-- Nativas -->
@@ -1288,6 +1306,8 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         h_fn_std: "1. Funciones estándar con bloques (<code>fn</code>)",
         p_fn_std_desc: "Se definen con la palabra clave <code>fn</code>, nombre, paréntesis con argumentos separados por coma, dos puntos y bloque indentado:",
         h_fn_lambda: "2. Funciones lambda en una línea",
+        h_fn_types: "3. Tipos en parámetros y retorno (opcional)",
+        p_fn_types_desc: "Puedes declarar el tipo de cada parámetro y del valor que devuelve la función. Snow valida en runtime: un argumento o retorno que no coincide produce un error capturable con <code>try</code> / <code>catch</code>. Las anotaciones son opcionales — sin ellas la función sigue siendo dinámica.",
         p_fn_lambda_desc: "Para expresiones cortas y pasar como argumento a otras funciones:",
         h_builtins: "Funciones Nativas", p_builtins_intro: "Están siempre disponibles en el intérprete sin necesidad de importar ningún módulo:",
         th_fn: "Función",
@@ -1473,6 +1493,8 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         p_fn_std_desc: "Defined with the <code>fn</code> keyword, name, comma-separated arguments in parentheses, a colon, and an indented block:",
         h_fn_lambda: "2. Single-line lambda functions",
         p_fn_lambda_desc: "For short expressions and passing as arguments to other functions:",
+        h_fn_types: "3. Types on parameters and return (optional)",
+        p_fn_types_desc: "You can declare the type of each parameter and of the returned value. Snow validates at runtime: a mismatched argument or return raises an error you can catch with <code>try</code> / <code>catch</code>. Annotations are optional — without them the function stays dynamic.",
         h_builtins: "Built-in Functions", p_builtins_intro: "Always available in the interpreter without importing any module:",
         th_fn: "Function",
         b_print: "Writes arguments to stdout separated by spaces and adds a newline.",

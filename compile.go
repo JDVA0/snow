@@ -41,17 +41,19 @@ const (
 
 // Op is a single VM instruction.
 type Op struct {
-	Kind OpKind
-	Name string
-	Num  int64
-	Flt  float64
-	Bol  bool
-	Str  string
-	Args []string
-	Body []Op
-	Elem string // declared list element type for typed assignments (e.g. "str")
-	Line int
-	Col  int
+	Kind       OpKind
+	Name       string
+	Num        int64
+	Flt        float64
+	Bol        bool
+	Str        string
+	Args       []string
+	Body       []Op
+	Elem       string   // declared list element type for typed assignments (e.g. "str")
+	ParamTypes []string // per-param types for OpMakeFn, "" when untyped
+	Ret        string   // declared return type for OpMakeFn, "" when untyped
+	Line       int
+	Col        int
 }
 
 // Binary op codes.
@@ -194,7 +196,7 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 		if err := bc.stmts(t.Body, false); err != nil {
 			return err
 		}
-		op := Op{Kind: OpMakeFn, Name: t.Name, Args: t.Params, Body: bc.ops, Line: t.Line, Col: t.Col}
+		op := Op{Kind: OpMakeFn, Name: t.Name, Args: t.Params, ParamTypes: t.ParamTypes, Ret: t.Ret, Body: bc.ops, Line: t.Line, Col: t.Col}
 		c.emit(op)
 		// bind the function name in the current scope
 		c.emit(Op{Kind: OpAssign, Args: []string{t.Name}, Line: t.Line, Col: t.Col})
@@ -447,7 +449,7 @@ func (c *compiler) expr(e Expr) error {
 		if err := bc.stmts(t.Body, false); err != nil {
 			return err
 		}
-		c.emit(Op{Kind: OpMakeFn, Name: "<anon>", Args: t.Params, Body: bc.ops, Line: t.Line, Col: t.Col})
+		c.emit(Op{Kind: OpMakeFn, Name: "<anon>", Args: t.Params, ParamTypes: t.ParamTypes, Ret: t.Ret, Body: bc.ops, Line: t.Line, Col: t.Col})
 	case *FStrLit:
 		// Compile f-string as a series of str() calls joined with '+'
 		if len(t.Parts) == 0 {

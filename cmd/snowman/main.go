@@ -42,6 +42,7 @@ Language features:
   ?[]           safe index: nil when missing, never an error
   try/catch     errors as values; fail(valor) to raise
   typed lists   nombres: str[] = ["Julian", "Ana"]  (validates elements)
+  fn types      fn sumar(a: int, b: int) -> int:    (optional, validated at call)
   multi-line    """..."""  or  '''...'''
 
 Examples:
