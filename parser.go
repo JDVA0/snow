@@ -53,9 +53,10 @@ type IfStmt struct {
 }
 type ForStmt struct {
 	Pos
-	Name string
-	Iter Expr
-	Body []Stmt
+	Name  string
+	Name2 string
+	Iter  Expr
+	Body  []Stmt
 }
 type WhileStmt struct {
 	Pos
@@ -71,6 +72,16 @@ type TryStmt struct {
 	TryBody   []Stmt
 	CatchVar  string
 	CatchBody []Stmt
+}
+type MatchStmt struct {
+	Pos
+	Target Expr
+	Cases  []MatchCase
+	Else   []Stmt
+}
+type MatchCase struct {
+	Vals []Expr
+	Body []Stmt
 }
 type ExprStmt struct {
 	Pos
@@ -129,6 +140,44 @@ type AttrE struct {
 	X    Expr
 	Name string
 }
+
+// SafeAttrE is a safe attribute access: x?.name returns nil if x is nil.
+type SafeAttrE struct {
+	Pos
+	X    Expr
+	Name string
+}
+
+// SliceE is a slice: x[lo:hi]. A nil Lo/Hi means an open end. Safe means x?[lo:hi].
+type SliceE struct {
+	Pos
+	X    Expr
+	Lo   Expr
+	Hi   Expr
+	Safe bool
+}
+
+// SafeChainE short-circuits an accessor chain at the first nil: the chain
+// after the first safe accessor evaluates to nil whenever any intermediate
+// value preceding the last step is nil. Prefix holds plain accessors before
+// the first safe one; Steps holds the safe accessor and everything after it.
+type SafeChainE struct {
+	Pos
+	Base   Expr
+	Prefix []ChainStep
+	Steps  []ChainStep
+}
+
+// ChainStep is one accessor in a chain: an attribute or a subscript.
+type ChainStep struct {
+	Safe  bool
+	Idx   bool   // subscript (index or slice) instead of a dot attribute
+	Slice bool   // subscript is a slice, using Lo/Hi
+	Name  string // attribute name when !Idx
+	Lo    Expr   // index key, or slice start (nil = omitted)
+	Hi    Expr   // slice end (nil = omitted, or when not a slice)
+}
+
 type ListLit struct {
 	Pos
 	Items []Expr
@@ -167,6 +216,7 @@ func (*ForStmt) stmt()    {}
 func (*WhileStmt) stmt()  {}
 func (*LoopStmt) stmt()   {}
 func (*TryStmt) stmt()    {}
+func (*MatchStmt) stmt()  {}
 func (*ExprStmt) stmt()   {}
 func (*NumLit) expr()     {}
 func (*StrLit) expr()     {}
@@ -179,6 +229,9 @@ func (*CallE) expr()      {}
 func (*IndexE) expr()     {}
 func (*SafeIndexE) expr() {}
 func (*AttrE) expr()      {}
+func (*SafeAttrE) expr()  {}
+func (*SliceE) expr()     {}
+func (*SafeChainE) expr() {}
 func (*ListLit) expr()    {}
 func (*DictLit) expr()    {}
 func (*FnExpr) expr()     {}
@@ -343,6 +396,8 @@ func (p *parser) parseStmt() (Stmt, error) {
 			return p.parseLoopCtrl(false)
 		case "try":
 			return p.parseTry()
+		case "match":
+			return p.parseMatch()
 		case "catch":
 			return nil, p.errf(k, "'catch' without matching 'try'")
 		}
@@ -358,6 +413,7 @@ var assignTokens = map[TokKind]byte{
 	tSlashEq:      boDiv,
 	tSlashSlashEq: boFloorDiv,
 	tPctEq:        boMod,
+	tQQEq:         boQQEq,
 }
 
 func (p *parser) parseSimple() (Stmt, error) {
@@ -720,6 +776,14 @@ func (p *parser) parseFor() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+	name2 := ""
+	if p.peek().Kind == tComma {
+		p.next()
+		name2, err = p.expectIdent()
+		if err != nil {
+			return nil, err
+		}
+	}
 	k := p.peek()
 	if k.Kind != tIdent || k.Text != "in" {
 		return nil, p.errf(k, "expected 'in' in for statement")
@@ -738,7 +802,7 @@ func (p *parser) parseFor() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ForStmt{Pos{st.Line, st.Col}, name, iter, body}, nil
+	return &ForStmt{Pos{st.Line, st.Col}, name, name2, iter, body}, nil
 }
 
 func (p *parser) parseWhile() (Stmt, error) {
@@ -768,6 +832,90 @@ func (p *parser) parseLoopCtrl(break_ bool) (Stmt, error) {
 		return nil, p.errf(st, "'continue' outside of a loop")
 	}
 	return &LoopStmt{Pos{st.Line, st.Col}, break_}, nil
+}
+
+// parseMatch parses a match statement:
+//
+//	match value:
+//	  case 1, 2:
+//	    ...
+//	  case "x":
+//	    ...
+//	  else:
+//	    ...
+func (p *parser) parseMatch() (Stmt, error) {
+	p.next() // consume 'match'
+	target, err := p.parseOr()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := p.expectColon(); err != nil {
+		return nil, err
+	}
+	if k := p.peek(); k.Kind != tNewline {
+		return nil, p.errf(k, "expected a newline after 'match ...:'")
+	}
+	p.next()
+	if k := p.peek(); k.Kind != tIndent {
+		return nil, p.errf(k, "expected an indented block in match")
+	}
+	p.next()
+	ms := &MatchStmt{Pos: posOf(target), Target: target}
+	for {
+		k := p.peek()
+		switch k.Kind {
+		case tDedent:
+			p.next()
+			return ms, nil
+		case tEOF:
+			p.incomplete = true
+			return ms, nil
+		case tNewline:
+			p.next()
+		case tRParen:
+			// closing paren of an enclosing call — stop, don't consume
+			return ms, nil
+		default:
+			if k.Kind != tIdent || (k.Text != "case" && k.Text != "else") {
+				return nil, p.errf(k, "expected 'case' or 'else' in match")
+			}
+			p.next()
+			if k.Text == "else" {
+				if _, err := p.expectColon(); err != nil {
+					return nil, err
+				}
+				var err error
+				if ms.Else, err = p.parseSuite(); err != nil {
+					return nil, err
+				}
+			} else {
+				var vals []Expr
+				for {
+					v, err := p.parseOr()
+					if err != nil {
+						return nil, err
+					}
+					vals = append(vals, v)
+					if p.peek().Kind == tComma {
+						p.next()
+						continue
+					}
+					break
+				}
+				if _, err := p.expectColon(); err != nil {
+					return nil, err
+				}
+				body, err := p.parseSuite()
+				if err != nil {
+					return nil, err
+				}
+				ms.Cases = append(ms.Cases, MatchCase{Vals: vals, Body: body})
+			}
+			if p.peek().Kind == tNewline {
+				p.next()
+			}
+		}
+	}
 }
 
 func (p *parser) parseTry() (Stmt, error) {
@@ -936,6 +1084,11 @@ func (p *parser) parseCmp() (Expr, error) {
 		} else if p.peek().Kind == tIdent && p.peek().Text == "in" {
 			op = "in"
 			p.next()
+		} else if p.peek().Kind == tIdent && p.peek().Text == "not" &&
+			p.pos+1 < len(p.toks) && p.toks[p.pos+1].Kind == tIdent && p.toks[p.pos+1].Text == "in" {
+			op = "not in"
+			p.next()
+			p.next()
 		} else {
 			break
 		}
@@ -1031,10 +1184,13 @@ func (p *parser) parsePostfix() (Expr, error) {
 	if err != nil {
 		return nil, err
 	}
+	var steps []ChainStep
 	for {
 		k := p.peek()
 		switch k.Kind {
 		case tLParen:
+			x = p.applySteps(x, steps)
+			steps = steps[:0]
 			p.next()
 			args, err := p.parseCallArgs()
 			if err != nil {
@@ -1045,40 +1201,110 @@ func (p *parser) parsePostfix() (Expr, error) {
 			}
 			p.next()
 			x = &CallE{Pos{posLine(x), posCol(x)}, x, args}
-		case tLBrack:
+		case tLBrack, tQBrack:
+			safe := k.Kind == tQBrack
 			p.next()
-			key, err := p.parseOr()
-			if err != nil {
-				return nil, err
+			st := ChainStep{Safe: safe, Idx: true}
+			var first Expr
+			if p.peek().Kind != tColon {
+				var err error
+				first, err = p.parseOr()
+				if err != nil {
+					return nil, err
+				}
+			}
+			if p.peek().Kind == tColon {
+				// slice: x[a:b], x[:b], x[a:], x[:]
+				p.next()
+				st.Slice = true
+				if first != nil {
+					st.Lo = first
+				}
+				if p.peek().Kind != tRBrack {
+					hi, err := p.parseOr()
+					if err != nil {
+						return nil, err
+					}
+					st.Hi = hi
+				}
+			} else {
+				st.Lo = first
 			}
 			if k2 := p.peek(); k2.Kind != tRBrack {
 				return nil, p.errf(k2, "expected ']'")
 			}
 			p.next()
-			x = &IndexE{Pos{posLine(x), posCol(x)}, x, key}
-		case tQBrack:
-			// safe index: x?[key] → nil if x is nil or key is absent
-			p.next()
-			key, err := p.parseOr()
-			if err != nil {
-				return nil, err
-			}
-			if k2 := p.peek(); k2.Kind != tRBrack {
-				return nil, p.errf(k2, "expected ']'")
-			}
-			p.next()
-			x = &SafeIndexE{Pos{posLine(x), posCol(x)}, x, key}
-		case tDot:
+			steps = append(steps, st)
+		case tDot, tQDot:
+			safe := k.Kind == tQDot
 			p.next()
 			n, err := p.expectIdent()
 			if err != nil {
 				return nil, err
 			}
-			x = &AttrE{Pos{posLine(x), posCol(x)}, x, n}
+			steps = append(steps, ChainStep{Safe: safe, Name: n})
 		default:
-			return x, nil
+			return p.finishChain(x, steps)
 		}
 	}
+}
+
+// finishChain assembles the accessor chain, flattening any chain that goes
+// through a safe accessor into a SafeChainE (or a single safe accessor).
+func (p *parser) finishChain(x Expr, steps []ChainStep) (Expr, error) {
+	if len(steps) == 0 {
+		return x, nil
+	}
+	firstSafe := -1
+	for i, st := range steps {
+		if st.Safe {
+			firstSafe = i
+			break
+		}
+	}
+	if firstSafe < 0 {
+		for _, st := range steps {
+			x = p.applyStep(x, st)
+		}
+		return x, nil
+	}
+	for _, st := range steps[:firstSafe] {
+		x = p.applyStep(x, st)
+	}
+	rest := steps[firstSafe:]
+	if len(rest) == 1 {
+		return p.applySafe(x, rest[0]), nil
+	}
+	return &SafeChainE{Pos: posOf(x), Base: x, Steps: rest}, nil
+}
+
+func (p *parser) applyStep(x Expr, st ChainStep) Expr {
+	pos := posOf(x)
+	if st.Idx {
+		if st.Slice {
+			return &SliceE{Pos: pos, X: x, Lo: st.Lo, Hi: st.Hi}
+		}
+		return &IndexE{Pos: pos, X: x, Key: st.Lo}
+	}
+	return &AttrE{Pos: pos, X: x, Name: st.Name}
+}
+
+func (p *parser) applySteps(x Expr, steps []ChainStep) Expr {
+	for _, st := range steps {
+		x = p.applyStep(x, st)
+	}
+	return x
+}
+
+func (p *parser) applySafe(x Expr, st ChainStep) Expr {
+	pos := posOf(x)
+	if st.Idx {
+		if st.Slice {
+			return &SliceE{Pos: pos, X: x, Lo: st.Lo, Hi: st.Hi, Safe: true}
+		}
+		return &SafeIndexE{Pos: pos, X: x, Key: st.Lo}
+	}
+	return &SafeAttrE{Pos: pos, X: x, Name: st.Name}
 }
 
 func (p *parser) parseCallArgs() ([]Expr, error) {
@@ -1184,7 +1410,7 @@ func (p *parser) parsePrimary() (Expr, error) {
 		case "nil":
 			p.next()
 			return &NilLit{Pos{k.Line, k.Col}}, nil
-		case "and", "or", "not", "in", "using", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue", "try", "catch":
+		case "and", "or", "not", "in", "using", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue", "try", "catch", "match", "case":
 			return nil, p.errf(k, "unexpected %q", k.Text)
 		}
 		p.next()
@@ -1292,7 +1518,7 @@ func exprStart(k Tok) bool {
 
 func isReserved(w string) bool {
 	switch w {
-	case "using", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not", "try", "catch":
+	case "using", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not", "try", "catch", "match", "case":
 		return true
 	}
 	return false
@@ -1325,6 +1551,12 @@ func posOf(e Expr) Pos {
 	case *SafeIndexE:
 		return x.Pos
 	case *AttrE:
+		return x.Pos
+	case *SafeAttrE:
+		return x.Pos
+	case *SliceE:
+		return x.Pos
+	case *SafeChainE:
 		return x.Pos
 	case *ListLit:
 		return x.Pos

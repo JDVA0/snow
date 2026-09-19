@@ -234,6 +234,10 @@ func (i *Interp) opErr(op Op, err error) error {
 	if _, ok := err.(*errReturn); ok {
 		return err
 	}
+	var st *errStack
+	if errors.As(err, &st) {
+		return err
+	}
 	var ex *ExitError
 	if errors.As(err, &ex) {
 		return ex
@@ -267,6 +271,9 @@ func checkTypedList(v Val, elem string) error {
 		return nil
 	}
 	for i, e := range l {
+		if _, isNil := e.(NilT); isNil {
+			continue
+		}
 		if TypeName(e) != elem {
 			return fmt.Errorf("cannot hold %s in %s[] (element %d)", TypeName(e), elem, i)
 		}
@@ -284,6 +291,60 @@ func failValue(err error) Val {
 		return Str(er.Err.Error())
 	}
 	return Str(err.Error())
+}
+
+// errStack carries the caller frames collected while an error propagated
+// through function calls. Its Error() is the base error message.
+type errStack struct {
+	base   error
+	frames []string
+}
+
+func (e *errStack) Error() string { return e.base.Error() }
+
+func (e *errStack) Unwrap() error { return e.base }
+
+// addStack appends a call frame to an error unless it is a return/exit.
+func addStack(err error, name string, line, col int, src string) error {
+	if _, ok := err.(*errReturn); ok {
+		return err
+	}
+	var ex *ExitError
+	if errors.As(err, &ex) {
+		return err
+	}
+	frame := fmt.Sprintf("in %s (%s:%d:%d)", name, src, line, col)
+	var st *errStack
+	if errors.As(err, &st) {
+		st.frames = append(st.frames, frame)
+		return err
+	}
+	return &errStack{base: err, frames: []string{frame}}
+}
+
+// StackOf returns the frames recorded on a (possibly nested) error.
+func StackOf(err error) []string {
+	var st *errStack
+	if errors.As(err, &st) {
+		return st.frames
+	}
+	return nil
+}
+
+// FormatError renders an error message together with its stack trace.
+func FormatError(err error) string {
+	var st *errStack
+	if errors.As(err, &st) && len(st.frames) > 0 {
+		var b strings.Builder
+		b.WriteString(err.Error())
+		b.WriteString("\nstack trace:")
+		for i := len(st.frames) - 1; i >= 0; i-- {
+			b.WriteString("\n  ")
+			b.WriteString(st.frames[i])
+		}
+		return b.String()
+	}
+	return err.Error()
 }
 
 func (i *Interp) catchError(err error) (int, bool) {
@@ -381,8 +442,15 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 		if err != nil {
 			return i.opErr(op, err)
 		}
+		name := "<anon>"
+		if f, ok := callee.(*Fn); ok && f.Name != "" {
+			name = f.Name
+		}
 		vals, err := i.invoke(callee, args)
 		if err != nil {
+			if _, isFn := callee.(*Fn); isFn {
+				err = addStack(err, name, op.Line, op.Col, i.src)
+			}
 			return i.opErr(op, err)
 		}
 		for _, v := range vals {
@@ -455,6 +523,12 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 		if !ok {
 			return i.opErr(op, fmt.Errorf("undefined name '%s'", op.Name))
 		}
+		if op.Num == int64(boQQEq) {
+			if cur == Nil {
+				i.setVar(op.Name, v)
+			}
+			return nil
+		}
 		res, err := binVal(cur, v, byte(op.Num))
 		if err != nil {
 			return i.opErr(op, err)
@@ -525,6 +599,53 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 			break
 		}
 		i.push(v)
+	case OpSlice:
+		hi, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		lo, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		box, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		v, err := sliceVal(box, lo, hi)
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		i.push(v)
+	case OpIterKeys:
+		c, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		ks, err := iterKeys(c)
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		i.push(ks)
+	case OpIterPair:
+		idx, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		c, err := i.pop()
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		k, ok := idx.(Int)
+		if !ok {
+			return i.opErr(op, fmt.Errorf("iteration index must be an int, got %s", TypeName(idx)))
+		}
+		key, val, err := iterPair(c, int(k))
+		if err != nil {
+			return i.opErr(op, err)
+		}
+		i.push(key)
+		i.push(val)
 	case OpLen:
 		v, err := i.pop()
 		if err != nil {
@@ -942,36 +1063,46 @@ func binVal(a, b Val, code byte) (Val, error) {
 		}
 		return Bool(bool(x) || bool(y)), nil
 	case boIn:
-		switch c := b.(type) {
-		case Str:
-			s, ok := a.(Str)
-			if !ok {
-				return nil, fmt.Errorf("left side of 'in' must be a string, got %s", TypeName(a))
-			}
-			return Bool(strings.Contains(string(c), string(s))), nil
-		case List:
-			for _, e := range c {
-				if Eql(a, e) {
-					return Bool(true), nil
-				}
-			}
-			return Bool(false), nil
-		case *Dict:
-			s, ok := a.(Str)
-			if !ok {
-				return nil, fmt.Errorf("left side of 'in' must be a string, got %s", TypeName(a))
-			}
-			return Bool(c.Has(string(s))), nil
-		case *Module:
-			s, ok := a.(Str)
-			if !ok {
-				return nil, fmt.Errorf("left side of 'in' must be a string, got %s", TypeName(a))
-			}
-			return Bool(c.Dict.Has(string(s))), nil
+		return binValIn(a, b)
+	case boNotIn:
+		r, err := binValIn(a, b)
+		if err != nil {
+			return nil, err
 		}
-		return nil, fmt.Errorf("right side of 'in' must be a string, list or dict, got %s", TypeName(b))
+		return Bool(!bool(r.(Bool))), nil
 	}
 	return nil, errors.New("unknown operator")
+}
+
+func binValIn(a, b Val) (Val, error) {
+	switch c := b.(type) {
+	case Str:
+		s, ok := a.(Str)
+		if !ok {
+			return nil, fmt.Errorf("left side of 'in' must be a string, got %s", TypeName(a))
+		}
+		return Bool(strings.Contains(string(c), string(s))), nil
+	case List:
+		for _, e := range c {
+			if Eql(a, e) {
+				return Bool(true), nil
+			}
+		}
+		return Bool(false), nil
+	case *Dict:
+		s, ok := a.(Str)
+		if !ok {
+			return nil, fmt.Errorf("left side of 'in' must be a string, got %s", TypeName(a))
+		}
+		return Bool(c.Has(string(s))), nil
+	case *Module:
+		s, ok := a.(Str)
+		if !ok {
+			return nil, fmt.Errorf("left side of 'in' must be a string, got %s", TypeName(a))
+		}
+		return Bool(c.Dict.Has(string(s))), nil
+	}
+	return nil, fmt.Errorf("right side of 'in' must be a string, list or dict, got %s", TypeName(b))
 }
 
 func unVal(a Val, code byte) (Val, error) {
@@ -1057,6 +1188,113 @@ func lenVal(v Val) (int64, error) {
 		return int64(c.Len()), nil
 	}
 	return 0, fmt.Errorf("len() does not accept %s", TypeName(v))
+}
+
+// sliceVal implements x[lo:hi] for lists and strings. lo/hi may be Nil
+// (open end) or an int; negative indices count from the end.
+func sliceVal(box, lo, hi Val) (Val, error) {
+	switch c := box.(type) {
+	case List:
+		s, e, err := sliceBounds(lo, hi, int64(len(c)))
+		if err != nil {
+			return nil, err
+		}
+		return c[s:e], nil
+	case Str:
+		rs := []rune(string(c))
+		s, e, err := sliceBounds(lo, hi, int64(len(rs)))
+		if err != nil {
+			return nil, err
+		}
+		return Str(string(rs[s:e])), nil
+	}
+	return nil, fmt.Errorf("cannot slice a %s", TypeName(box))
+}
+
+func sliceBounds(lo, hi Val, n int64) (int64, int64, error) {
+	var s, e int64 = 0, n
+	if lo != nil {
+		if _, isNil := lo.(NilT); isNil {
+			// open start
+		} else if k, ok := lo.(Int); ok {
+			s = int64(k)
+			if s < 0 {
+				s += n
+			}
+		} else {
+			return 0, 0, fmt.Errorf("slice start must be an int, got %s", TypeName(lo))
+		}
+	}
+	if hi != nil {
+		if _, isNil := hi.(NilT); isNil {
+			// open end
+		} else if k, ok := hi.(Int); ok {
+			e = int64(k)
+			if e < 0 {
+				e += n
+			}
+		} else {
+			return 0, 0, fmt.Errorf("slice end must be an int, got %s", TypeName(hi))
+		}
+	}
+	if s < 0 {
+		s = 0
+	}
+	if e > n {
+		e = n
+	}
+	if s > e {
+		return 0, 0, fmt.Errorf("slice start %d is after end %d", s, e)
+	}
+	return s, e, nil
+}
+
+// iterKeys returns the items a single-name for loop iterates:
+// dict → its keys, list → itself, string → its characters.
+func iterKeys(v Val) (List, error) {
+	switch c := v.(type) {
+	case *Dict:
+		var ks List
+		c.ForEach(func(k string, _ Val) { ks = append(ks, Str(k)) })
+		return ks, nil
+	case List:
+		return c, nil
+	case Str:
+		rs := []rune(string(c))
+		ks := make(List, len(rs))
+		for k, r := range rs {
+			ks[k] = Str(string(r))
+		}
+		return ks, nil
+	}
+	return nil, fmt.Errorf("cannot iterate a %s", TypeName(v))
+}
+
+// iterPair yields the key/or-index and value at position k for `for k, v in`.
+func iterPair(v Val, k int) (Val, Val, error) {
+	switch c := v.(type) {
+	case *Dict:
+		if k < 0 || k >= c.Len() {
+			return nil, nil, fmt.Errorf("index %d out of range for a dict of %d entries", k, c.Len())
+		}
+		var keys []string
+		c.ForEach(func(key string, _ Val) { keys = append(keys, key) })
+		key := keys[k]
+		val, _ := c.Get(key)
+		return Str(key), val, nil
+	case List:
+		if k < 0 || k >= len(c) {
+			return nil, nil, fmt.Errorf("index %d out of range for a list of length %d", k, len(c))
+		}
+		return Int(int64(k)), c[k], nil
+	case Str:
+		rs := []rune(string(c))
+		if k < 0 || k >= len(rs) {
+			return nil, nil, fmt.Errorf("index %d out of range for a string of length %d", k, len(rs))
+		}
+		return Int(int64(k)), Str(string(rs[k])), nil
+	}
+	return nil, nil, fmt.Errorf("cannot iterate a %s", TypeName(v))
 }
 
 // stdNames is the set of builtin names (excluded from module exports).

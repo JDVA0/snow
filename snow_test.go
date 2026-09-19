@@ -1056,3 +1056,439 @@ print(a, b)
 		t.Fatal("expected unknown type error")
 	}
 }
+
+func TestSafeChain(t *testing.T) {
+	check(t, `u = nil
+print(u?.perfil.nombre)
+`, "nil")
+
+	check(t, `d = {a: {b: 42}}
+print(d?.a.b)
+`, "42")
+
+	check(t, `d = {a: {b: 42}}
+print(d?.x.y ?? "missing")
+`, "missing")
+
+	check(t, `d = {a: {b: 42}}
+print(d?.a?["x"] ?? "missing")
+`, "missing")
+
+	if _, err := run(t, `d = {a: {b: 42}}
+print(d?.a.x)`); err == nil {
+		t.Fatal("expected key not found error for plain dot access in a chain")
+	}
+
+	check(t, `p = {nombre: "Ana"}
+print(p?.nombre)
+print(p?.edad ?? "sin edad")
+`, "Ana\nsin edad")
+
+	check(t, `d = {a: {b: 42}}
+print(d?["a"]?["b"] ?? "missing")
+print(d?["x"]?["y"] ?? "missing")
+`, "42\nmissing")
+
+	check(t, `l = [1, 2, 3]
+print(l?[5] ?? "fuera")
+`, "fuera")
+
+	check(t, `d = {a: [10, 20]}
+print(d?.a?[1])
+`, "20")
+
+	check(t, `l = [[1, 2], [3]]
+print(l?[0]?[1] ?? "!")
+print(l?[9]?[0] ?? "!")
+`, "2\n!")
+
+	check(t, `s = "abc"
+print(s?[1])
+`, "b")
+}
+
+func TestSlices(t *testing.T) {
+	check(t, `l = [1, 2, 3, 4, 5]
+print(l[1:3])
+`, "[2, 3]")
+
+	check(t, `l = [1, 2, 3, 4, 5]
+print(l[:2])
+print(l[3:])
+print(l[:])
+print(l[0:0])
+`, "[1, 2]\n[4, 5]\n[1, 2, 3, 4, 5]\n[]")
+
+	check(t, `l = [1, 2, 3, 4, 5]
+print(l[-2:])
+print(l[:-3])
+print(l[-4:-1])
+`, "[4, 5]\n[1, 2]\n[2, 3, 4]")
+
+	check(t, `s = "hello"
+print(s[1:3])
+print(s[:])
+print(s[2:])
+`, "el\nhello\nllo")
+
+	check(t, `print("hello"[1:4])
+`, "ell")
+
+	check(t, `print([1, 2, 3]?[0:2])
+print(nil?[0:2] ?? "nil-sliced")
+`, "[1, 2]\nnil-sliced")
+
+	check(t, `l = []
+print(l[:])
+`, "[]")
+
+	if _, err := run(t, "print([1,2][5:])"); err == nil {
+		t.Fatal("expected slice start out of range error")
+	}
+}
+
+func TestForTwoNames(t *testing.T) {
+	check(t, `d = {a: 1, b: 2}
+for k, v in d:
+    print(k + "=" + str(v))
+`, "a=1\nb=2")
+
+	check(t, `for i, v in ["x", "y", "z"]:
+    print(i, v)
+`, "0 x\n1 y\n2 z")
+
+	check(t, `for i, c in "abc":
+    print(i, c)
+`, "0 a\n1 b\n2 c")
+
+	check(t, `d = {x: 10}
+suma = 0
+for k, v in d:
+    suma += v
+print(suma)
+`, "10")
+
+	check(t, `d = {a: 1, b: 2}
+total = ""
+for k in d:
+    total += k
+print(total)
+`, "ab")
+
+	check(t, `for c in "snow":
+    print(c)
+`, "s\nn\no\nw")
+}
+
+func TestQQEq(t *testing.T) {
+	check(t, `x = nil
+x ??= 5
+print(x)
+x ??= 9
+print(x)
+`, "5\n5")
+
+	check(t, `x = 3
+x ??= 7
+print(x)
+`, "3")
+
+	check(t, `
+y = nil
+while true:
+    y ??= 1
+    break
+print(y)
+`, "1")
+
+	check(t, `
+z = nil
+if true:
+    z ??= "valor"
+print(z)
+`, "valor")
+}
+
+func TestNotIn(t *testing.T) {
+	check(t, `print("z" not in "abc")
+print("b" not in "abc")
+`, "true\nfalse")
+
+	check(t, `print(3 not in [1, 2])
+print(2 not in [1, 2])
+`, "true\nfalse")
+
+	check(t, `print("q" not in {a: 1})
+print("a" not in {a: 1})
+`, "true\nfalse")
+
+	check(t, `print(4 not in [1, 2] and "x" not in "abc")
+`, "true")
+}
+
+func TestBaseLiterals(t *testing.T) {
+	check(t, `print(0b1010)
+print(0B11)
+print(0o17)
+print(0O10)
+print(0xFF)
+print(0b0)
+`, "10\n3\n15\n8\n255\n0")
+
+	if _, err := run(t, "print(0b)"); err == nil {
+		t.Fatal("expected invalid base-2 literal error")
+	}
+	if _, err := run(t, "print(0b102)"); err == nil {
+		t.Fatal("expected invalid base-2 literal error")
+	}
+	if _, err := run(t, "print(0o8)"); err == nil {
+		t.Fatal("expected invalid base-8 literal error")
+	}
+}
+
+func TestMatch(t *testing.T) {
+	check(t, `x = 2
+match x:
+    case 1, 2:
+        print("small")
+    case 3:
+        print("three")
+    else:
+        print("other")
+`, "small")
+
+	check(t, `x = 7
+match x:
+    case 1:
+        print("one")
+    case 2:
+        print("two")
+    else:
+        print("many")
+`, "many")
+
+	check(t, `match "hi":
+    case "yo":
+        print("A")
+    case "hi", "hola":
+        print("B")
+`, "B")
+
+	check(t, `fn clasificar(n):
+    match n:
+        case 0:
+            return "cero"
+        case 1, 2:
+            return "pocos"
+        else:
+            return "muchos"
+print(clasificar(0))
+print(clasificar(2))
+print(clasificar(9))
+`, "cero\npocos\nmuchos")
+
+	check(t, `x = 5
+match x:
+    case 1:
+        print("uno")
+    case 5:
+        print("cinco")
+`, "cinco")
+}
+
+func TestTypedListNil(t *testing.T) {
+	check(t, `l: int[] = [1, nil, 3]
+print(len(l))
+print(l[1])
+`, "3\nnil")
+
+	check(t, `nombres: str[] = ["a", nil]
+print(len(nombres))
+`, "2")
+
+	check(t, `fn f(v: list[]) -> int:
+    return len(v)
+print(f([[1, nil], [2]]))
+`, "2")
+
+	check(t, `fn f(v: any[]) -> int:
+    return len(v)
+print(f([1, nil, 2]))
+`, "3")
+}
+
+func TestStackTraces(t *testing.T) {
+	_, err := run(t, `fn b():
+    x = [1]
+    return x[5]
+fn a():
+    return b()
+print(a())
+`)
+	if err == nil {
+		t.Fatal("expected an error")
+	}
+	msg := FormatError(err)
+	if !strings.Contains(msg, "stack trace:") {
+		t.Fatalf("expected a stack trace, got: %s", msg)
+	}
+	if !strings.Contains(msg, "in b (") || !strings.Contains(msg, "in a (") {
+		t.Fatalf("expected frames for a and b, got:\n%s", msg)
+	}
+
+	// fails inside a function also get a trace
+	_, err = run(t, `fn falla():
+    fail("boom")
+fn top():
+    falla()
+top()
+`)
+	if err == nil {
+		t.Fatal("expected an error")
+	}
+	if s := FormatError(err); !strings.Contains(s, "in falla (") {
+		t.Fatalf("expected frame for falla, got:\n%s", s)
+	}
+
+	// a caught failure shows only the plain message
+	out, err := run(t, `fn falla():
+    fail("boom")
+try:
+    falla()
+catch err:
+    print(err)
+`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if strings.TrimSpace(out) != "boom" {
+		t.Fatalf("expected 'boom', got %q", out)
+	}
+}
+
+func TestFormatterNewSyntax(t *testing.T) {
+	src := `x  =  nil
+x ??= 1
+d = {a: {b: 42}}
+a = d?.a.b
+l = d?["a"]?["b"]
+s = l[1:3]
+v = l[:]
+w = [1, 2, 3]
+for i, it in w:
+    print(i, "x" not in "xyz", it)
+match x:
+    case 1:
+        print ( "one" )
+    else:
+        print ( "other" )
+`
+	out, err := Format(src)
+	if err != nil {
+		t.Fatalf("Format: %v", err)
+	}
+	again, err := Format(out)
+	if err != nil {
+		t.Fatalf("Format second pass: %v", err)
+	}
+	if again != out {
+		t.Fatalf("Format not stable:\n%q\nvs\n%q", out, again)
+	}
+	if !strings.Contains(out, "x ??= 1") {
+		t.Fatalf("expected preserved ??=, got:\n%s", out)
+	}
+	if !strings.Contains(out, "d?.a.b") {
+		t.Fatalf("expected preserved ?. chain, got:\n%s", out)
+	}
+	if !strings.Contains(out, `d?["a"]?["b"]`) {
+		t.Fatalf("expected preserved ?[ chain, got:\n%s", out)
+	}
+	if !strings.Contains(out, "l[1:3]") || !strings.Contains(out, "l[:]") {
+		t.Fatalf("expected preserved slices, got:\n%s", out)
+	}
+	if !strings.Contains(out, `"x" not in "xyz"`) {
+		t.Fatalf("expected preserved 'not in', got:\n%s", out)
+	}
+	if !strings.Contains(out, "print(\"one\")") {
+		t.Fatalf("expected reformatted print, got:\n%s", out)
+	}
+}
+
+func TestCheck(t *testing.T) {
+	issues, err := Check("x = 1\nprint(x + z)\n", "a.snow")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	var hasUndefined bool
+	for _, is := range issues {
+		if is.IsErr && strings.Contains(is.Msg, "undefined name 'z'") {
+			hasUndefined = true
+		}
+	}
+	if !hasUndefined {
+		t.Fatalf("expected undefined name error, got %+v", issues)
+	}
+}
+
+func TestCheckUnused(t *testing.T) {
+	issues, err := Check("x = 1\ny = 2\nprint(x)\n", "a.snow")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	var hasUnused bool
+	for _, is := range issues {
+		if !is.IsErr && is.Msg == "variable 'y' is assigned but never used" {
+			hasUnused = true
+		}
+	}
+	if !hasUnused {
+		t.Fatalf("expected unused y warning, got %+v", issues)
+	}
+	for _, is := range issues {
+		if strings.Contains(is.Msg, "'x'") {
+			t.Fatalf("x is used, should not warn: %+v", issues)
+		}
+	}
+}
+
+func TestCheckUnreachable(t *testing.T) {
+	issues, err := Check("fn f():\n    return 1\n    print(2)\n", "a.snow")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	var hasUnreachable bool
+	for _, is := range issues {
+		if !is.IsErr && is.Msg == "unreachable code" {
+			hasUnreachable = true
+		}
+	}
+	if !hasUnreachable {
+		t.Fatalf("expected unreachable warning, got %+v", issues)
+	}
+}
+
+func TestCheckUsageWithoutDefs(t *testing.T) {
+	issues, err := Check("print(1)\n", "a.snow")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(issues) != 0 {
+		t.Fatalf("clean program should have no issues, got %+v", issues)
+	}
+}
+
+func TestCheckUnknownModule(t *testing.T) {
+	issues, err := Check("using snow.unknown\n", "a.snow")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	var hasUnknown bool
+	for _, is := range issues {
+		if is.IsErr && strings.Contains(is.Msg, "unknown standard module") {
+			hasUnknown = true
+		}
+	}
+	if !hasUnknown {
+		t.Fatalf("expected unknown-module error, got %+v", issues)
+	}
+}

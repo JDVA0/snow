@@ -20,6 +20,13 @@ Snow es un lenguaje de programación simple, directo y conciso, diseñado espec�
 - **Cliente HTTP integrado (`using http`):** Peticiones GET, POST, PUT, DELETE a APIs externas con parseo JSON automático sin depender de curl.
 - **Base de datos clave-valor embebida (`using db`):** Almacén JSON estructurado y persistente en disco con escritura atómica.
 - **Interpolación F-Strings y Operador Elvis (`??`):** `f"Hola {usuario}"`, cadenas multilínea con `"""` y valor por defecto para nulos.
+- **Encadenado seguro (`?.`, `?[]`):** `data?.user?.profile?.name` recorre JSON anidado sin lanzar error y `??=` asigna solo si la variable es `nil`.
+- **Cortes (`[i:j]`):** `lista[1:3]`, `texto[:2]`, índices negativos y slicing seguro `d?.a?.b?[1:]`.
+- **`match` / `case`:** Comparación por casos en un solo bloque con soporte de múltiples valores y `else`.
+- **`for k, v in dict`:** Itera claves, valores o pares de diccionarios y listas en una sola línea.
+- **`not in` y literales en base 2/8/16:** `if x not in lista`, `0b1010`, `0o17`, `0xFF`.
+- **Stack traces:** Los errores no capturados muestran la pila de llamadas con archivo, línea y columna.
+- **Linting:** `snowman check archivo.snow` detecta nombres no definidos, variables sin usar, código inalcanzable y módulos desconocidos sin ejecutar el programa.
 - **Acceso a sistema y archivos (`using sys`, `using fs`):** Ejecución de comandos del sistema (`sys.sh`), lectura de entorno, control de procesos y operaciones de archivos.
 - **Herramientas de consola (`using cli`):** Análisis de banderas/argumentos, tablas alineadas y cajas de texto formateadas.
 - **Entorno y CSV (`using env`, `using csv`):** Variables de entorno, archivos `.env`, parseo y escritura de CSV.
@@ -94,6 +101,13 @@ Snow is a simple, straightforward, and concise programming language designed to 
 - **Built-in HTTP client (`using http`):** Make GET, POST, PUT, DELETE requests to external APIs with automatic JSON handling and no external curl dependencies.
 - **Embedded key-value store (`using db`):** Lightweight, atomic, JSON-backed persistent storage on disk for effortless state persistence.
 - **F-Strings and Elvis operator (`??`):** `f"Hello {user}"`, multiline strings (`"""..."""`), and clean fallback default values.
+- **Safe chaining (`?.`, `?[]`):** `data?.user?.profile?.name` walks nested JSON without error, and `??=` assigns only when the variable is nil.
+- **Slicing (`[i:j]`):** `list[1:3]`, `text[:2]`, negative indices, and safe slicing `d?.a?.b?[1:]`.
+- **`match` / `case`:** Case-based comparison in a single block with multi-values and `else`.
+- **`for k, v in dict`:** Iterate keys, values or pairs of dicts and lists in one line.
+- **`not in` and base-2/8/16 literals:** `if x not in list`, `0b1010`, `0o17`, `0xFF`.
+- **Stack traces:** Uncaught errors print the call stack with file, line and column.
+- **Linting:** `snowman check file.snow` flags undefined names, unused variables, unreachable code and unknown modules without running the program.
 - **System and file access (`using sys`, `using fs`):** Run shell commands (`sys.sh`), manage environment variables, inspect processes, and handle disk files directly.
 - **CLI toolkit (`using cli`):** Command-line flag parsing, structured text tables, and framed display boxes.
 - **Environment and CSV (`using env`, `using csv`):** Environment variables, `.env` files, CSV parse and write.

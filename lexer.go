@@ -51,7 +51,9 @@ const (
 	tGe
 	tArrow  // ->
 	tQQ     // ??
+	tQDot   // ?.
 	tQBrack // ?[
+	tQQEq   // ??=
 )
 
 // Tok is a single lexical token.
@@ -322,18 +324,38 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 		case c >= '0' && c <= '9':
 			j := i
 			isFloat := false
-			if c == '0' && j+1 < len(s) && (s[j+1] == 'x' || s[j+1] == 'X') {
-				k := j + 2
-				for k < len(s) && isHex(s[k]) {
-					k++
+			if c == '0' && j+1 < len(s) {
+				var base int
+				var ok func(byte) bool
+				switch s[j+1] {
+				case 'x', 'X':
+					base, ok = 16, isHex
+				case 'b', 'B':
+					base, ok = 2, isBin
+				case 'o', 'O':
+					base, ok = 8, isOct
 				}
-				n, err := strconv.ParseInt(s[j+2:k], 16, 64)
-				if err != nil {
-					return nil, &Errat{name, ln, j + 1, fmt.Errorf("invalid hex literal")}
+				if base != 0 {
+					k := j + 2
+					for k < len(s) && ok(s[k]) {
+						k++
+					}
+					if k == j+2 {
+						return nil, &Errat{name, ln, j + 1, fmt.Errorf("invalid base-%d literal", base)}
+					}
+					// A decimal digit that is invalid for this base means the
+					// whole literal is malformed (e.g. 0b102, 0o8).
+					if k < len(s) && s[k] >= '0' && s[k] <= '9' {
+						return nil, &Errat{name, ln, j + 1, fmt.Errorf("invalid base-%d literal", base)}
+					}
+					n, err := strconv.ParseInt(s[j+2:k], base, 64)
+					if err != nil {
+						return nil, &Errat{name, ln, j + 1, fmt.Errorf("invalid base-%d literal", base)}
+					}
+					toks = append(toks, Tok{Kind: tInt, Num: n, Line: ln, Col: j + 1})
+					i = k
+					continue
 				}
-				toks = append(toks, Tok{Kind: tInt, Num: n, Line: ln, Col: j + 1})
-				i = k
-				continue
 			}
 			for j < len(s) && s[j] >= '0' && s[j] <= '9' {
 				j++
@@ -425,6 +447,8 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 			switch three {
 			case "//=":
 				kind, n = tSlashSlashEq, 3
+			case "??=":
+				kind, n = tQQEq, 3
 			}
 			if kind == 0 {
 				switch two {
@@ -450,6 +474,8 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 					kind, n = tPctEq, 2
 				case "??":
 					kind, n = tQQ, 2
+				case "?.":
+					kind, n = tQDot, 2
 				case "?[":
 					kind, n = tQBrack, 2
 					*depth++ // ?[ opens a bracket scope, matched by ]
@@ -564,4 +590,12 @@ func isIdentPart(c byte) bool {
 
 func isHex(c byte) bool {
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+}
+
+func isBin(c byte) bool {
+	return c == '0' || c == '1'
+}
+
+func isOct(c byte) bool {
+	return c >= '0' && c <= '7'
 }

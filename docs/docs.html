@@ -59,11 +59,15 @@
           <li><a href="#tipos" data-i18n="nav_types">Tipos y Operadores</a></li>
           <li><a href="#fstr-elvis" data-i18n="nav_fstr">F-Strings y Elvis (??)</a></li>
           <li><a href="#safe-index" data-i18n="nav_safe_index">Acceso seguro <code>?[]</code></a></li>
+          <li><a href="#encadenamiento" data-i18n="nav_chain">Encadenado seguro <code>?. </code></a></li>
           <li><a href="#control" data-i18n="nav_control">Control de Flujo</a></li>
           <li><a href="#funciones" data-i18n="nav_funcs">Funciones y Closures</a></li>
           <li><a href="#nativas" data-i18n="nav_builtins">Funciones Nativas</a></li>
           <li><a href="#errores" data-i18n="nav_errors">Manejo de Errores</a></li>
         </ul>
+        <div class="sidebar-search">
+          <input type="text" id="docs-search" data-i18n-ph="search_ph" placeholder="Buscar en la documentación..." oninput="searchDocs(this.value)">
+        </div>
 
         <div class="sidebar-heading" data-i18n="nav_mods">Módulos Integrados</div>
         <ul class="sidebar-nav">
@@ -148,6 +152,7 @@ sudo mv snowman /usr/local/bin/</code></pre>
             <tr><td><code>snowman archivo.snow</code></td><td data-i18n="c_run_1">Ejecuta el archivo directamente: <code>snowman servidor.snow</code></td></tr>
             <tr><td><code>snowman run archivo.snow [args...]</code></td><td data-i18n="c_run_2">Ejecuta pasando argumentos al programa: <code>snowman run script.snow --puerto 8080</code></td></tr>
             <tr><td><code>snowman fmt [-w] [archivo...]</code></td><td data-i18n="c_run_fmt">Formatea código Snow a stdout. Con <code>-w</code> reescribe los archivos: <code>snowman fmt -w app.snow</code></td></tr>
+            <tr><td><code>snowman check archivo.snow</code></td><td data-i18n="c_run_check">Analiza el código sin ejecutarlo: nombres no definidos, variables sin usar, código inalcanzable y módulos desconocidos. Termina con código 1 si hay hallazgos.</td></tr>
             <tr><td><code>snowman repl</code></td><td data-i18n="c_run_3">Inicia la consola interactiva línea a línea.</td></tr>
             <tr><td><code>snowman --help</code></td><td data-i18n="c_run_4">Muestra la ayuda con los módulos disponibles.</td></tr>
           </tbody>
@@ -338,6 +343,62 @@ d = nil
 print(d?["key"] ?? "nada")   # nada</code></pre>
       </section>
 
+      <!-- Encadenamiento seguro -->
+      <section id="encadenamiento" class="doc-section">
+        <h2 data-i18n="h_chain">Acceso encadenado seguro (<code>?. </code>)</h2>
+        <p data-i18n="p_chain_desc">El operador <code>?.</code> recorre una cadena de atributos y subíndices sin lanzar error: si el primer acceso seguro encuentra un <code>nil</code>, toda la cadena devuelve <code>nil</code>. Ideal para JSON anidado de APIs:</p>
+        <pre><code>usuario = {perfil: {nombre: "Ana", edad: 30}}
+
+print(usuario?.perfil.nombre)          # Ana (la cadena es segura)
+print(usuario?.perfil?.telefono ?? "sin teléfono")   # sin teléfono
+print(usuario?.cuenta?.saldo ?? 0)     # 0  (cuenta no existe)
+
+# Se combina con subíndices seguros y slicing seguro
+d = {"a": {"b": [10, 20, 30]}}
+print(d?["a"]?.b?[1]?[2])              # nil (b[1] = 20 no es lista)
+print(d?.a?.b?[:2] ?? "vacio")         # [10, 20]
+print(d?.a?.b?[1:])                    # [20, 30]</code></pre>
+        <p data-i18n="p_chain_note">Un acceso normal (<code>.</code>) después del primero seguro se comporta igual que siempre: si la clave no existe, es un error. Usa <code>?. </code> o <code>?[</code> en cada paso que deba ser tolerante.</p>
+
+        <h3 data-i18n="h_slice_title">Cortes de listas y cadenas (<code>[i:j]</code>)</h3>
+        <p data-i18n="p_slice_desc">El operador de corte crea una sub-lista o sub-cadena. Los extremos se pueden omitir y los índices negativos cuentan desde el final:</p>
+        <pre><code>l = [0, 1, 2, 3, 4, 5]
+print(l[1:3])    # [1, 2]
+print(l[2:])     # [2, 3, 4, 5]
+print(l[:2])     # [0, 1]
+print(l[:])      # [0, 1, 2, 3, 4, 5]  (copia)
+print(l[-2:])    # [4, 5]
+print(l[-3:-1])  # [3, 4]
+
+palabra = "snowman"
+print(palabra[2:5])    # "owm"
+print(palabra[::-1])   # error: no soporta un tercer paso</code></pre>
+
+        <h3 data-i18n="h_qqeq_title">Asignar si es nil (<code>??=</code>)</h3>
+        <p data-i18n="p_qqeq_desc">Asigna un valor solo si la variable actualmente es <code>nil</code>. Es el equivalente de "valor por defecto" para asignaciones:</p>
+        <pre><code>config_puerto = nil
+config_puerto ??= 8080
+print(config_puerto)    # 8080
+
+config_puerto ??= 9090  # ya no es nil, no cambia
+print(config_puerto)    # 8080</code></pre>
+
+        <h3 data-i18n="h_notin_title">Pertenencia invertida (<code>not in</code>)</h3>
+        <p data-i18n="p_notin_desc">Comprueba que un elemento no esté dentro de una lista, cadena o diccionario:</p>
+        <pre><code>if "admin" not in roles:
+    print("sin permisos de administrador")
+
+if 3 not in [1, 2, 4]:
+    print("el 3 no está")</code></pre>
+
+        <h3 data-i18n="h_numlit_title">Literales en base 2, 8 y 16</h3>
+        <p data-i18n="p_numlit_desc">Los enteros admiten prefijos <code>0b</code>, <code>0o</code>, <code>0x</code> para binario, octal y hexadecimal:</p>
+        <pre><code>print(0b1010)   # 10
+print(0o17)     # 15
+print(0xFF)     # 255
+print(0xFF == 255)   # true</code></pre>
+      </section>
+
       <!-- Control -->
       <section id="control" class="doc-section">
         <h2 data-i18n="h_control">Control de Flujo</h2>
@@ -360,6 +421,41 @@ else:
 
 for r in rutas:
     print("Registrando ruta:", r)</code></pre>
+
+        <p data-i18n="p_for_dict_desc">Con una variable recorre las claves de un diccionario (o los caracteres de una cadena). Con dos variables obtiene clave y valor:</p>
+        <pre><code>config = {puerto: 8080, modo: "produccion"}
+
+for clave in config:
+    print("Clave:", clave)          # puerto, modo
+
+for clave, valor in config:
+    print(clave, "=", valor)        # puerto = 8080, modo = produccion
+
+for k, v in ["a", "b"]:
+    print(k, v)                     # 0 a, 1 b  (índice y elemento)</code></pre>
+
+        <h3 data-i18n="h_match">4. Sentencia match</h3>
+        <p data-i18n="p_match_desc">Compara un valor contra varios casos en un solo bloque. El primer caso que coincida ejecuta su cuerpo, y <code>else</code> atrapa todo lo demás:</p>
+        <pre><code>estado = 404
+match estado:
+    case 200:
+        print("OK")
+    case 404:
+        print("No encontrado")
+    case 500:
+        print("Error del servidor")
+    else:
+        print("Otro estado")
+
+# Varios valores por caso y tipos mezclados
+comando = "start"
+match comando:
+    case "start", "run":
+        print("Arrancando...")
+    case "stop", "exit":
+        print("Deteniendo...")
+    else:
+        print("Comando desconocido")</code></pre>
 
         <h3 data-i18n="h_while">3. Bucle while con break y continue</h3>
         <pre><code>cuenta = 0
@@ -483,6 +579,23 @@ catch err:
 
         <h3 data-i18n="h_err_prop">Propagación</h3>
         <p data-i18n="p_err_prop">El error atraviesa llamadas de función hasta el <code>catch</code> más cercano. Si no hay ninguno, Snow termina y muestra el error con archivo, línea y columna.</p>
+
+        <h3 data-i18n="h_trace_title">Stack traces</h3>
+        <p data-i18n="p_trace_desc">Cuando un error no capturado termina el programa, Snow muestra la traza con la pila de llamadas: cada <code>in función (archivo:línea:columna)</code> indica dónde se estaba ejecutando cuando falló:</p>
+        <pre><code>fn saludar(nombre):
+    return upper(nombre)   # error aquí: nombre es nil
+
+fn principal():
+    usuario = dni_a_usuario("1234")   # devuelve nil
+    print(saludar(usuario.nombre))    # usuario es nil
+
+principal()</code></pre>
+        <pre><code># salida (ejemplo):
+# ./app.snow:2:11: cannot read attribute 'nombre' of nil
+# stack trace:
+#   in saludar (./app.snow:2:11)
+#   in principal (./app.snow:6:11)</code></pre>
+        <p data-i18n="p_trace_note">Dentro de <code>catch</code>, la variable del error se convierte a texto con <code>str()</code> sin la traza: el mensaje queda limpio para mostrar al usuario.</p>
 
         <h3 data-i18n="h_nil_vs_fail">nil y errores</h3>
         <p data-i18n="p_nil_vs_fail"><code>nil</code> es ausencia de valor. <code>fail</code> es una operación que falló. El acceso seguro <code>?[]</code> y el operador <code>??</code> trabajan con <code>nil</code>, no con errores:</p>
@@ -1217,7 +1330,17 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         nav_start: "Primeros Pasos", nav_desc: "Descripción", nav_inst: "Instalación", nav_run: "Ejecución y CLI",
         nav_repl: "REPL Interactivo", nav_script: "Tu Primer Script", nav_api5: "API en 5 Líneas",
         nav_lang: "El Lenguaje", nav_syntax: "Sintaxis e Indentación", nav_types: "Tipos y Operadores",
-        nav_fstr: "F-Strings y Elvis (??)", nav_safe_index: "Acceso seguro ?[]", nav_control: "Control de Flujo", nav_funcs: "Funciones y Closures", nav_builtins: "Funciones Nativas",
+        nav_fstr: "F-Strings y Elvis (??)", nav_safe_index: "Acceso seguro ?[]", nav_chain: "Encadenado seguro ?.", search_ph: "Buscar en la documentación...", nav_control: "Control de Flujo", nav_funcs: "Funciones y Closures", nav_builtins: "Funciones Nativas",
+        h_chain: "Acceso encadenado seguro (?. )", p_chain_desc: "El operador ?. recorre una cadena de atributos y subíndices sin lanzar error: si el primer acceso seguro encuentra un nil, toda la cadena devuelve nil. Ideal para JSON anidado de APIs:",
+        p_chain_note: "Un acceso normal (.) después del primero seguro se comporta igual que siempre: si la clave no existe, es un error. Usa ?. o ?[ en cada paso que deba ser tolerante.",
+        h_slice_title: "Cortes de listas y cadenas ([i:j])",
+        p_slice_desc: "El operador de corte crea una sub-lista o sub-cadena. Los extremos se pueden omitir y los índices negativos cuentan desde el final:",
+        h_qqeq_title: "Asignar si es nil (??=)",
+        p_qqeq_desc: "Asigna un valor solo si la variable actualmente es nil. Es el equivalente de valor por defecto para asignaciones:",
+        h_notin_title: "Pertenencia invertida (not in)",
+        p_notin_desc: "Comprueba que un elemento no esté dentro de una lista, cadena o diccionario:",
+        h_numlit_title: "Literales en base 2, 8 y 16",
+        p_numlit_desc: "Los enteros admiten prefijos 0b, 0o, 0x para binario, octal y hexadecimal:",
         nav_errors: "Manejo de Errores",
         nav_mods: "Módulos Integrados", nav_ex: "Ejemplos",
         nav_ex_crud: "API REST CRUD", nav_ex_cli: "Herramienta CLI", nav_ex_fs: "Procesador de Archivos",
@@ -1234,10 +1357,14 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         p_fail: "Para producir un error de forma explícita se usa <code>fail()</code>. El valor puede ser un texto o un dict; no hay tipos especiales de error:",
         h_err_prop: "Propagación",
         p_err_prop: "El error atraviesa llamadas de función hasta el <code>catch</code> más cercano. Si no hay ninguno, Snow termina y muestra el error con archivo, línea y columna.",
+        h_trace_title: "Stack traces",
+        p_trace_desc: "Cuando un error no capturado termina el programa, Snow muestra la traza con la pila de llamadas: cada <code>in función (archivo:línea:columna)</code> indica dónde se estaba ejecutando cuando falló:",
+        p_trace_note: "Dentro de <code>catch</code>, la variable del error se convierte a texto con <code>str()</code> sin la traza: el mensaje queda limpio para mostrar al usuario.",
         h_nil_vs_fail: "nil y errores",
         p_nil_vs_fail: "<code>nil</code> es ausencia de valor. <code>fail</code> es una operación que falló. El acceso seguro <code>?[]</code> y el operador <code>??</code> trabajan con <code>nil</code>, no con errores:",
         p_errors_flow: "En servidores <code>api</code>, un error no capturado en un handler responde HTTP 500 en JSON sin tumbar el proceso.",
         c_run_fmt: "Formatea código Snow a stdout. Con <code>-w</code> reescribe los archivos: <code>snowman fmt -w app.snow</code>",
+        c_run_check: "Analiza el código sin ejecutarlo: nombres no definidos, variables sin usar, código inalcanzable y módulos desconocidos. Termina con código 1 si hay hallazgos.",
         b_fail: "Produce un error y lo propaga hasta el <code>catch</code> más cercano. El valor suele ser un texto, a veces un dict.",
         p_mod_env_desc: "Lectura y escritura de variables de entorno, con conversión de tipos y carga de archivos <code>.env</code>. Una clave ausente es <code>nil</code> (o el valor por defecto); un valor mal formado es un error.",
         env_get_desc: "Lee una variable. Si no existe, retorna el valor por defecto o <code>nil</code>.",
@@ -1301,6 +1428,8 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         p_fstr_desc: "Snow soporta interpolación directa de expresiones, valor por defecto para nulos y literales de texto multilínea:",
         h_control: "Control de Flujo", h_if: "1. Condicional if / elif / else",
         h_for: "2. Bucle for", p_for_desc: "Recorre los elementos de una lista:",
+        p_for_dict_desc: "Con una variable recorre las claves de un diccionario (o los caracteres de una cadena). Con dos variables obtiene clave y valor:",
+        h_match: "4. Sentencia match", p_match_desc: "Compara un valor contra varios casos en un solo bloque. El primer caso que coincida ejecuta su cuerpo, y <code>else</code> atrapa todo lo demás:",
         h_while: "3. Bucle while con break y continue",
         h_funcs: "Funciones y Lambdas",
         h_fn_std: "1. Funciones estándar con bloques (<code>fn</code>)",
@@ -1406,7 +1535,17 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         nav_start: "Getting Started", nav_desc: "Overview", nav_inst: "Installation", nav_run: "Running & CLI",
         nav_repl: "Interactive REPL", nav_script: "Your First Script", nav_api5: "API in 5 Lines",
         nav_lang: "The Language", nav_syntax: "Syntax & Indentation", nav_types: "Types & Operators",
-        nav_fstr: "F-Strings & Elvis (??)", nav_safe_index: "Safe access ?[]", nav_control: "Control Flow", nav_funcs: "Functions & Closures", nav_builtins: "Built-in Functions",
+        nav_fstr: "F-Strings & Elvis (??)", nav_safe_index: "Safe access ?[]", nav_chain: "Safe chaining ?.", search_ph: "Search the documentation...", nav_control: "Control Flow", nav_funcs: "Functions & Closures", nav_builtins: "Built-in Functions",
+        h_chain: "Safe access chaining (?. )", p_chain_desc: "The ?. operator walks a chain of attributes and subscripts without error: if the first safe accessor hits nil, the whole chain returns nil. Great for nested JSON from APIs:",
+        p_chain_note: "A plain accessor (.) after the first safe one behaves as usual: if the key doesn't exist it's an error. Use ?. or ?[ on every step that should tolerate nil.",
+        h_slice_title: "Slicing lists and strings ([i:j])",
+        p_slice_desc: "The slice operator creates a sub-list or sub-string. Ends can be omitted and negative indices count from the end:",
+        h_qqeq_title: "Assign if nil (??=)",
+        p_qqeq_desc: "Assigns a value only when the variable is currently nil. It's the default-value operator for assignments:",
+        h_notin_title: "Inverted membership (not in)",
+        p_notin_desc: "Checks that an element is not inside a list, string or dict:",
+        h_numlit_title: "Base 2, 8 and 16 literals",
+        p_numlit_desc: "Integers accept 0b, 0o, 0x prefixes for binary, octal and hexadecimal:",
         nav_errors: "Error Handling",
         nav_mods: "Built-in Modules", nav_ex: "Examples",
         nav_ex_crud: "REST CRUD API", nav_ex_cli: "CLI Tool", nav_ex_fs: "File Processor",
@@ -1423,10 +1562,14 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         p_fail: "Use <code>fail()</code> to raise an error explicitly. The payload may be a string or a dict; there is no special error type:",
         h_err_prop: "Propagation",
         p_err_prop: "The error travels through function calls until the nearest <code>catch</code>. If none exists, Snow stops and prints the error with file, line, and column.",
+        h_trace_title: "Stack traces",
+        p_trace_desc: "When an uncaught error stops the program, Snow prints the call stack: each <code>in function (file:line:column)</code> marks where the code was running when it failed:",
+        p_trace_note: "Inside <code>catch</code>, the error variable converts to plain text with <code>str()</code> without the trace, keeping the message clean to show the user.",
         h_nil_vs_fail: "nil vs errors",
         p_nil_vs_fail: "<code>nil</code> is absence of a value. <code>fail</code> is a failed operation. Safe access <code>?[]</code> and <code>??</code> work with <code>nil</code>, not with errors:",
         p_errors_flow: "In <code>api</code> servers, an uncaught error in a handler returns HTTP 500 JSON without crashing the process.",
         c_run_fmt: "Formats Snow source to stdout. With <code>-w</code> rewrites files in place: <code>snowman fmt -w app.snow</code>",
+        c_run_check: "Analyzes code without running it: undefined names, unused variables, unreachable code and unknown modules. Exits with 1 when findings exist.",
         b_fail: "Produces an error and propagates it to the nearest <code>catch</code>. The value is usually a string, sometimes a dict.",
         p_mod_env_desc: "Read and write environment variables, with typed helpers and <code>.env</code> loading. A missing key is <code>nil</code> (or the default); a malformed value is an error.",
         env_get_desc: "Reads a variable. If missing, returns the default or <code>nil</code>.",
@@ -1487,6 +1630,8 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         p_fstr_desc: "Snow supports expression string interpolation, default fallback for nulls, and multiline string literals:",
         h_control: "Control Flow", h_if: "1. Conditional if / elif / else",
         h_for: "2. for Loop", p_for_desc: "Iterates through items in a list:",
+        p_for_dict_desc: "With one variable it iterates a dict's keys (or a string's characters). With two variables it gets key and value:",
+        h_match: "4. match statement", p_match_desc: "Compares a value against several cases in one block. The first case that matches runs its body, and <code>else</code> catches everything else:",
         h_while: "3. while Loop with break and continue",
         h_funcs: "Functions & Lambdas",
         h_fn_std: "1. Standard functions with blocks (<code>fn</code>)",
@@ -1592,6 +1737,19 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
       localStorage.setItem('snow_lang', lang);
     }
 
+    function searchDocs(q) {
+      q = q.trim().toLowerCase();
+      document.querySelectorAll('.doc-section').forEach(sec => {
+        const hay = sec.textContent.toLowerCase();
+        sec.dataset.hidden = q && !hay.includes(q) ? '1' : '';
+        sec.style.display = q && !hay.includes(q) ? 'none' : '';
+      });
+      document.querySelectorAll('.sidebar-nav a').forEach(a => {
+        const target = document.querySelector(a.getAttribute('href'));
+        a.style.display = target && target.dataset.hidden ? 'none' : '';
+      });
+    }
+
     function highlightCode() {
       document.querySelectorAll('pre code').forEach(block => {
         const text = block.textContent;
@@ -1610,8 +1768,8 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
           code = code.replace(/(f)?("([^"\\]|\\.)*")/g, (m, f, s) =>
             f ? '<span class="syn-keyword">f</span><span class="syn-string">' + esc(s) + '</span>'
               : '<span class="syn-string">' + esc(m) + '</span>');
-          code = code.replace(/\b(\d+(\.\d+)?|0x[0-9a-fA-F]+)\b/g, '<span class="syn-number">$&</span>');
-          code = code.replace(/\b(using|fn|return|if|elif|else|for|while|break|continue|try|catch|and|or|not|in)\b/g, '<span class="syn-keyword">$&</span>');
+          code = code.replace(/\b(\d+(\.\d+)?|0x[0-9a-fA-F]+|0b[01]+|0o[0-7]+)\b/g, '<span class="syn-number">$&</span>');
+          code = code.replace(/\b(using|fn|return|if|elif|else|for|while|break|continue|try|catch|match|case|and|or|not|in)\b/g, '<span class="syn-keyword">$&</span>');
           code = code.replace(/\b(true|false|nil)\b/g, '<span class="syn-bool">$&</span>');
           code = code.replace(/\b(print|len|append|split|join|trim|upper|lower|contains|keys|values|sort|map|filter|exit|fail|str|int|float|type)\b(?=\()/g, '<span class="syn-func">$&</span>');
           code = code.replace(/\b(api|sys|fs|cli|http|db|env|csv|json|time|crypto|task|input)\.([a-zA-Z0-9_]+)/g, '<span class="syn-keyword">$1</span>.<span class="syn-func">$2</span>');

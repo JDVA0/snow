@@ -292,6 +292,24 @@ nav.topbar {
   color: var(--muted);
   padding: .28rem .6rem;
 }
+.sidebar-search {
+  padding: .6rem .5rem .25rem;
+}
+.sidebar-search input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: .82rem;
+  font-family: inherit;
+  padding: .45rem .6rem;
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  background: var(--surface2);
+  color: var(--text);
+  outline: none;
+}
+.sidebar-search input:focus {
+  border-color: var(--accent);
+}
 .sidebar-nav a:hover {
   background: var(--surface2);
   color: var(--text);

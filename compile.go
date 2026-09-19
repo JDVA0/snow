@@ -30,6 +30,10 @@ const (
 	OpMakeDict
 	OpIndex
 	OpSafeIndex // x?[key]: returns nil when key is absent or container is nil
+	OpSlice     // x[lo:hi]: pops hi, lo, container
+	OpIterKeys  // container → list of keys/items (dict→keys, list→itself, str→chars)
+	OpIterPair  // container,idx → pushes value, then key-or-idx (for `for k, v in`)
+	OpQQEq      // ??= : pop rhs; if slot is nil store it, else discard
 	OpLen
 	OpDup
 	OpPop
@@ -73,7 +77,11 @@ const (
 	boAnd
 	boOr
 	boIn
+	boNotIn
 )
+
+// boQQEq is the sentinel op stored in AssignStmt.Op for the ??= assignment.
+const boQQEq byte = 0xFE
 
 // Unary op codes.
 const (
@@ -84,7 +92,7 @@ const (
 var binCodes = map[string]byte{
 	"+": boAdd, "-": boSub, "*": boMul, "/": boDiv, "//": boFloorDiv, "%": boMod,
 	"==": boEq, "!=": boNe, "<": boLt, "<=": boLe, ">": boGt, ">=": boGe,
-	"and": boAnd, "or": boOr, "in": boIn,
+	"and": boAnd, "or": boOr, "in": boIn, "not in": boNotIn,
 }
 
 // boNullCoalesce is not a binVal opcode — it is handled via OpJumpIfNotNil.
@@ -247,11 +255,18 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 	case *ForStmt:
 		tmp := fmt.Sprintf("_for%d", c.tmpN)
 		idx := fmt.Sprintf("_forI%d", c.tmpN)
+		keys := fmt.Sprintf("_forK%d", c.tmpN)
 		c.tmpN++
 		if err := c.expr(t.Iter); err != nil {
 			return err
 		}
 		c.emit(Op{Kind: OpStore, Name: tmp, Line: posLine(t.Iter), Col: posCol(t.Iter)})
+		if t.Name2 == "" {
+			// single name: iterate keys/items of dicts, chars of strings, items of lists
+			c.emit(Op{Kind: OpLoad, Name: tmp, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpIterKeys, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpStore, Name: keys, Line: t.Line, Col: t.Col})
+		}
 		c.emit(Op{Kind: OpPushInt, Line: t.Line, Col: t.Col})
 		c.emit(Op{Kind: OpStore, Name: idx, Line: t.Line, Col: t.Col})
 		top := len(c.ops)
@@ -261,10 +276,18 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 		c.emit(Op{Kind: OpLen, Line: t.Line, Col: t.Col})
 		c.emit(Op{Kind: OpBin, Num: int64(boLt), Line: t.Line, Col: t.Col})
 		skip := c.emit(Op{Kind: OpJumpIfNot, Line: t.Line, Col: t.Col})
-		c.emit(Op{Kind: OpLoad, Name: tmp, Line: t.Line, Col: t.Col})
-		c.emit(Op{Kind: OpLoad, Name: idx, Line: t.Line, Col: t.Col})
-		c.emit(Op{Kind: OpIndex, Line: t.Line, Col: t.Col})
-		c.emit(Op{Kind: OpStore, Name: t.Name, Line: t.Line, Col: t.Col})
+		if t.Name2 == "" {
+			c.emit(Op{Kind: OpLoad, Name: keys, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpLoad, Name: idx, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpIndex, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpStore, Name: t.Name, Line: t.Line, Col: t.Col})
+		} else {
+			c.emit(Op{Kind: OpLoad, Name: tmp, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpLoad, Name: idx, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpIterPair, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpStore, Name: t.Name2, Line: t.Line, Col: t.Col})
+			c.emit(Op{Kind: OpStore, Name: t.Name, Line: t.Line, Col: t.Col})
+		}
 		if err := c.stmts(t.Body, false); err != nil {
 			return err
 		}
@@ -315,8 +338,48 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 		c.patch(jumpPastCatch, len(c.ops))
 	case *UseStmt:
 		c.emit(Op{Kind: OpUse, Name: t.Alias, Args: t.Path, Line: t.Line, Col: t.Col})
+	case *MatchStmt:
+		tmp := fmt.Sprintf("_match%d", c.tmpN)
+		c.tmpN++
+		if err := c.expr(t.Target); err != nil {
+			return err
+		}
+		c.emit(Op{Kind: OpStore, Name: tmp, Line: t.Line, Col: t.Col})
+		var endJumps []int
+		for _, cs := range t.Cases {
+			if err := c.caseCond(tmp, cs.Vals, t.Line, t.Col); err != nil {
+				return err
+			}
+			skip := c.emit(Op{Kind: OpJumpIfNot, Line: t.Line, Col: t.Col})
+			if err := c.stmts(cs.Body, false); err != nil {
+				return err
+			}
+			endJumps = append(endJumps, c.emit(Op{Kind: OpJump, Line: t.Line, Col: t.Col}))
+			c.patch(skip, len(c.ops))
+		}
+		if err := c.stmts(t.Else, false); err != nil {
+			return err
+		}
+		for _, j := range endJumps {
+			c.patch(j, len(c.ops))
+		}
 	default:
 		return c.perr(Pos{}, "unsupported statement")
+	}
+	return nil
+}
+
+// caseCond compiles the equality chain for a match case: (v1 == tmp) or (v2 == tmp) ...
+func (c *compiler) caseCond(tmp string, vals []Expr, line, col int) error {
+	for i, v := range vals {
+		if err := c.expr(v); err != nil {
+			return err
+		}
+		c.emit(Op{Kind: OpLoad, Name: tmp, Line: line, Col: col})
+		c.emit(Op{Kind: OpBin, Num: int64(boEq), Line: line, Col: col})
+		if i > 0 {
+			c.emit(Op{Kind: OpBin, Num: int64(boOr), Line: line, Col: col})
+		}
 	}
 	return nil
 }
@@ -427,6 +490,61 @@ func (c *compiler) expr(e Expr) error {
 		}
 		c.emit(Op{Kind: OpPushStr, Str: t.Name, Line: t.Line, Col: t.Col})
 		c.emit(Op{Kind: OpIndex, Line: t.Line, Col: t.Col})
+	case *SafeAttrE:
+		if err := c.expr(t.X); err != nil {
+			return err
+		}
+		c.emit(Op{Kind: OpPushStr, Str: t.Name, Line: t.Line, Col: t.Col})
+		c.emit(Op{Kind: OpSafeIndex, Line: t.Line, Col: t.Col})
+	case *SliceE:
+		if t.Safe {
+			// x?[lo:hi]: nil if x is nil
+			if err := c.expr(t.X); err != nil {
+				return err
+			}
+			// OpJumpIfNotNil pops its test value, so this leaves the
+			// container on the stack when it is non-nil.
+			c.emit(Op{Kind: OpDup, Line: t.Line, Col: t.Col})
+			use := c.emit(Op{Kind: OpJumpIfNotNil, Line: t.Line, Col: t.Col})
+			end := c.emit(Op{Kind: OpJump, Line: t.Line, Col: t.Col})
+			c.patch(use, len(c.ops))
+			if err := c.emitSliceBody(t.Lo, t.Hi, t.Line, t.Col); err != nil {
+				return err
+			}
+			c.patch(end, len(c.ops))
+			return nil
+		}
+		if err := c.expr(t.X); err != nil {
+			return err
+		}
+		if err := c.emitSliceBody(t.Lo, t.Hi, t.Line, t.Col); err != nil {
+			return err
+		}
+	case *SafeChainE:
+		if err := c.expr(t.Base); err != nil {
+			return err
+		}
+		for _, st := range t.Prefix {
+			if err := c.emitChainStep(st, t.Line, t.Col); err != nil {
+				return err
+			}
+		}
+		var endJumps []int
+		for _, st := range t.Steps {
+			// decision: if the current value is nil, the whole chain yields
+			// nil. OpJumpIfNotNil pops its test value, leaving the container
+			// on the stack when it is non-nil.
+			c.emit(Op{Kind: OpDup, Line: t.Line, Col: t.Col})
+			use := c.emit(Op{Kind: OpJumpIfNotNil, Line: t.Line, Col: t.Col})
+			endJumps = append(endJumps, c.emit(Op{Kind: OpJump, Line: t.Line, Col: t.Col}))
+			c.patch(use, len(c.ops))
+			if err := c.emitChainStep(st, t.Line, t.Col); err != nil {
+				return err
+			}
+		}
+		for _, j := range endJumps {
+			c.patch(j, len(c.ops))
+		}
 	case *ListLit:
 		for _, it := range t.Items {
 			if err := c.expr(it); err != nil {
@@ -491,5 +609,44 @@ func (c *compiler) expr(e Expr) error {
 	default:
 		return c.perr(Pos{}, "unsupported expression")
 	}
+	return nil
+}
+
+func (c *compiler) emitSliceBody(lo, hi Expr, line, col int) error {
+	if lo == nil {
+		c.emit(Op{Kind: OpPushNil, Line: line, Col: col})
+	} else if err := c.expr(lo); err != nil {
+		return err
+	}
+	if hi == nil {
+		c.emit(Op{Kind: OpPushNil, Line: line, Col: col})
+	} else if err := c.expr(hi); err != nil {
+		return err
+	}
+	c.emit(Op{Kind: OpSlice, Line: line, Col: col})
+	return nil
+}
+
+func (c *compiler) emitChainStep(st ChainStep, line, col int) error {
+	if st.Idx && st.Slice {
+		return c.emitSliceBody(st.Lo, st.Hi, line, col)
+	}
+	if st.Idx {
+		if err := c.expr(st.Lo); err != nil {
+			return err
+		}
+		op := OpIndex
+		if st.Safe {
+			op = OpSafeIndex
+		}
+		c.emit(Op{Kind: op, Line: line, Col: col})
+		return nil
+	}
+	c.emit(Op{Kind: OpPushStr, Str: st.Name, Line: line, Col: col})
+	op := OpIndex
+	if st.Safe {
+		op = OpSafeIndex
+	}
+	c.emit(Op{Kind: op, Line: line, Col: col})
 	return nil
 }

@@ -132,6 +132,8 @@ func stmtLine(s Stmt) int {
 		return t.Line
 	case *TryStmt:
 		return t.Line
+	case *MatchStmt:
+		return t.Line
 	case *ExprStmt:
 		return t.Line
 	}
@@ -209,6 +211,10 @@ func (f *formatter) stmt(s Stmt, indent int) {
 		f.ind(indent)
 		f.b.WriteString("for ")
 		f.b.WriteString(t.Name)
+		if t.Name2 != "" {
+			f.b.WriteString(", ")
+			f.b.WriteString(t.Name2)
+		}
 		f.b.WriteString(" in ")
 		f.expr(t.Iter, 0)
 		f.b.WriteString(":\n")
@@ -235,6 +241,28 @@ func (f *formatter) stmt(s Stmt, indent int) {
 		f.b.WriteString(t.CatchVar)
 		f.b.WriteString(":\n")
 		f.stmts(t.CatchBody, indent+1)
+	case *MatchStmt:
+		f.ind(indent)
+		f.b.WriteString("match ")
+		f.expr(t.Target, 0)
+		f.b.WriteString(":\n")
+		for _, cs := range t.Cases {
+			f.ind(indent + 1)
+			f.b.WriteString("case ")
+			for j, v := range cs.Vals {
+				if j > 0 {
+					f.b.WriteString(", ")
+				}
+				f.expr(v, 0)
+			}
+			f.b.WriteString(":\n")
+			f.stmts(cs.Body, indent+2)
+		}
+		if len(t.Else) > 0 {
+			f.ind(indent + 1)
+			f.b.WriteString("else:\n")
+			f.stmts(t.Else, indent+2)
+		}
 	case *ExprStmt:
 		f.ind(indent)
 		f.expr(t.X, 0)
@@ -278,6 +306,8 @@ func assignOp(op byte) string {
 		return "//="
 	case boMod:
 		return "%="
+	case boQQEq:
+		return "??="
 	}
 	return "="
 }
@@ -290,7 +320,7 @@ func precOf(op string) int {
 		return 2
 	case "and":
 		return 3
-	case "==", "!=", "<", "<=", ">", ">=", "in":
+	case "==", "!=", "<", "<=", ">", ">=", "in", "not in":
 		return 4
 	case "+", "-":
 		return 5
@@ -376,6 +406,29 @@ func (f *formatter) expr(e Expr, parentPrec int) {
 		f.expr(t.X, 8)
 		f.b.WriteByte('.')
 		f.b.WriteString(t.Name)
+	case *SafeAttrE:
+		f.expr(t.X, 8)
+		f.b.WriteString("?.")
+		f.b.WriteString(t.Name)
+	case *SliceE:
+		f.expr(t.X, 8)
+		if t.Safe {
+			f.b.WriteString("?[")
+		} else {
+			f.b.WriteByte('[')
+		}
+		f.writeSlicePart(t.Lo)
+		f.b.WriteByte(':')
+		f.writeSlicePart(t.Hi)
+		f.b.WriteByte(']')
+	case *SafeChainE:
+		f.expr(t.Base, 8)
+		for _, st := range t.Prefix {
+			f.writeChainStep(st)
+		}
+		for _, st := range t.Steps {
+			f.writeChainStep(st)
+		}
 	case *ListLit:
 		f.b.WriteByte('[')
 		for i, it := range t.Items {
@@ -420,6 +473,39 @@ func (f *formatter) expr(e Expr, parentPrec int) {
 	case *FStrLit:
 		f.writeFStr(t)
 	}
+}
+
+// writeSlicePart writes a slice endpoint, skipping an open (nil) end.
+func (f *formatter) writeSlicePart(e Expr) {
+	if _, isNil := e.(*NilLit); isNil || e == nil {
+		return
+	}
+	f.expr(e, 0)
+}
+
+func (f *formatter) writeChainStep(st ChainStep) {
+	if st.Idx {
+		if st.Safe {
+			f.b.WriteString("?[")
+		} else {
+			f.b.WriteByte('[')
+		}
+		if st.Slice {
+			f.writeSlicePart(st.Lo)
+			f.b.WriteByte(':')
+			f.writeSlicePart(st.Hi)
+		} else {
+			f.expr(st.Lo, 0)
+		}
+		f.b.WriteByte(']')
+		return
+	}
+	if st.Safe {
+		f.b.WriteString("?.")
+	} else {
+		f.b.WriteByte('.')
+	}
+	f.b.WriteString(st.Name)
 }
 
 func (f *formatter) dictKey(e Expr) {

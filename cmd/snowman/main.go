@@ -17,6 +17,7 @@ Usage:
   snowman eval <code>              evaluate a snippet
   snowman -e <code>                same as eval
   snowman fmt [-w] [file...]       format Snow source (stdout, or -w in place)
+  snowman check <file>             lint a .snow file (exit 1 when issues found)
   snowman repl                     start an interactive session
   snowman -h, --help               show this help
   snowman -v, --version            print version
@@ -39,7 +40,13 @@ Standard modules (use with 'using'):
 Language features:
   f-strings     f"Hello {name}, age {age}"
   ?? operator   value ?? "default"  (returns right side when left is nil)
-  ?[]           safe index: nil when missing, never an error
+  ?. / ?[]      safe chaining: nil when missing, never an error
+  ??= operator  assign only when the variable is nil
+  slicing       list[1:3], list[:2], list[2:], "texto"[1:-1]
+  not in        check an element is absent: 3 not in [1, 2]
+  base literals 0b1010, 0o17, 0xFF
+  match/case    switch-like statement match x: case ...
+  for k, v in   iterate dicts and lists with index
   try/catch     errors as values; fail(valor) to raise
   typed lists   nombres: str[] = ["Julian", "Ana"]  (validates elements)
   fn types      fn sumar(a: int, b: int) -> int:    (optional, validated at call)
@@ -71,6 +78,11 @@ func main() {
 		snow.Repl(i)
 	case "fmt":
 		if err := runFmt(args[1:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	case "check":
+		if err := runCheck(args[1:]); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -114,6 +126,33 @@ func runFile(i *snow.Interp, path string) {
 		}
 		os.Exit(1)
 	}
+}
+
+func runCheck(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("error: check expects a file path")
+	}
+	had := false
+	for _, path := range args {
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		issues, err := snow.Check(string(b), path)
+		if err != nil {
+			return fmt.Errorf("%s: %w", path, err)
+		}
+		for _, is := range issues {
+			fmt.Println(is)
+		}
+		if len(issues) > 0 {
+			had = true
+		}
+	}
+	if had {
+		return fmt.Errorf("found issues in %d file(s)", len(args))
+	}
+	return nil
 }
 
 func runFmt(args []string) error {
