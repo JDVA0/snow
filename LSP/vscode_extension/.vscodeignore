@@ -1,0 +1,9 @@
+src/
+node_modules/.pnpm/
+*.ts
+*.map
+pnpm-lock.yaml
+tsconfig.json
+README.md
+readme.md
+snow.vsix

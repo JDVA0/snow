@@ -1,0 +1,14 @@
+id = "snow-lang"
+name = "Snow"
+description = "Snow language support for Zed"
+version = "0.1.0"
+schema_version = 1
+authors = ["JDVA0"]
+repository = "https://github.com/JDVA0/snow"
+icon = "icon.svg"
+
+[language_servers.snow]
+name = "Snow LSP"
+
+[language_servers.snow.binary]
+path = "snow-lsp"

@@ -1,0 +1,16 @@
+{
+  "iconDefinitions": {
+    "snow-icon": {
+      "iconPath": "./snowflake.svg"
+    }
+  },
+  "fileExtensions": {
+    "snow": "snow-icon"
+  },
+  "fileNames": {
+    "*.snow": "snow-icon"
+  },
+  "languageIds": {
+    "snow": "snow-icon"
+  }
+}

@@ -1,0 +1,18 @@
+# Test file for Snow autocompletion in Helix
+using api
+
+api.cors()
+
+api.get("/", fn(req): api.text("Servidor Snow activo"))
+
+fn ver_usuario(req):
+    return api.json({id: req.params.id, activo: true})
+
+api.get("/usuarios/:id", ver_usuario)
+
+fn crear(req):
+    return api.json({recibido: req.json}, 201)
+
+api.post("/datos", crear)
+
+api.serve(8080)

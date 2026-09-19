@@ -1,0 +1,81 @@
+{
+  "name": "snow",
+  "displayName": "Snow Language",
+  "description": "Snow language support with LSP integration",
+  "version": "0.1.0",
+  "publisher": "JDVA0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JDVA0/snow"
+  },
+  "license": "MIT",
+  "icon": "./icons/snow-icon.png",
+  "engines": {
+    "vscode": "^1.89.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:snow",
+    "onStartupFinished",
+    "workspaceContains:**/*.snow"
+  ],
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "tsc -p . && esbuild out/extension.js --bundle --platform=node --external:vscode --outfile=out/extension.bundle.js && mv out/extension.bundle.js out/extension.js",
+    "watch": "tsc -p . -w"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/vscode": "^1.89.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.4.5",
+    "vscode-languageclient": "^9.0.1"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "snow",
+        "aliases": [
+          "Snow",
+          "snow"
+        ],
+        "extensions": [
+          ".snow"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "snow",
+        "scopeName": "source.snow",
+        "path": "./syntaxes/snow.tmLanguage.json"
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "snow-icons",
+        "label": "Snow Icons",
+        "path": "./icons/snow-icon-theme.json",
+        "default": true
+      }
+    ]
+  },
+  "configuration": {
+    "title": "Snow",
+    "properties": {
+      "snow.lsp.path": {
+        "type": "string",
+        "default": "/home/julian/Escritorio/Snow/LSP/snow-lsp",
+        "description": "Path to the Snow LSP server"
+      },
+      "snow.lsp.enabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable Snow LSP"
+      }
+    }
+  }
+}
