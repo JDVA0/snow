@@ -214,12 +214,16 @@ snowball list
 snowball remove text_tools
 snowball get snow/text.snow
 snowball get snow/math.snow
+snowball get snow/arrays.snow@^0.1.0
 snowball get-local snow/text.snow
+snowball search pagination
+snowball index
+snowball update
 ```
 
-`get` instala la biblioteca en `packages/snow/src/`, registra `dep.snow = "packages/snow"` y genera `snow.lock`. Después puedes usarla con `import snow.text`. El catálogo oficial incluye 16 bibliotecas: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template` y `stats`.
+`get` instala la biblioteca en `packages/snow/src/`, registra `dep.snow = "packages/snow"` y genera un lockfile reproducible con la versión, el origen y el checksum SHA-256. Usa `@0.1.0` para una versión exacta o `@^0.1.0` para una versión compatible. `update` reinstala las bibliotecas fijadas en el lockfile.
 
-Cada biblioteca oficial acompaña un archivo de metadatos `.snowpkg`. El formato es TOML simple y define `name`, `version`, `description`, `license`, `repository`, `keywords` y `entry`. Consulta la información de una biblioteca instalada con `snowball info snow/text.snow`.
+Las bibliotecas oficiales viven ordenadas en `repo/packages/<nombre>/`, con su código en `src/` y metadatos en `package.toml`. `snowball index` genera `repo/index.toml`, que alimenta tanto las búsquedas de Snowball como el catálogo web. El catálogo oficial incluye 16 bibliotecas: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template` y `stats`. Consulta una biblioteca instalada con `snowball info snow/text.snow`.
 
 El proyecto [PkgsExamples](/PkgsExamples) contiene una integración completa: sus paquetes están instalados en `PkgsExamples/packages/snow/` y `PkgsExamples/src/main.snow` importa y ejecuta las cuatro bibliotecas oficiales.
 
@@ -523,12 +527,16 @@ snowball list
 snowball remove text_tools
 snowball get snow/text.snow
 snowball get snow/math.snow
+snowball get snow/arrays.snow@^0.1.0
 snowball get-local snow/text.snow
+snowball search pagination
+snowball index
+snowball update
 ```
 
-`get` installs the library in `packages/snow/src/`, writes `dep.snow = "packages/snow"`, and generates `snow.lock`. Import it with `import snow.text`. The official catalog includes 16 libraries: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template`, and `stats`.
+`get` installs the library in `packages/snow/src/`, writes `dep.snow = "packages/snow"`, and creates a reproducible lockfile with version, source, and SHA-256 checksum. Use `@0.1.0` for an exact version or `@^0.1.0` for a compatible version. `update` reinstalls packages pinned in the lockfile.
 
-Every official library includes a `.snowpkg` metadata file. Its simple TOML format defines `name`, `version`, `description`, `license`, `repository`, `keywords`, and `entry`. Inspect an installed library with `snowball info snow/text.snow`.
+Official libraries are organized in `repo/packages/<name>/`, with source in `src/` and metadata in `package.toml`. `snowball index` generates `repo/index.toml`, which powers both Snowball searches and the web catalog. The official catalog includes 16 libraries: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template`, and `stats`. Inspect an installed library with `snowball info snow/text.snow`.
 
 [PkgsExamples](/PkgsExamples) is a complete integration project: its packages live in `PkgsExamples/packages/snow/`, and `PkgsExamples/src/main.snow` imports and runs all four official libraries.
 

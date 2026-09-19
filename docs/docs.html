@@ -26,7 +26,7 @@
         <li><a href="docs.html" class="active" data-i18n="nav_top_guide">Documentación</a></li>
         <li><a href="docs.html#sintaxis" data-i18n="nav_top_lang">Lenguaje</a></li>
         <li><a href="docs.html#mod-api" data-i18n="nav_top_mods">Módulos</a></li>
-		<li><a href="#packages" data-i18n="nav_top_packages">Paquetes</a></li>
+		<li><a href="packages.html" data-i18n="nav_top_packages">Paquetes</a></li>
         <li><a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener">GitHub</a></li>
         <li>
           <div class="lang-group">
@@ -67,7 +67,6 @@
           <li><a href="#funciones" data-i18n="nav_funcs">Funciones y Closures</a></li>
           <li><a href="#visibilidad" style="padding-left:1.5rem; font-size:.82rem;"><code>pub</code> / <code>priv</code> e <code>import</code></a></li>
           <li><a href="#proyectos" style="padding-left:1.5rem; font-size:.82rem;" data-i18n="nav_projects">Proyectos, tipos y pruebas</a></li>
-	          <li><a href="#packages" style="padding-left:1.5rem; font-size:.82rem;" data-i18n="nav_packages">Paquetes oficiales</a></li>
           <li><a href="#asign-campos" style="padding-left:1.5rem; font-size:.82rem;">Asignación de campos <code>x.y = v</code></a></li>
           <li><a href="#nativas" data-i18n="nav_builtins">Funciones Nativas</a></li>
           <li><a href="#errores" data-i18n="nav_errors">Manejo de Errores</a></li>
@@ -692,10 +691,10 @@ $ snowball remove text_tools
 # app.snow
 import snow.text
 print(text.slug("Hello Snow"))</code></pre>
-        <p data-i18n="p_snowball_libraries">El catálogo oficial incluye 16 bibliotecas, desde texto y colecciones hasta paginación, estadísticas, plantillas y validación. Para desarrollo local configura <code>SNOW_REPO</code> o ejecuta desde un subdirectorio que tenga <code>repo/</code> en un directorio padre.</p>
+        <p data-i18n="p_snowball_libraries">Consulta el <a href="packages.html">catálogo de paquetes</a> para buscar las 16 bibliotecas oficiales, desde texto y colecciones hasta paginación, estadísticas, plantillas y validación. Para desarrollo local configura <code>SNOW_REPO</code> o ejecuta desde un subdirectorio que tenga <code>repo/</code> en un directorio padre.</p>
       </section>
 
-	  <section id="packages" class="doc-section">
+	  <section id="packages" class="doc-section" hidden aria-hidden="true">
 		<h2 data-i18n="h_official_packages">Paquetes oficiales</h2>
 		<p data-i18n="p_official_packages">Catálogo de bibliotecas disponibles en <code>repo/snow</code>. Cada paquete incluye un archivo <code>.snowpkg</code> con <code>name</code>, <code>version</code>, <code>description</code>, <code>license</code>, <code>repository</code>, <code>keywords</code> y <code>entry</code>. Instala una biblioteca con <code>snowball get</code>.</p>
 		<div class="package-search">
@@ -1889,7 +1888,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         h_local_packages: "Paquetes locales", p_local_packages: "Crea <code>snow.toml</code> en la raíz y guarda los módulos en <code>src/</code>. El campo <code>source</code> es opcional y usa <code>src</code> por defecto.",
         h_script_tests: "Pruebas de scripts", p_script_tests: "Todo archivo que termina en <code>_test.snow</code> es un test: pasa cuando termina sin errores. Usa <code>assert(condicion, [mensaje])</code> para expresar expectativas. Ejecuta todos los tests del directorio actual o limita la búsqueda a rutas concretas.",
         h_snowball: "Gestor de paquetes <code>snowball</code>", p_snowball: "<code>snowball get</code> descarga siempre las bibliotecas oficiales desde el repositorio Snow en GitHub. <code>add</code> conserva soporte para dependencias por ruta; <code>get-local</code> se usa exclusivamente para instalar desde una carpeta local <code>repo/</code>.",
-        p_snowball_libraries: "El catálogo oficial incluye 16 bibliotecas, desde texto y colecciones hasta paginación, estadísticas, plantillas y validación. Para desarrollo local configura <code>SNOW_REPO</code> o ejecuta desde un subdirectorio que tenga <code>repo/</code> en un directorio padre.",
+        p_snowball_libraries: "Consulta el <a href=\"packages.html\">catálogo de paquetes</a> para buscar las 16 bibliotecas oficiales, desde texto y colecciones hasta paginación, estadísticas, plantillas y validación. Para desarrollo local configura <code>SNOW_REPO</code> o ejecuta desde un subdirectorio que tenga <code>repo/</code> en un directorio padre.",
         h_official_packages: "Paquetes oficiales", p_official_packages: "Catálogo de bibliotecas disponibles en <code>repo/snow</code>. Cada paquete incluye un archivo <code>.snowpkg</code> con <code>name</code>, <code>version</code>, <code>description</code>, <code>license</code>, <code>repository</code>, <code>keywords</code> y <code>entry</code>. Instala una biblioteca con <code>snowball get</code>.",
         package_search_label: "Buscar paquetes", package_search_placeholder: "Nombre, palabra clave o descripción", package_empty: "No hay paquetes que coincidan con la búsqueda.",
         pkg_text_desc: "Normalización de texto, slugs y comprobaciones de prefijos o sufijos.", pkg_math_desc: "Rangos numéricos, límites y cálculo de promedios.", pkg_collections_desc: "Utilidades para listas: valores únicos, compactación y valor inicial.", pkg_validate_desc: "Validaciones comunes de texto, correo electrónico y longitud.",
@@ -2122,7 +2121,7 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         h_local_packages: "Local packages", p_local_packages: "Create <code>snow.toml</code> at the root and keep modules in <code>src/</code>. The <code>source</code> field is optional and defaults to <code>src</code>.",
         h_script_tests: "Script tests", p_script_tests: "Every file ending in <code>_test.snow</code> is a test: it passes when it completes without errors. Use <code>assert(condition, [message])</code> for expectations. Run all tests in the current directory or restrict the search to selected paths.",
         h_snowball: "<code>snowball</code> package manager", p_snowball: "<code>snowball get</code> always downloads official libraries from the Snow GitHub repository. <code>add</code> still supports path dependencies; use <code>get-local</code> exclusively to install from a local <code>repo/</code> directory.",
-        p_snowball_libraries: "The official catalog includes 16 libraries, from text and collections to pagination, statistics, templates, and validation. For local development, set <code>SNOW_REPO</code> or run from a subdirectory with <code>repo/</code> in a parent directory.",
+        p_snowball_libraries: "Use the <a href=\"packages.html\">package catalog</a> to search the 16 official libraries, from text and collections to pagination, statistics, templates, and validation. For local development, set <code>SNOW_REPO</code> or run from a subdirectory with <code>repo/</code> in a parent directory.",
         h_official_packages: "Official packages", p_official_packages: "A catalog of libraries available in <code>repo/snow</code>. Each package includes a <code>.snowpkg</code> file with <code>name</code>, <code>version</code>, <code>description</code>, <code>license</code>, <code>repository</code>, <code>keywords</code>, and <code>entry</code>. Install a library with <code>snowball get</code>.",
         package_search_label: "Search packages", package_search_placeholder: "Name, keyword, or description", package_empty: "No packages match this search.",
         pkg_text_desc: "Text normalization, slugs, and prefix or suffix checks.", pkg_math_desc: "Numeric ranges, clamping, and average calculation.", pkg_collections_desc: "List utilities: unique values, compaction, and a first fallback value.", pkg_validate_desc: "Common text, email, and length validation.",

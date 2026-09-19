@@ -212,7 +212,11 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 		}
 		if t.Type != "" && len(t.Vals) == 1 {
 			if got := staticExprType(t.Vals[0]); got != "" && !staticTypeAccepts(t.Type, got) {
-				c.err(t.Pos, "type mismatch: declared %s, assigned %s", t.Type, got)
+				name := "value"
+				if len(t.Names) > 0 {
+					name = t.Names[0]
+				}
+				c.err(t.Pos, "type mismatch for %q: expected %s, received %s", name, t.Type, got)
 			}
 		}
 		for _, n := range t.Names {

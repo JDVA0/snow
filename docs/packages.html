@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snow Packages</title>
+  <meta name="description" content="Official Snow package catalog.">
+  <link rel="icon" type="image/svg+xml" href="snowflake.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="packages-page">
+  <nav class="topbar">
+    <div class="nav-inner">
+      <a href="index.html" class="brand"><img src="snowflake.svg" alt="Snow">Snow</a>
+      <ul class="nav-links">
+        <li><a href="index.html" data-i18n="nav_home">Inicio</a></li>
+        <li><a href="docs.html" data-i18n="nav_docs">Documentación</a></li>
+        <li><a href="packages.html" class="active" data-i18n="nav_packages">Paquetes</a></li>
+        <li><a href="https://github.com/JDVA0/snow" target="_blank" rel="noopener">GitHub</a></li>
+        <li><div class="lang-group"><button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button><button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button></div></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="package-browser">
+    <h1><span class="search-symbol" aria-hidden="true"></span><span data-i18n="title_start">Busca entre</span> <strong id="package-count">paquetes</strong></h1>
+    <form class="package-searchbar" onsubmit="event.preventDefault(); searchPackages();">
+      <input id="package-query" type="search" autocomplete="off" data-i18n-ph="search_placeholder" placeholder="Buscar paquetes" oninput="searchPackages()">
+      <button type="submit" data-i18n="search_button">Buscar</button>
+    </form>
+    <div class="package-toolbar">
+      <div><span data-i18n="channels">Canales:</span> <button class="tag active" type="button">stable</button></div>
+      <label><span data-i18n="sort_label">Ordenar:</span>
+        <select id="package-sort" onchange="searchPackages()"><option value="match" data-i18n="sort_match">Mejor coincidencia</option><option value="name" data-i18n="sort_name">Nombre</option></select>
+      </label>
+    </div>
+    <p id="package-state" class="package-state" data-i18n="loading">Cargando índice de paquetes…</p>
+    <section id="package-results" class="package-results" aria-live="polite"></section>
+  </main>
+
+  <footer class="package-footer"><span data-i18n="footer">El índice se genera automáticamente desde el repositorio oficial de Snow.</span></footer>
+
+  <script>
+    const i18n = {
+      es: {nav_home:'Inicio', nav_docs:'Documentación', nav_packages:'Paquetes', title_start:'Busca entre', search_placeholder:'Buscar paquetes', search_button:'Buscar', channels:'Canales:', sort_label:'Ordenar:', sort_match:'Mejor coincidencia', sort_name:'Nombre', loading:'Cargando índice de paquetes…', empty:'No hay paquetes que coincidan.', footer:'El índice se genera automáticamente desde el repositorio oficial de Snow.', install:'Instalar', version:'versión'},
+      en: {nav_home:'Home', nav_docs:'Documentation', nav_packages:'Packages', title_start:'Search', search_placeholder:'Search packages', search_button:'Search', channels:'Channels:', sort_label:'Sort:', sort_match:'Best match', sort_name:'Name', loading:'Loading package index…', empty:'No packages match your search.', footer:'The index is generated automatically from the official Snow repository.', install:'Install', version:'version'}
+    };
+    let language = localStorage.getItem('snow_lang') || 'es';
+    let packages = [];
+
+    function setLang(lang) {
+      language = lang;
+      document.documentElement.lang = lang;
+      document.getElementById('btn-es').classList.toggle('active', lang === 'es');
+      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+      document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = i18n[lang][el.dataset.i18n] || el.textContent);
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = i18n[lang][el.dataset.i18nPh] || el.placeholder);
+      document.getElementById('package-count').textContent = packages.length + ' ' + (lang === 'es' ? 'paquetes' : 'packages');
+      localStorage.setItem('snow_lang', lang);
+      searchPackages();
+    }
+
+    function parseIndex(text) {
+      const result = []; let current = null;
+      text.split('\n').forEach(raw => {
+        const line = raw.replace(/#.*/, '').trim();
+        if (line === '[[package]]') { current = {}; result.push(current); return; }
+        const match = line.match(/^([\w]+)\s*=\s*"(.*)"$/);
+        if (match && current) current[match[1]] = match[2];
+      });
+      return result;
+    }
+
+    function esc(value) { return String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function searchPackages() {
+      const query = (document.getElementById('package-query')?.value || '').trim().toLowerCase();
+      const sort = document.getElementById('package-sort')?.value || 'match';
+      let found = packages.filter(pkg => !query || [pkg.name,pkg.description,pkg.keywords,pkg.id].join(' ').toLowerCase().includes(query));
+      if (sort === 'name') found.sort((a,b) => a.name.localeCompare(b.name));
+      const state = document.getElementById('package-state'); const results = document.getElementById('package-results');
+      if (!packages.length) return;
+      state.textContent = found.length ? '' : i18n[language].empty;
+      results.innerHTML = found.map(pkg => `<article class="package-result"><div><h2>${esc(pkg.name)} <small>${esc(pkg.version)}</small></h2><p>${esc(pkg.description)}</p><p class="package-keywords">${esc(pkg.keywords).replaceAll(',', ' · ')}</p></div><div class="package-command"><span>${i18n[language].install}</span><code>snowball get ${esc(pkg.id)}@${esc(pkg.version)}</code></div></article>`).join('');
+    }
+
+    fetch('../repo/index.toml').then(response => { if (!response.ok) throw new Error(); return response.text(); }).then(text => { packages = parseIndex(text); document.getElementById('package-count').textContent = packages.length + ' paquetes'; document.getElementById('package-state').textContent = ''; setLang(language); }).catch(() => { document.getElementById('package-state').textContent = language === 'es' ? 'No se pudo cargar el índice de paquetes.' : 'The package index could not be loaded.'; });
+    setLang(language);
+  </script>
+</body>
+</html>

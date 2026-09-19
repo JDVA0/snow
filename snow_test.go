@@ -925,7 +925,7 @@ try:
     print("no")
 catch err:
     print(err)
-`, "cannot hold str in int[] (element 0)")
+`, "type mismatch for \"edades\": element 0: expected int, received str")
 
 	check(t, `
 try:
@@ -933,7 +933,7 @@ try:
     print("no")
 catch err:
     print(err)
-`, "expected a list, got str")
+`, "type mismatch for \"p\": expected str[], received str")
 
 	check(t, `
 using json
@@ -942,7 +942,7 @@ try:
     print("no")
 catch err:
     print(err)
-`, "cannot hold str in int[] (element 1)")
+`, "type mismatch for \"e\": element 1: expected int, received str")
 
 	if _, err := run(t, "n: strx[] = [1]"); err == nil {
 		t.Fatal("expected unknown list type error")
@@ -989,7 +989,7 @@ try:
     f("a")
 catch err:
     print(err)
-`, "parameter 'x': expected int, got str")
+`, "parameter 'x': expected int, received str")
 
 	check(t, `
 fn f() -> int:
@@ -998,7 +998,7 @@ try:
     f()
 catch err:
     print(err)
-`, "return of f: expected int, got str")
+`, "return of f: expected int, received str")
 
 	check(t, `
 fn f(v: int[]) -> int:
@@ -1007,7 +1007,7 @@ try:
     f(["a"])
 catch err:
     print(err)
-`, "parameter 'v': cannot hold str in int[] (element 0)")
+`, "parameter 'v': element 0: expected int, received str")
 
 	check(t, `
 fn f(x: any) -> any:
@@ -1373,6 +1373,16 @@ print(value)
 	}
 }
 
+func TestTypeDiagnosticsNameAndElement(t *testing.T) {
+	if _, err := run(t, `age: int = 1
+age = "old"`); err == nil || !strings.Contains(err.Error(), `type mismatch for "age": expected int, received str`) {
+		t.Fatalf("expected named type diagnostic, got %v", err)
+	}
+	if _, err := run(t, `names: str[] = ["Ada", 7]`); err == nil || !strings.Contains(err.Error(), "element 1: expected str, received int") {
+		t.Fatalf("expected typed-list diagnostic, got %v", err)
+	}
+}
+
 func TestFormatDiagnostic(t *testing.T) {
 	src := "value = 1\nprint(missing)\n"
 	err := New().Run(src, "demo.snow")
@@ -1397,7 +1407,7 @@ func TestCheckGradualTypes(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, issue := range issues {
-		if issue.IsErr && strings.Contains(issue.Msg, "declared int, assigned str") {
+		if issue.IsErr && strings.Contains(issue.Msg, "type mismatch for \"age\": expected int, received str") {
 			return
 		}
 	}

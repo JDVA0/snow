@@ -231,7 +231,7 @@ func (i *Interp) setVar(name string, val Val, declared ...string) error {
 			}
 			if typ = e.types[name]; typ != "" {
 				if err := checkValType(val, typ); err != nil {
-					return err
+					return fmt.Errorf("type mismatch for %q: %w", name, err)
 				}
 			}
 			e.vars[name] = val
@@ -240,7 +240,7 @@ func (i *Interp) setVar(name string, val Val, declared ...string) error {
 	}
 	if typ != "" {
 		if err := checkValType(val, typ); err != nil {
-			return err
+			return fmt.Errorf("type mismatch for %q: %w", name, err)
 		}
 		i.env.types[name] = typ
 	}
@@ -279,13 +279,13 @@ func checkValType(v Val, typ string) error {
 				return nil
 			}
 		}
-		return fmt.Errorf("expected %s, got %s", strings.ReplaceAll(typ, "|", " or "), TypeName(v))
+		return fmt.Errorf("expected %s, received %s", strings.ReplaceAll(typ, "|", " or "), TypeName(v))
 	}
 	if strings.HasSuffix(typ, "[]") {
 		return checkTypedList(v, strings.TrimSuffix(typ, "[]"))
 	}
 	if TypeName(v) != typ {
-		return fmt.Errorf("expected %s, got %s", typ, TypeName(v))
+		return fmt.Errorf("expected %s, received %s", typ, TypeName(v))
 	}
 	return nil
 }
@@ -295,7 +295,7 @@ func checkValType(v Val, typ string) error {
 func checkTypedList(v Val, elem string) error {
 	l, ok := v.(List)
 	if !ok {
-		return fmt.Errorf("expected a list, got %s", TypeName(v))
+		return fmt.Errorf("expected %s[], received %s", elem, TypeName(v))
 	}
 	if elem == "any" {
 		return nil
@@ -305,7 +305,7 @@ func checkTypedList(v Val, elem string) error {
 			continue
 		}
 		if TypeName(e) != elem {
-			return fmt.Errorf("cannot hold %s in %s[] (element %d)", TypeName(e), elem, i)
+			return fmt.Errorf("element %d: expected %s, received %s", i, elem, TypeName(e))
 		}
 	}
 	return nil
