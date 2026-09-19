@@ -219,6 +219,12 @@ snowball get-local snow/text.snow
 
 `get` instala la biblioteca en `packages/snow/src/`, registra `dep.snow = "packages/snow"` y genera `snow.lock`. Después puedes usarla con `import snow.text`. Las bibliotecas iniciales son `snow/text.snow`, `snow/math.snow`, `snow/collections.snow` y `snow/validate.snow`.
 
+Cada biblioteca oficial acompaña un archivo de metadatos `.snowpkg`. El formato es TOML simple y define `name`, `version`, `description`, `license`, `repository`, `keywords` y `entry`. Consulta la información de una biblioteca instalada con `snowball info snow/text.snow`.
+
+El proyecto [PkgsExamples](/PkgsExamples) contiene una integración completa: sus paquetes están instalados en `PkgsExamples/packages/snow/` y `PkgsExamples/src/main.snow` importa y ejecuta las cuatro bibliotecas oficiales.
+
+Al finalizar, Snowball imprime la URL de origen y la ruta absoluta donde quedó instalada. Comprueba además el resultado con `snowball list` y revisando `packages/snow/src/`.
+
 Para desarrollo local usa `snowball get-local` y configura `SNOW_REPO` apuntando a la carpeta `repo/`; sin esa variable, Snowball busca una carpeta `repo/` en los directorios padre.
 
 ---
@@ -521,6 +527,12 @@ snowball get-local snow/text.snow
 ```
 
 `get` installs the library in `packages/snow/src/`, writes `dep.snow = "packages/snow"`, and generates `snow.lock`. Import it with `import snow.text`. The initial libraries are `snow/text.snow`, `snow/math.snow`, `snow/collections.snow`, and `snow/validate.snow`.
+
+Every official library includes a `.snowpkg` metadata file. Its simple TOML format defines `name`, `version`, `description`, `license`, `repository`, `keywords`, and `entry`. Inspect an installed library with `snowball info snow/text.snow`.
+
+[PkgsExamples](/PkgsExamples) is a complete integration project: its packages live in `PkgsExamples/packages/snow/`, and `PkgsExamples/src/main.snow` imports and runs all four official libraries.
+
+When it finishes, Snowball prints the source URL and the absolute installation path. You can also verify the result with `snowball list` and by inspecting `packages/snow/src/`.
 
 For local development use `snowball get-local` and set `SNOW_REPO` to the `repo/` directory; without it, Snowball searches parent directories for `repo/`.
 

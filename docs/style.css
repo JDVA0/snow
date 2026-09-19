@@ -140,6 +140,44 @@ nav.topbar {
   vertical-align: -.08rem;
 }
 
+.package-search {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin: 1.2rem 0;
+  color: var(--muted);
+  font-size: .82rem;
+}
+.package-search input {
+  min-width: 260px;
+  flex: 1;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font: inherit;
+  padding: .45rem .6rem;
+}
+.package-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: .75rem;
+}
+.package-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: .95rem;
+}
+.package-card h3 { font-size: .9rem; margin-bottom: .35rem; }
+.package-card h3 span { color: var(--muted); font: .72rem 'JetBrains Mono', monospace; }
+.package-card p { color: var(--muted); font-size: .82rem; margin-bottom: .55rem; }
+.package-card .package-meta { color: var(--faint); font: .72rem 'JetBrains Mono', monospace; }
+.package-card > code { color: var(--text); font-size: .72rem; }
+.package-card[hidden] { display: none; }
+@media (max-width: 540px) {
+  .package-search { align-items: stretch; flex-direction: column; }
+  .package-search input { min-width: 0; }
+}
+
 /* ── Documentation Index Layout ── */
 .doc-page {
   max-width: 1040px;

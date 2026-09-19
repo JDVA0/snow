@@ -66,6 +66,7 @@
           <li><a href="#funciones" data-i18n="nav_funcs">Funciones y Closures</a></li>
           <li><a href="#visibilidad" style="padding-left:1.5rem; font-size:.82rem;"><code>pub</code> / <code>priv</code> e <code>import</code></a></li>
           <li><a href="#proyectos" style="padding-left:1.5rem; font-size:.82rem;">Proyectos, tipos y pruebas</a></li>
+	          <li><a href="#packages" style="padding-left:1.5rem; font-size:.82rem;">Paquetes oficiales</a></li>
           <li><a href="#asign-campos" style="padding-left:1.5rem; font-size:.82rem;">Asignación de campos <code>x.y = v</code></a></li>
           <li><a href="#nativas" data-i18n="nav_builtins">Funciones Nativas</a></li>
           <li><a href="#errores" data-i18n="nav_errors">Manejo de Errores</a></li>
@@ -692,6 +693,42 @@ import snow.text
 print(text.slug("Hello Snow"))</code></pre>
         <p>Bibliotecas iniciales: <code>snow/text.snow</code>, <code>snow/math.snow</code>, <code>snow/collections.snow</code> y <code>snow/validate.snow</code>. Para desarrollo local configura <code>SNOW_REPO</code> o ejecuta desde un subdirectorio que tenga <code>repo/</code> en un directorio padre.</p>
       </section>
+
+	  <section id="packages" class="doc-section">
+		<h2>Paquetes oficiales</h2>
+		<p>Catálogo de bibliotecas disponibles en <code>repo/snow</code>. Cada paquete incluye un archivo <code>.snowpkg</code> con <code>name</code>, <code>version</code>, <code>description</code>, <code>license</code>, <code>repository</code>, <code>keywords</code> y <code>entry</code>. Instala una biblioteca con <code>snowball get</code>.</p>
+		<div class="package-search">
+		  <label for="package-search">Buscar paquetes</label>
+		  <input id="package-search" type="search" placeholder="Nombre, palabra clave o descripción" oninput="searchPackages(this.value)">
+		</div>
+		<div id="package-list" class="package-grid">
+		  <article class="package-card" data-package="snow text strings slug normalization prefix suffix">
+			<h3><code>snow.text</code> <span>v0.1.0</span></h3>
+			<p>Normalización de texto, slugs y comprobaciones de prefijos o sufijos.</p>
+			<p class="package-meta">text, strings, slug · MIT</p>
+			<code>snowball get snow/text.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow math numbers statistics clamp average ranges">
+			<h3><code>snow.math</code> <span>v0.1.0</span></h3>
+			<p>Rangos numéricos, límites y cálculo de promedios.</p>
+			<p class="package-meta">math, numbers, statistics · MIT</p>
+			<code>snowball get snow/math.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow collections lists unique compact first">
+			<h3><code>snow.collections</code> <span>v0.1.0</span></h3>
+			<p>Utilidades para listas: valores únicos, compactación y valor inicial.</p>
+			<p class="package-meta">lists, collections, unique · MIT</p>
+			<code>snowball get snow/collections.snow</code>
+		  </article>
+		  <article class="package-card" data-package="snow validate validation email input length">
+			<h3><code>snow.validate</code> <span>v0.1.0</span></h3>
+			<p>Validaciones comunes de texto, correo electrónico y longitud.</p>
+			<p class="package-meta">validation, email, input · MIT</p>
+			<code>snowball get snow/validate.snow</code>
+		  </article>
+		</div>
+		<p id="package-empty" class="text-muted" hidden>No hay paquetes que coincidan con la búsqueda.</p>
+	  </section>
 
       <!-- Asignación de campos -->
       <section id="asign-campos" class="doc-section">
@@ -2000,6 +2037,18 @@ cli.info("Servidores activos: " + str(activos) + " de " + str(len(filas)) + " va
         a.style.display = target && target.dataset.hidden ? 'none' : '';
       });
     }
+
+	function searchPackages(q) {
+	  const term = q.trim().toLowerCase();
+	  const cards = document.querySelectorAll('#package-list .package-card');
+	  let visible = 0;
+	  cards.forEach(card => {
+		const match = !term || card.dataset.package.includes(term) || card.textContent.toLowerCase().includes(term);
+		card.hidden = !match;
+		if (match) visible++;
+	  });
+	  document.getElementById('package-empty').hidden = visible !== 0;
+	}
 
     function highlightCode() {
       document.querySelectorAll('pre code').forEach(block => {

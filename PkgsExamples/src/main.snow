@@ -1,0 +1,9 @@
+import snow.text
+import snow.math
+import snow.collections
+import snow.validate
+
+print(text.slug(" Hello, Snow Packages! "))
+print(math.average([2, 4, 6]))
+print(collections.unique([1, 1, 2, 2, 3]))
+print(validate.email("hello@snow.dev"))

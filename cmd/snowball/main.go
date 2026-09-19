@@ -19,9 +19,12 @@ Usage:
   snowball add <name> <path>         add a local package dependency
   snowball get snow/file.snow        install an official library from GitHub
   snowball get-local snow/file.snow  install a library from local repo/
+	  snowball info snow/file.snow       show installed library metadata
   snowball remove <name>     remove a dependency
   snowball list              list dependencies
 `
+
+const officialRepoURL = "https://raw.githubusercontent.com/JDVA0/snow/main/repo"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -53,6 +56,12 @@ func main() {
 			err = fmt.Errorf("get-local expects snow/file.snow")
 		} else {
 			err = getLibrary(os.Args[2], true)
+		}
+	case "info":
+		if len(os.Args) != 3 {
+			err = fmt.Errorf("info expects snow/file.snow")
+		} else {
+			err = showInfo(os.Args[2])
 		}
 	case "remove":
 		if len(os.Args) != 3 {
@@ -141,6 +150,16 @@ func getLibrary(id string, local bool) error {
 	if err != nil {
 		return err
 	}
+	metadataID := strings.TrimSuffix(id, ".snow") + ".snowpkg"
+	var metadata []byte
+	if local {
+		metadata, err = localLibrary(metadataID)
+	} else {
+		metadata, err = githubLibrary(metadataID)
+	}
+	if err != nil {
+		return fmt.Errorf("package metadata for %q: %w", id, err)
+	}
 	packageRoot := filepath.Join("packages", parts[0])
 	target := filepath.Join(packageRoot, "src", filepath.FromSlash(strings.Join(parts[1:], "/")))
 	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
@@ -149,21 +168,83 @@ func getLibrary(id string, local bool) error {
 	if err := os.WriteFile(target, b, 0o644); err != nil {
 		return err
 	}
+	metadataTarget := filepath.Join(packageRoot, filepath.FromSlash(strings.TrimPrefix(metadataID, parts[0]+"/")))
+	if err := os.MkdirAll(filepath.Dir(metadataTarget), 0o755); err != nil {
+		return err
+	}
+	if err := os.WriteFile(metadataTarget, metadata, 0o644); err != nil {
+		return err
+	}
 	packageManifest := filepath.Join(packageRoot, "snow.toml")
 	if _, err := os.Stat(packageManifest); os.IsNotExist(err) {
-		if err := os.WriteFile(packageManifest, []byte("name = \""+parts[0]+"\"\nsource = \"src\"\n"), 0o644); err != nil {
+		manifestID := parts[0] + "/snow.toml"
+		var packageMetadata []byte
+		if local {
+			packageMetadata, err = localLibrary(manifestID)
+		} else {
+			packageMetadata, err = githubLibrary(manifestID)
+		}
+		if err != nil {
+			return fmt.Errorf("package manifest for %q: %w", id, err)
+		}
+		if err := os.WriteFile(packageManifest, packageMetadata, 0o644); err != nil {
 			return err
 		}
 	}
 	if err := setDependency(parts[0], packageRoot); err != nil {
 		return err
 	}
-	if local {
-		fmt.Printf("installed local %s\n", id)
-	} else {
-		fmt.Printf("installed %s\n", id)
+	installed, err := filepath.Abs(target)
+	if err != nil {
+		installed = target
 	}
+	if local {
+		fmt.Printf("source: local repo/%s\n", id)
+	} else {
+		fmt.Printf("downloaded: %s/%s\n", officialRepoURL, id)
+	}
+	fmt.Printf("installed: %s\n", installed)
+	printMetadata(metadata)
 	return nil
+}
+
+func showInfo(id string) error {
+	parts := strings.Split(filepath.ToSlash(id), "/")
+	if len(parts) < 2 || parts[0] != "snow" || !strings.HasSuffix(id, ".snow") {
+		return fmt.Errorf("installed libraries use snow/file.snow paths")
+	}
+	path := filepath.Join("packages", parts[0], filepath.FromSlash(strings.TrimSuffix(strings.Join(parts[1:], "/"), ".snow")+".snowpkg"))
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("%q is not installed; run snowball get %s", id, id)
+		}
+		return err
+	}
+	printMetadata(b)
+	return nil
+}
+
+func printMetadata(b []byte) {
+	meta := metadata(b)
+	for _, key := range []string{"name", "version", "description", "license", "repository", "keywords"} {
+		if value := meta[key]; value != "" {
+			fmt.Printf("%s: %s\n", key, value)
+		}
+	}
+}
+
+func metadata(b []byte) map[string]string {
+	result := map[string]string{}
+	for _, line := range strings.Split(string(b), "\n") {
+		line = strings.TrimSpace(strings.SplitN(line, "#", 2)[0])
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		result[strings.TrimSpace(parts[0])] = strings.Trim(strings.TrimSpace(parts[1]), "\"")
+	}
+	return result
 }
 
 func officialRepo() (string, error) {
@@ -203,7 +284,6 @@ func localLibrary(id string) ([]byte, error) {
 }
 
 func githubLibrary(id string) ([]byte, error) {
-	const officialRepoURL = "https://raw.githubusercontent.com/JDVA0/snow/main/repo"
 	resp, err := http.Get(officialRepoURL + "/" + id)
 	if err != nil {
 		return nil, fmt.Errorf("could not download %q: %w", id, err)

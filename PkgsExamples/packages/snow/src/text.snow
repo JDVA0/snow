@@ -1,0 +1,21 @@
+# Official Snow library: text helpers
+
+pub fn slug(value):
+    value = lower(trim(value))
+    value = replace(value, " ", "-")
+    value = replace(value, "!", "")
+    value = replace(value, "?", "")
+    value = replace(value, ".", "")
+    value = replace(value, ",", "")
+    return value
+
+pub fn starts_with(value, prefix):
+    return value[:len(prefix)] == prefix
+
+pub fn ends_with(value, suffix):
+    return value[len(value) - len(suffix):] == suffix
+
+pub fn shorten(value, limit):
+    if len(value) <= limit:
+        return value
+    return value[:limit] + "..."
