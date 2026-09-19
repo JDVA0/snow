@@ -292,8 +292,138 @@ hexadecimal = <span class="num">0xFF</span></code></pre>
         "Behavior":"Comportamiento",
         "Snow is open source under the MIT license. Built in Go by JDVA0.":"Snow es código abierto bajo la licencia MIT. Creado en Go por JDVA0."
     };
+    var phrases = {
+        "Design idea.":"Idea de diseño.",
+        "Snow keeps the syntax close to the data it manipulates.":"Snow mantiene la sintaxis cerca de los datos que manipula.",
+        "Indentation defines blocks, dictionaries represent structured records, modules expose ordinary values, and errors can be handled at clear boundaries.":"La indentación define bloques, los diccionarios representan registros estructurados, los módulos exponen valores normales y los errores se pueden manejar en límites claros.",
+        "Install the command-line runner from the repository:":"Instala el ejecutable de línea de comandos desde el repositorio:",
+        "A Snow file is read from top to bottom.":"Un archivo Snow se lee de arriba abajo.",
+        "Statements can assign values, call functions, import modules, define functions, or control execution.":"Las sentencias pueden asignar valores, llamar funciones, importar módulos, definir funciones o controlar la ejecución.",
+        "Blocks begin after a colon and use four spaces.":"Los bloques comienzan después de dos puntos y usan cuatro espacios.",
+        "For experiments, use":"Para experimentar, usa",
+        "For a project, keep source in":"En un proyecto, guarda el código en",
+        "tests in files ending with":"las pruebas en archivos que terminen en",
+        "and configuration in":"y la configuración en",
+        "Snow follows a simple execution pipeline.":"Snow sigue un flujo de ejecución sencillo.",
+        "The tokenizer turns source text into tokens.":"El tokenizador convierte el código fuente en tokens.",
+        "The parser builds a program tree.":"El parser construye un árbol del programa.",
+        "The checker can inspect names, types, modules, and unreachable code without running the program.":"El verificador puede inspeccionar nombres, tipos, módulos y código inalcanzable sin ejecutar el programa.",
+        "The compiler emits VM operations, and the interpreter executes them.":"El compilador genera operaciones de la VM y el intérprete las ejecuta.",
+        "Dynamic by default":"Dinámico por defecto",
+        "Names do not need annotations. Add types at boundaries where a contract is valuable.":"Los nombres no necesitan anotaciones. Añade tipos en los límites donde un contrato sea útil.",
+        "Values over classes":"Valores en lugar de clases",
+        "Lists, dictionaries, functions, modules, and native values are composed directly.":"Las listas, diccionarios, funciones, módulos y valores nativos se componen directamente.",
+        "Explicit effects":"Efectos explícitos",
+        "Network, files, processes, and environment access live in modules.":"El acceso a red, archivos, procesos y entorno vive en módulos.",
+        "Use":"Usa",
+        "to get feedback without executing network calls or changing files.":"para recibir feedback sin ejecutar llamadas de red ni cambiar archivos.",
+        "Runtime errors include source location and, for uncaught failures, a stack trace.":"Los errores de ejecución incluyen la ubicación en el código y, si no se capturan, un stack trace.",
+        "A comment starts with":"Un comentario comienza con",
+        "Names contain letters, digits, and underscores, but cannot begin with a digit.":"Los nombres contienen letras, dígitos y guiones bajos, pero no pueden comenzar con un dígito.",
+        "Keywords are reserved.":"Las palabras clave están reservadas.",
+        "Snow has":"Snow tiene",
+        "booleans, integers, floats, strings, lists, dictionaries, functions, modules, and native values.":"booleanos, enteros, flotantes, cadenas, listas, diccionarios, funciones, módulos y valores nativos.",
+        "prevents reassignment at runtime.":"impide la reasignación durante la ejecución.",
+        "Annotations are optional and gradual.":"Las anotaciones son opcionales y graduales.",
+        "A type mismatch reports the name and received type.":"Un tipo incorrecto informa el nombre y el tipo recibido.",
+        "An expression produces a value.":"Una expresión produce un valor.",
+        "Expressions may be literals, names, calls, indexing, attributes, function expressions, operators, or a conditional expression.":"Las expresiones pueden ser literales, nombres, llamadas, índices, atributos, funciones, operadores o expresiones condicionales.",
+        "Use":"Usa",
+        "Comparisons are":"Las comparaciones son",
+        "short-circuit.":"evalúan con cortocircuito.",
+        "negates a boolean.":"niega un booleano.",
+        "checks membership and":"comprueba pertenencia y",
+        "reverses it.":"la invierte.",
+        "uses a fallback only for":"usa un valor alternativo solo para",
+        "; zero and false remain valid values.":"; cero y false siguen siendo valores válidos.",
+        "Normal access reports invalid or missing data.":"El acceso normal informa datos inválidos o ausentes.",
+        "return":"devuelven",
+        "when the chain reaches an absent value.":"cuando la cadena llega a un valor ausente.",
+        "Only the selected branch is evaluated.":"Solo se evalúa la rama seleccionada.",
+        "filters before the loop body.":"filtra antes del cuerpo del bucle.",
+        "Two names receive pairs from dictionaries, lists of pairs,":"Dos nombres reciben pares de diccionarios, listas de pares,",
+        "Cases run top to bottom.":"Los casos se ejecutan de arriba abajo.",
+        "The wildcard must be the only value in its case and must be last.":"El comodín debe ser el único valor de su caso y debe ser el último.",
+        "Functions are values.":"Las funciones son valores.",
+        "Define one with":"Define una con",
+        "and pass functions to collection helpers.":"y pasa funciones a los ayudantes de colecciones.",
+        "Annotations check arguments, returns, and variables at runtime.":"Las anotaciones comprueban argumentos, retornos y variables durante la ejecución.",
+        "Untyped code stays dynamic.":"El código sin tipos permanece dinámico.",
+        "Functions can close over surrounding names.":"Las funciones pueden capturar nombres del contexto exterior.",
+        "Snow treats a failure as a value that can be caught.":"Snow trata un fallo como un valor que se puede capturar.",
+        "to stop the current operation,":"para detener la operación actual,",
+        "to establish a recovery boundary,":"para establecer un límite de recuperación,",
+        "to receive the failure, and":"para recibir el fallo, y",
+        "for cleanup after success or failure.":"para limpiar después del éxito o del fallo.",
+        "Uncaught errors include file, line, column, and stack trace.":"Los errores no capturados incluyen archivo, línea, columna y stack trace.",
+        "when the value has a":"cuando el valor tiene un método",
+        "method; Snow closes it after the body.":"; Snow lo cierra después del cuerpo.",
+        "stops at the shorter list.":"se detiene en la lista más corta.",
+        "create useful collection transformations.":"crean transformaciones útiles de colecciones.",
+        "for standard modules and":"para módulos estándar y",
+        "for Snow files.":"para archivos Snow.",
+        "A module is a namespace whose members are ordinary values accessed with a dot.":"Un módulo es un espacio de nombres cuyos miembros son valores normales accesibles con un punto.",
+        "Top-level values are public by default.":"Los valores de nivel superior son públicos por defecto.",
+        "hides a function or variable from imported exports;":"oculta una función o variable de las exportaciones importadas;",
+        "makes intent explicit.":"hace explícita la intención.",
+        "Import cycles are detected.":"Los ciclos de importación se detectan.",
+        "HTTP servers, routes, middleware, and responses.":"Servidores HTTP, rutas, middleware y respuestas.",
+        "HTTP client. Response values expose status, ok, body, headers, text(), json().":"Cliente HTTP. Las respuestas exponen status, ok, body, headers, text() y json().",
+        "Files and directories.":"Archivos y directorios.",
+        "Processes, environment, paths, and host information.":"Procesos, entorno, rutas e información del sistema.",
+        "Terminal UI and command-line arguments.":"Interfaz de terminal y argumentos de línea de comandos.",
+        "JSON conversion and validation.":"Conversión y validación de JSON.",
+        "CSV text and files.":"Texto y archivos CSV.",
+        "Environment configuration and .env files.":"Configuración del entorno y archivos .env.",
+        "Clocks, durations, and timestamps.":"Relojes, duraciones y marcas de tiempo.",
+        "Hashes, tokens, and JWT helpers.":"Hashes, tokens y utilidades JWT.",
+        "Scheduled and delayed work.":"Trabajo programado y retrasado.",
+        "Interactive typed input.":"Entrada interactiva con tipos.",
+        "validate external values before using them as shell commands, paths, headers, or response data.":"valida los valores externos antes de usarlos como comandos shell, rutas, cabeceras o datos de respuesta.",
+        "Hashes are not encryption, and secrets should come from the environment rather than source files.":"Los hashes no son cifrado y los secretos deben venir del entorno, no de los archivos fuente.",
+        "A minimal project uses":"Un proyecto mínimo usa",
+        "Use dotted imports for project modules.":"Usa imports con puntos para los módulos del proyecto.",
+        "Keep reusable code in separate files and a small entry point in":"Mantén el código reutilizable en archivos separados y un punto de entrada pequeño en",
+        "installs packages from the official registry, records versions and checksums in":"instala paquetes desde el registro oficial y registra versiones y checksums en",
+        "and supports local dependencies.":"y admite dependencias locales.",
+        "Commit the lockfile for reproducible installs.":"Confirma el lockfile para instalaciones reproducibles.",
+        "reports locked packages with newer registry versions.":"informa de paquetes bloqueados con versiones más nuevas en el registro.",
+        "Run a Snow file.":"Ejecuta un archivo Snow.",
+        "Open the interactive REPL.":"Abre el REPL interactivo.",
+        "Parse and statically analyze without running.":"Parsea y analiza estáticamente sin ejecutar.",
+        "Format source;":"Formatea el código;",
+        "writes it in place.":"lo escribe en el archivo.",
+        "Run":"Ejecuta",
+        "scripts.":"scripts.",
+        "Check package updates.":"Comprueba actualizaciones de paquetes.",
+        "A useful loop is format, check, test, then run:":"Un ciclo útil es formatear, comprobar, probar y ejecutar:",
+        "Parser errors mean source cannot be formed into a program.":"Los errores de parser significan que el código no puede convertirse en un programa.",
+        "Runtime errors happen during execution.":"Los errores de ejecución ocurren mientras el programa corre.",
+        "Keep tests focused and deterministic.":"Mantén las pruebas enfocadas y deterministas.",
+        "only where recovery is meaningful.":"solo cuando la recuperación tenga sentido.",
+        "The LSP publishes parser and checker diagnostics after documents open or change.":"El LSP publica diagnósticos del parser y del verificador cuando los documentos se abren o cambian.",
+        "The Snow language server uses JSON-RPC over stdin/stdout with standard":"El servidor de lenguaje Snow usa JSON-RPC sobre stdin/stdout con",
+        "framing. Build it with:":"framing estándar. Compílalo con:",
+        "The VS Code extension registers":"La extensión de VS Code registra",
+        "provides the Snowflake icon, starts the server, reports diagnostics, and completes built-ins, modules, and members.":"proporciona el icono Snowflake, inicia el servidor, informa diagnósticos y completa funciones, módulos y miembros.",
+        "typing":"al escribir",
+        "suggests":"sugiere",
+        "Full synchronization uses":"La sincronización completa usa",
+        "Hover, go-to-definition, references, formatting, and rename are not currently implemented.":"Hover, ir a definición, referencias, formato y renombrado todavía no están implementados.",
+        "Start with the examples in":"Comienza con los ejemplos de",
+        "then use":"y después usa",
+        "as executable behavioral documentation.":"como documentación ejecutable del comportamiento.",
+        "The language is intentionally small:":"El lenguaje es intencionalmente pequeño:",
+        "learn the core values and blocks first, then add modules only when the program needs them.":"aprende primero los valores y bloques principales, y añade módulos solo cuando el programa los necesite.",
+        "Snow is open source under the MIT license. Built in Go by JDVA0.":"Snow es código abierto bajo la licencia MIT. Creado en Go por JDVA0."
+    };
     var nodes = Array.prototype.slice.call(document.querySelectorAll('h1,h2,h3,p,nav a,th,td,footer,.header-note'));
     function setLanguage(language){
+        var initialWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var initialNode;
+        while(initialNode = initialWalker.nextNode()){
+            if(!initialNode.__snowOriginal) initialNode.__snowOriginal = initialNode.nodeValue;
+        }
         nodes.forEach(function(node){
             if(node.children.length) return;
             var original = node.getAttribute('data-original-text') || node.textContent.trim();
@@ -301,6 +431,17 @@ hexadecimal = <span class="num">0xFF</span></code></pre>
             if(language === 'es' && translations[original]) node.textContent = translations[original];
             if(language === 'en') node.textContent = original;
         });
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var textNode;
+        while(textNode = walker.nextNode()){
+            var parent = textNode.parentElement;
+            if(!parent || /^(PRE|CODE|SCRIPT|STYLE)$/.test(parent.tagName)) continue;
+            if(!textNode.__snowOriginal) textNode.__snowOriginal = textNode.nodeValue;
+            textNode.nodeValue = textNode.__snowOriginal;
+            if(language === 'es') Object.keys(phrases).forEach(function(source){
+                textNode.nodeValue = textNode.nodeValue.split(source).join(phrases[source]);
+            });
+        }
         document.documentElement.lang = language;
         document.querySelectorAll('[data-language]').forEach(function(link){
             var active = link.getAttribute('data-language') === language;
