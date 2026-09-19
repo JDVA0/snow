@@ -41,18 +41,41 @@
   <!-- Main Content -->
   <main class="doc-page">
 
-    <!-- Header -->
-    <header class="doc-header">
-      <h1>Snow</h1>
-      <p data-i18n="hdr_desc1">
-        Snow es un lenguaje de programación interpretado, ligero y minimalista, desarrollado en Go.
-        Su sintaxis es limpia y directa: sin llaves <code>{}</code> y sin puntos y coma <code>;</code>.
-      </p>
-      <p data-i18n="hdr_desc2">
-        Hecho por <strong>JDVA0</strong> · Un proyecto por diversión y experimentación.
-        Para prototipar APIs web y scripts sin complicaciones.
-      </p>
+    <!-- Hero -->
+    <header class="snow-hero">
+      <div class="snow-hero-mark">
+        <img src="snowflake.svg" alt="Snowflake logo">
+      </div>
+      <div class="snow-hero-copy">
+        <p class="snow-eyebrow" data-i18n="hero_eyebrow">Lenguaje ligero · Go · Código abierto</p>
+        <h1 data-i18n="hero_title">Snow hace que las ideas cobren forma.</h1>
+        <p class="snow-hero-lead" data-i18n="hdr_desc1">
+          Snow es un lenguaje interpretado, directo y minimalista para crear APIs web, herramientas CLI y scripts sin fricción.
+        </p>
+        <div class="snow-hero-actions">
+          <a href="docs.html#instalacion" class="snow-button snow-button-primary" data-i18n="hero_primary">Empezar</a>
+          <a href="docs.html#lsp" class="snow-button snow-button-secondary" data-i18n="hero_secondary">Ver el LSP</a>
+        </div>
+        <p class="snow-hero-note" data-i18n="hdr_desc2">
+          Hecho por <strong>JDVA0</strong> · Un proyecto para experimentar con APIs y herramientas de consola.
+        </p>
+      </div>
     </header>
+
+    <section class="snow-signal-band" aria-label="Snow highlights">
+      <div>
+        <strong data-i18n="signal_syntax_title">Sintaxis limpia</strong>
+        <span data-i18n="signal_syntax_desc">Indentación, expresiones claras y cero llaves.</span>
+      </div>
+      <div>
+        <strong data-i18n="signal_tools_title">Herramientas nativas</strong>
+        <span data-i18n="signal_tools_desc">HTTP, CLI, archivos y paquetes en un solo lenguaje.</span>
+      </div>
+      <div>
+        <strong data-i18n="signal_lsp_title">LSP listo</strong>
+        <span data-i18n="signal_lsp_desc">Diagnósticos y autocompletado contextual para VS Code.</span>
+      </div>
+    </section>
 
     <!-- Quick install strip -->
     <section class="doc-install" aria-label="Instalación rápida">
@@ -61,6 +84,26 @@
         <code>git clone https://github.com/JDVA0/snow &amp;&amp; cd snow &amp;&amp; go build ./cmd/snowman</code>
       </div>
       <a href="docs.html#instalacion" class="doc-install-action" data-i18n="btn_install">Guía de instalación</a>
+    </section>
+
+    <section class="doc-card doc-card-wide" aria-label="LSP y VS Code">
+      <div class="doc-card-title">LSP y extensión de VS Code</div>
+      <p>Snow incluye diagnósticos de sintaxis y análisis estático, además de
+        autocompletado contextual para módulos. Después de <code>using http</code>,
+        escribir <code>http.</code> muestra <code>get</code>, <code>post</code>,
+        <code>put</code>, <code>delete</code>, <code>patch</code> y <code>request</code>.</p>
+      <p><a href="docs.html#lsp">Instalar y configurar el LSP en VS Code</a></p>
+    </section>
+
+    <section class="doc-card doc-card-wide" aria-label="Funciones recientes">
+      <div class="doc-card-title">Funciones recientes del lenguaje</div>
+      <p><code>const</code> crea constantes inmutables, <code>always</code>
+        garantiza limpieza después de <code>try</code>/<code>catch</code>, y las
+        expresiones ternarias permiten escribir
+        <code>value if condition else other_value</code>.</p>
+      <p><code>enumerate()</code> produce pares índice-valor,
+        <code>zip()</code> combina listas y <code>snowball outdated</code>
+        revisa actualizaciones de paquetes.</p>
     </section>
 
     <!-- 2-Column Grid -->
@@ -181,6 +224,8 @@
     const i18n = {
       es: {
         nav_home: "Inicio", nav_doc: "Documentación", nav_lang: "Lenguaje", nav_mods: "Módulos", nav_packages: "Paquetes",
+        hero_eyebrow: "Lenguaje ligero · Go · Código abierto", hero_title: "Snow hace que las ideas cobren forma.", hero_primary: "Empezar", hero_secondary: "Ver el LSP",
+        signal_syntax_title: "Sintaxis limpia", signal_syntax_desc: "Indentación, expresiones claras y cero llaves.", signal_tools_title: "Herramientas nativas", signal_tools_desc: "HTTP, CLI, archivos y paquetes en un solo lenguaje.", signal_lsp_title: "LSP listo", signal_lsp_desc: "Diagnósticos y autocompletado contextual para VS Code.",
         hdr_desc1: 'Snow es un lenguaje de programación interpretado, ligero y minimalista, desarrollado en Go. Su sintaxis es limpia y directa: sin llaves <code>{}</code> y sin puntos y coma <code>;</code>.',
         hdr_desc2: 'Hecho por <strong>JDVA0</strong> · Un proyecto por diversión y experimentación. Para prototipar APIs web y scripts sin complicaciones.',
         btn_install: "Guía de instalación",
@@ -214,6 +259,8 @@
       },
       en: {
         nav_home: "Home", nav_doc: "Documentation", nav_lang: "Language", nav_mods: "Modules", nav_packages: "Packages",
+        hero_eyebrow: "Lightweight language · Go · Open source", hero_title: "Snow turns ideas into working code.", hero_primary: "Get started", hero_secondary: "Explore the LSP",
+        signal_syntax_title: "Clean syntax", signal_syntax_desc: "Indentation, clear expressions, and no braces.", signal_tools_title: "Native tools", signal_tools_desc: "HTTP, CLI, files, and packages in one language.", signal_lsp_title: "LSP ready", signal_lsp_desc: "Diagnostics and contextual completion for VS Code.",
         hdr_desc1: 'Snow is a lightweight, interpreted programming language built in Go. Clean syntax: no curly braces <code>{}</code> and no semicolons <code>;</code>.',
         hdr_desc2: 'Made by <strong>JDVA0</strong> · A personal project for fun and experimentation. Designed to prototype web APIs and scripts without hassle.',
         btn_install: "Installation guide",
