@@ -649,14 +649,19 @@ catch e:
         <p>Los errores del ejecutable muestran archivo, línea, columna, el código fuente y un marcador. Los diagnósticos se emiten en inglés para ofrecer una salida estable en terminales y CI.</p>
 
         <h3>Tipos graduales</h3>
-        <p>Las anotaciones son opcionales: el código sin anotaciones sigue siendo dinámico. Cuando una anotación existe, Snow valida el valor en ejecución.</p>
+        <p>Las anotaciones son opcionales: el código sin anotaciones sigue siendo dinámico. Cuando una anotación existe, Snow valida el valor en ejecución. Los tipos unión permiten representar valores alternativos.</p>
         <pre><code>age: int = 18
 name: str = "Ada"
-tags: str[] = ["snow", "cli"]</code></pre>
+tags: str[] = ["snow", "cli"]
+selected: int | nil = nil</code></pre>
 
         <h3>Paquetes locales</h3>
         <p>Crea <code>snow.toml</code> en la raíz y guarda los módulos en <code>src/</code>. El campo <code>source</code> es opcional y usa <code>src</code> por defecto.</p>
-        <pre><code># snow.toml
+        <pre><code># Imports explícitamente relativos
+import ./utils.slug
+import ../shared.validators
+
+# snow.toml
 name = "my_app"
 source = "src"
 
@@ -671,6 +676,21 @@ assert(2 + 2 == 4, "arithmetic must work")
 
 $ snowman test
 $ snowman test tests unit/math_test.snow</code></pre>
+
+        <h3>Gestor de paquetes <code>snowball</code></h3>
+        <p><code>snowball get</code> descarga siempre las bibliotecas oficiales desde el repositorio Snow en GitHub. <code>add</code> conserva soporte para dependencias por ruta; <code>get-local</code> se usa exclusivamente para instalar desde una carpeta local <code>repo/</code>.</p>
+        <pre><code>$ snowball init my_app
+$ snowball add text_tools ../text_tools
+$ snowball get snow/text.snow
+$ snowball get snow/math.snow
+$ snowball get-local snow/text.snow
+$ snowball list
+$ snowball remove text_tools
+
+# app.snow
+import snow.text
+print(text.slug("Hello Snow"))</code></pre>
+        <p>Bibliotecas iniciales: <code>snow/text.snow</code>, <code>snow/math.snow</code>, <code>snow/collections.snow</code> y <code>snow/validate.snow</code>. Para desarrollo local configura <code>SNOW_REPO</code> o ejecuta desde un subdirectorio que tenga <code>repo/</code> en un directorio padre.</p>
       </section>
 
       <!-- Asignación de campos -->

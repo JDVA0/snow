@@ -20,8 +20,8 @@ Usage:
   snowman eval <code>              evaluate a snippet
   snowman -e <code>                same as eval
   snowman fmt [-w] [file...]       format Snow source (stdout, or -w in place)
-  snowman check <file>             lint a .snow file (exit 1 when issues found)
-	  snowman test [path...]          run *_test.snow files (current directory by default)
+	  snowman check <file>                    lint a .snow file (exit 1 when issues found)
+	  snowman test [--filter text] [path...] run *_test.snow files
   snowman init [dir]               scaffold a new project (app.snow + README)
   snowman repl                     start an interactive session
   snowman -h, --help               show this help
@@ -176,7 +176,19 @@ func runCheck(args []string) error {
 }
 
 func runTests(args []string) error {
-	paths := args
+	filter := ""
+	var paths []string
+	for n := 0; n < len(args); n++ {
+		if args[n] == "--filter" {
+			if n+1 == len(args) {
+				return fmt.Errorf("test: --filter expects text")
+			}
+			filter = args[n+1]
+			n++
+			continue
+		}
+		paths = append(paths, args[n])
+	}
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
@@ -207,6 +219,15 @@ func runTests(args []string) error {
 		}
 	}
 	sort.Strings(files)
+	if filter != "" {
+		filtered := files[:0]
+		for _, file := range files {
+			if strings.Contains(file, filter) {
+				filtered = append(filtered, file)
+			}
+		}
+		files = filtered
+	}
 	if len(files) == 0 {
 		return fmt.Errorf("no Snow test files found (expected *_test.snow)")
 	}
@@ -227,6 +248,7 @@ func runTests(args []string) error {
 	if failed > 0 {
 		return fmt.Errorf("%d of %d test file(s) failed", failed, len(files))
 	}
+	fmt.Printf("PASS %d test file(s)\n", len(files))
 	return nil
 }
 

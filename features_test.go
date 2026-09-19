@@ -277,3 +277,65 @@ func TestProjectPackageImport(t *testing.T) {
 		t.Fatalf("package import output: got %q, want 42", got)
 	}
 }
+
+func TestRelativeImportsAndCycles(t *testing.T) {
+	tmp := t.TempDir()
+	if err := os.Mkdir(filepath.Join(tmp, "lib"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(tmp, "lib", "value.snow"), []byte("pub VALUE = 42\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	main := filepath.Join(tmp, "app.snow")
+	if err := os.WriteFile(main, []byte("import ./lib.value\nprint(value.VALUE)\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	i := New()
+	buf := &bytes.Buffer{}
+	i.Out(buf)
+	if err := i.RunFile(main); err != nil {
+		t.Fatalf("relative import failed: %v", err)
+	}
+	if got := strings.TrimSpace(buf.String()); got != "42" {
+		t.Fatalf("relative import output: got %q", got)
+	}
+	if err := os.WriteFile(filepath.Join(tmp, "a.snow"), []byte("import b\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(tmp, "b.snow"), []byte("import a\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := New().RunFile(filepath.Join(tmp, "a.snow")); err == nil || !strings.Contains(err.Error(), "import cycle detected") {
+		t.Fatalf("expected import cycle error, got %v", err)
+	}
+}
+
+func TestLocalDependencyImport(t *testing.T) {
+	root := t.TempDir()
+	dep := filepath.Join(root, "vendor", "strings")
+	if err := os.MkdirAll(filepath.Join(dep, "src"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dep, "snow.toml"), []byte("name = \"strings\"\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dep, "src", "format.snow"), []byte("pub fn title(s):\n    return upper(s)\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "snow.toml"), []byte("name = \"app\"\ndep.strings = \"vendor/strings\"\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	main := filepath.Join(root, "app.snow")
+	if err := os.WriteFile(main, []byte("import strings.format\nprint(format.title(\"snow\"))\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	i := New()
+	buf := &bytes.Buffer{}
+	i.Out(buf)
+	if err := i.RunFile(main); err != nil {
+		t.Fatalf("dependency import failed: %v", err)
+	}
+	if got := strings.TrimSpace(buf.String()); got != "SNOW" {
+		t.Fatalf("dependency import output: got %q", got)
+	}
+}

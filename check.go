@@ -210,6 +210,11 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 				return err
 			}
 		}
+		if t.Type != "" && len(t.Vals) == 1 {
+			if got := staticExprType(t.Vals[0]); got != "" && !staticTypeAccepts(t.Type, got) {
+				c.err(t.Pos, "type mismatch: declared %s, assigned %s", t.Type, got)
+			}
+		}
 		for _, n := range t.Names {
 			c.define(n, t.Pos)
 		}
@@ -341,6 +346,42 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 		}
 	}
 	return nil
+}
+
+// staticExprType intentionally only identifies values whose type is certain
+// without executing code. Runtime checks remain the authority for dynamic
+// expressions.
+func staticExprType(e Expr) string {
+	switch t := e.(type) {
+	case *NumLit:
+		if t.IsFloat {
+			return "float"
+		}
+		return "int"
+	case *StrLit, *FStrLit:
+		return "str"
+	case *BoolLit:
+		return "bool"
+	case *NilLit:
+		return "nil"
+	case *ListLit:
+		return "list"
+	case *DictLit:
+		return "dict"
+	}
+	return ""
+}
+
+func staticTypeAccepts(want, got string) bool {
+	if want == "any" || want == got {
+		return true
+	}
+	for _, option := range strings.Split(want, "|") {
+		if option == got {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *checker) walkExpr(e Expr) error {

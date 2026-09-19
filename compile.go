@@ -57,6 +57,7 @@ type Op struct {
 	Type       string   // declared gradual type for typed assignments (e.g. "str", "str[]")
 	ParamTypes []string // per-param types for OpMakeFn, "" when untyped
 	Ret        string   // declared return type for OpMakeFn, "" when untyped
+	Relative   int      // explicit relative import level for OpUse
 	Line       int
 	Col        int
 }
@@ -364,7 +365,7 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 		}
 		c.patch(jumpPastCatch, len(c.ops))
 	case *UseStmt:
-		c.emit(Op{Kind: OpUse, Name: t.Alias, Args: t.Path, Line: t.Line, Col: t.Col})
+		c.emit(Op{Kind: OpUse, Name: t.Alias, Args: t.Path, Relative: t.Relative, Line: t.Line, Col: t.Col})
 	case *MatchStmt:
 		tmp := fmt.Sprintf("_match%d", c.tmpN)
 		c.tmpN++

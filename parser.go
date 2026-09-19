@@ -23,9 +23,10 @@ type Program struct {
 
 type UseStmt struct {
 	Pos
-	Path   []string // snow.api or a/b (file module)
-	Alias  string
-	Import bool // import loads a .snow file; using may load stdlib or a file
+	Path     []string // snow.api or a/b (file module)
+	Alias    string
+	Import   bool // import loads a .snow file; using may load stdlib or a file
+	Relative int  // explicit ./ (1) or ../ (2+) import level
 }
 type AssignStmt struct {
 	Pos
@@ -583,7 +584,7 @@ func (p *parser) parseTypedAssign(vals []Expr) (Stmt, error) {
 
 func validTypeName(e string) bool {
 	switch e {
-	case "str", "int", "float", "bool", "dict", "list", "any":
+	case "str", "int", "float", "bool", "dict", "list", "nil", "any":
 		return true
 	}
 	return false
@@ -633,7 +634,8 @@ func (p *parser) parseUsing() (Stmt, error) {
 	return &UseStmt{Pos: Pos{st.Line, st.Col}, Path: path, Alias: alias}, nil
 }
 
-// parseImport parses an import statement. It follows the same dotted
+// parseImport parses an import statement. It follows dotted module paths and
+// explicit relative forms: import ./utils and import ../shared.helpers.
 // path syntax as using, but always resolves to a .snow file relative
 // to the current file's directory:
 //
@@ -641,6 +643,17 @@ func (p *parser) parseUsing() (Stmt, error) {
 //	import lib.utils as u
 func (p *parser) parseImport() (Stmt, error) {
 	st := p.next()
+	relative := 0
+	for p.peek().Kind == tDot {
+		relative++
+		p.next()
+	}
+	if relative > 0 {
+		if p.peek().Kind != tSlash {
+			return nil, p.errf(p.peek(), "expected '/' in relative import")
+		}
+		p.next()
+	}
 	first, err := p.expectIdent()
 	if err != nil {
 		return nil, err
@@ -663,7 +676,7 @@ func (p *parser) parseImport() (Stmt, error) {
 		}
 		alias = a
 	}
-	return &UseStmt{Pos{st.Line, st.Col}, path, alias, true}, nil
+	return &UseStmt{Pos: Pos{st.Line, st.Col}, Path: path, Alias: alias, Import: true, Relative: relative}, nil
 }
 
 // parseVisStmt parses a 'pub' or 'priv' visibility modifier applied to a
@@ -783,7 +796,7 @@ func (p *parser) parseOptReturn() (string, error) {
 	return p.parseType()
 }
 
-// parseType parses a type: a scalar (str, int, ...) or a list of them (str[]).
+// parseType parses a scalar, list, or union type: str, str[], str | nil.
 func (p *parser) parseType() (string, error) {
 	start := p.peek()
 	elem, err := p.expectIdent()
@@ -799,9 +812,19 @@ func (p *parser) parseType() (string, error) {
 			return "", p.errf(p.peek(), "expected ']' in type")
 		}
 		p.next()
-		return elem + "[]", nil
+		elem += "[]"
 	}
-	return elem, nil
+	parts := []string{elem}
+	for p.peek().Kind == tPipe {
+		p.next()
+		part, err := p.parseType()
+		if err != nil {
+			return "", err
+		}
+		parts = append(parts, part)
+		break
+	}
+	return strings.Join(parts, "|"), nil
 }
 
 func (p *parser) expectColon() (Tok, error) {

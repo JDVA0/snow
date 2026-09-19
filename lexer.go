@@ -54,6 +54,7 @@ const (
 	tQDot   // ?.
 	tQBrack // ?[
 	tQQEq   // ??=
+	tPipe   // | (union type)
 )
 
 // Tok is a single lexical token.
@@ -432,6 +433,9 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 			i++
 		case c == ':':
 			toks = append(toks, Tok{Kind: tColon, Line: ln, Col: i + 1})
+			i++
+		case c == '|':
+			toks = append(toks, Tok{Kind: tPipe, Line: ln, Col: i + 1})
 			i++
 		case isOp(c):
 			two := ""

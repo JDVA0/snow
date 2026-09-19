@@ -16,9 +16,10 @@ import (
 // A file can then import my_app.utils and Snow resolves src/utils.snow from
 // the project root. Relative imports continue to work unchanged.
 type Project struct {
-	Root   string
-	Name   string
-	Source string
+	Root         string
+	Name         string
+	Source       string
+	Dependencies map[string]string
 }
 
 func findProject(start string) (*Project, error) {
@@ -29,7 +30,7 @@ func findProject(start string) (*Project, error) {
 	for {
 		manifest := filepath.Join(dir, "snow.toml")
 		if b, err := os.ReadFile(manifest); err == nil {
-			p := &Project{Root: dir, Source: "src"}
+			p := &Project{Root: dir, Source: "src", Dependencies: map[string]string{}}
 			s := bufio.NewScanner(strings.NewReader(string(b)))
 			for s.Scan() {
 				line := strings.TrimSpace(strings.SplitN(s.Text(), "#", 2)[0])
@@ -46,6 +47,10 @@ func findProject(start string) (*Project, error) {
 					if val != "" {
 						p.Source = val
 					}
+				default:
+					if strings.HasPrefix(key, "dep.") {
+						p.Dependencies[strings.TrimPrefix(key, "dep.")] = val
+					}
 				}
 			}
 			if p.Name != "" {
@@ -60,15 +65,37 @@ func findProject(start string) (*Project, error) {
 	}
 }
 
-func resolveImportPath(fromDir string, path []string) string {
+func resolveImportPath(fromDir string, path []string, relative int) string {
+	if relative > 0 {
+		dir := fromDir
+		for n := 1; n < relative; n++ {
+			dir = filepath.Dir(dir)
+		}
+		return filepath.Join(dir, strings.Join(path, "/")+".snow")
+	}
 	rel := strings.Join(path, "/") + ".snow"
 	local := filepath.Join(fromDir, rel)
 	if _, err := os.Stat(local); err == nil {
 		return local
 	}
 	p, err := findProject(fromDir)
-	if err != nil || p == nil || len(path) < 2 || path[0] != p.Name {
+	if err != nil || p == nil || len(path) < 2 {
+		return local
+	}
+	if depRoot, ok := p.Dependencies[path[0]]; ok {
+		depRoot = filepath.Join(p.Root, depRoot)
+		return filepath.Join(depRoot, projectSource(depRoot), strings.Join(path[1:], "/")+".snow")
+	}
+	if path[0] != p.Name {
 		return local
 	}
 	return filepath.Join(p.Root, p.Source, strings.Join(path[1:], "/")+".snow")
+}
+
+func projectSource(root string) string {
+	p, err := findProject(root)
+	if err == nil && p != nil {
+		return p.Source
+	}
+	return "src"
 }

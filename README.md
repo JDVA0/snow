@@ -191,7 +191,35 @@ Los tests de Snow son scripts que terminan sin error. Usa `assert(condicion, [me
 ```bash
 snowman test
 snowman test tests unit/math_test.snow
+snowman test --filter math
 ```
+
+Los imports relativos explícitos eliminan ambigüedad entre módulos locales y paquetes:
+
+```python
+import ./utils.slug
+import ../shared.validators
+```
+
+Snow detecta ciclos de importación y muestra el módulo que se estaba cargando.
+
+### Gestor de paquetes `snowball`
+
+`snowball get` descarga siempre las bibliotecas oficiales desde el repositorio Snow en GitHub. Las dependencias por ruta siguen disponibles con `add`; `get-local` está reservado para desarrollar bibliotecas desde una carpeta `repo/` local.
+
+```bash
+snowball init my_app
+snowball add text_tools ../text_tools
+snowball list
+snowball remove text_tools
+snowball get snow/text.snow
+snowball get snow/math.snow
+snowball get-local snow/text.snow
+```
+
+`get` instala la biblioteca en `packages/snow/src/`, registra `dep.snow = "packages/snow"` y genera `snow.lock`. Después puedes usarla con `import snow.text`. Las bibliotecas iniciales son `snow/text.snow`, `snow/math.snow`, `snow/collections.snow` y `snow/validate.snow`.
+
+Para desarrollo local usa `snowball get-local` y configura `SNOW_REPO` apuntando a la carpeta `repo/`; sin esa variable, Snowball busca una carpeta `repo/` en los directorios padre.
 
 ---
 
@@ -466,7 +494,35 @@ Snow tests are scripts that complete without an error. Use `assert(condition, [m
 ```bash
 snowman test
 snowman test tests unit/math_test.snow
+snowman test --filter math
 ```
+
+Explicit relative imports remove ambiguity between local modules and packages:
+
+```python
+import ./utils.slug
+import ../shared.validators
+```
+
+Snow detects import cycles and reports the module that was being loaded.
+
+### `snowball` package manager
+
+`snowball get` always downloads official libraries from Snow's GitHub repository. Path dependencies remain available through `add`; `get-local` is reserved for developing libraries from a local `repo/` directory.
+
+```bash
+snowball init my_app
+snowball add text_tools ../text_tools
+snowball list
+snowball remove text_tools
+snowball get snow/text.snow
+snowball get snow/math.snow
+snowball get-local snow/text.snow
+```
+
+`get` installs the library in `packages/snow/src/`, writes `dep.snow = "packages/snow"`, and generates `snow.lock`. Import it with `import snow.text`. The initial libraries are `snow/text.snow`, `snow/math.snow`, `snow/collections.snow`, and `snow/validate.snow`.
+
+For local development use `snowball get-local` and set `SNOW_REPO` to the `repo/` directory; without it, Snowball searches parent directories for `repo/`.
 
 ---
 

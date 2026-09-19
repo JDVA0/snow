@@ -1364,6 +1364,13 @@ print(enabled)
 	if _, err := run(t, "age: int = 1\nage = \"old\""); err == nil {
 		t.Fatal("expected scalar type mismatch after reassignment")
 	}
+	check(t, `value: int | nil = nil
+value = 7
+print(value)
+`, "7")
+	if _, err := run(t, `value: int | nil = "wrong"`); err == nil {
+		t.Fatal("expected union type mismatch")
+	}
 }
 
 func TestFormatDiagnostic(t *testing.T) {
@@ -1382,6 +1389,19 @@ print("ok")
 	if _, err := run(t, `assert(false, "expected failure")`); err == nil || !strings.Contains(err.Error(), "expected failure") {
 		t.Fatalf("assert should report its message, got %v", err)
 	}
+}
+
+func TestCheckGradualTypes(t *testing.T) {
+	issues, err := Check(`age: int = "old"`, "types.snow")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, issue := range issues {
+		if issue.IsErr && strings.Contains(issue.Msg, "declared int, assigned str") {
+			return
+		}
+	}
+	t.Fatalf("expected static type mismatch, got %+v", issues)
 }
 
 func TestStackTraces(t *testing.T) {

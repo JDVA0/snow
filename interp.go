@@ -96,6 +96,7 @@ type Interp struct {
 	tryFrames []tryFrame
 	api       *APIServer
 	modules   map[string]Val
+	loading   map[string]bool
 	mu        sync.Mutex
 }
 
@@ -118,6 +119,7 @@ func New() *Interp {
 		out:      os.Stdout,
 		errOut:   os.Stderr,
 		modules:  map[string]Val{},
+		loading:  map[string]bool{},
 	}
 	i.env = NewEnv(nil)
 	for name, fn := range stdBuiltins() {
@@ -270,6 +272,14 @@ func (i *Interp) opErr(op Op, err error) error {
 func checkValType(v Val, typ string) error {
 	if typ == "" || typ == "any" {
 		return nil
+	}
+	if strings.Contains(typ, "|") {
+		for _, option := range strings.Split(typ, "|") {
+			if checkValType(v, option) == nil {
+				return nil
+			}
+		}
+		return fmt.Errorf("expected %s, got %s", strings.ReplaceAll(typ, "|", " or "), TypeName(v))
 	}
 	if strings.HasSuffix(typ, "[]") {
 		return checkTypedList(v, strings.TrimSuffix(typ, "[]"))
@@ -932,10 +942,13 @@ func (i *Interp) useOp(op Op) error {
 		i.env.vars[op.Name] = m
 		return nil
 	}
-	rel := resolveImportPath(i.dir, path)
+	rel := resolveImportPath(i.dir, path, op.Relative)
 	if m, ok := i.modules[rel]; ok {
 		i.env.vars[op.Name] = m
 		return nil
+	}
+	if i.loading[rel] {
+		return fmt.Errorf("import cycle detected while loading '%s'", rel)
 	}
 	b, err := os.ReadFile(rel)
 	if err != nil {
@@ -945,6 +958,10 @@ func (i *Interp) useOp(op Op) error {
 		return err
 	}
 	sub := New()
+	sub.modules = i.modules
+	sub.loading = i.loading
+	i.loading[rel] = true
+	defer delete(i.loading, rel)
 	sub.out, sub.errOut = i.out, i.errOut
 	sub.argv = i.argv
 	sub.dir = filepath.Dir(rel)
