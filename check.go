@@ -56,8 +56,12 @@ func legacySyntaxPosition(src string) (int, int, bool) {
 		if trimmed == "" || strings.HasPrefix(trimmed, "#") || !strings.HasSuffix(trimmed, ":") {
 			continue
 		}
+		header := trimmed
+		if strings.HasPrefix(header, "pub ") || strings.HasPrefix(header, "priv ") {
+			header = strings.TrimSpace(strings.TrimPrefix(strings.TrimPrefix(header, "pub "), "priv "))
+		}
 		for _, keyword := range []string{"fn ", "if ", "elif ", "else", "for ", "while ", "try", "catch ", "always", "match ", "case ", "with "} {
-			if strings.HasPrefix(trimmed, keyword) {
+			if strings.HasPrefix(header, keyword) {
 				return lineNumber + 1, len(raw) + 1, true
 			}
 		}

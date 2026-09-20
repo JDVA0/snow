@@ -1626,7 +1626,7 @@ func TestDiagnosticCodes(t *testing.T) {
 }
 
 func TestStaticInferenceAndLegacyWarning(t *testing.T) {
-	issues, err := Check("fn add(a, b):\n    return a + b\n\nlet count = 1\ncount = \"wrong\"\n", "legacy.blizz")
+	issues, err := Check("pub fn add(a, b):\n    return a + b\n\nlet count = 1\ncount = \"wrong\"\n", "legacy.blizz")
 	if err != nil {
 		t.Fatal(err)
 	}

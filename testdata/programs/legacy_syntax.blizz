@@ -1,0 +1,4 @@
+pub fn legacy_main():
+    print("legacy syntax works")
+
+legacy_main()
