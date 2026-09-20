@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El Lenguaje de Programación Snow &middot; Edición en español</title>
+<meta name="description" content="El libro completo del lenguaje de programación Snow. Edición en español, con un lector con zoom de página.">
+<link rel="icon" type="image/svg+xml" href="../snowflake.svg">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body data-lang="es"
+      data-book="El Lenguaje de Programación Snow"
+      data-short="Snow"
+      data-home="../"
+      data-other-label="Read in English"
+      data-other-url="../en/">
+
+<div id="stage"><div id="sheets"></div></div>
+
+<main id="matter">
+
+  <!-- ============================ PORTADA ============================ -->
+  <div class="cover">
+    <div class="title-block">
+      <img class="mark" src="../snowflake.svg" width="104" height="104" alt="Copo de nieve">
+      <div class="engine">El Lenguaje de Programación Snow &middot; Edición en español</div>
+      <h1>Snow: la referencia <em>completa</em></h1>
+      <hr class="title-rule">
+      <p class="title-sub">Un pequeño lenguaje interpretado para scripts, herramientas de línea de comandos, APIs web y automatización &mdash; cada valor, operador, función incorporada, módulo y herramienta, explicado en detalle.</p>
+      <div class="title-version">Versión 0.1</div>
+    </div>
+    <div class="title-press">Código abierto bajo la licencia MIT &middot; Escrito en Go por <code>JDVA0</code></div>
+  </div>
+
+  <!-- ============================ CONTENIDOS ============================ -->
+  <nav class="toc" id="toc">
+    <div class="kicker">Tabla de contenidos</div>
+    <h2>Contenidos</h2>
+    <ol>
+      <li><a href="#foreword"><span class="num">i</span><span class="title">Prólogo</span></a></li>
+      <li><a href="#ch1"><span class="num">1</span><span class="title">Empieza aquí</span></a></li>
+      <li><a href="#ch2"><span class="num">2</span><span class="title">El modelo del lenguaje</span></a></li>
+      <li><a href="#ch3"><span class="num">3</span><span class="title">El texto fuente</span></a></li>
+      <li><a href="#ch4"><span class="num">4</span><span class="title">Valores</span></a></li>
+      <li><a href="#ch5"><span class="num">5</span><span class="title">Operadores</span></a></li>
+      <li><a href="#ch6"><span class="num">6</span><span class="title">Asignaciones y desestructuración</span></a></li>
+      <li><a href="#ch7"><span class="num">7</span><span class="title">Funciones</span></a></li>
+      <li><a href="#ch8"><span class="num">8</span><span class="title">Control de flujo</span></a></li>
+      <li><a href="#ch9"><span class="num">9</span><span class="title">Errores y limpieza</span></a></li>
+      <li><a href="#ch10"><span class="num">10</span><span class="title">Módulos e importaciones</span></a></li>
+      <li><a href="#ch11"><span class="num">11</span><span class="title">Funciones incorporadas</span></a></li>
+      <li><a href="#ch12"><span class="num">12</span><span class="title">La biblioteca estándar</span></a></li>
+      <li><a href="#ch13"><span class="num">13</span><span class="title">Herramientas de línea de comandos</span></a></li>
+      <li><a href="#ch14"><span class="num">14</span><span class="title">Proyectos y paquetes</span></a></li>
+      <li><a href="#ch15"><span class="num">15</span><span class="title">Editor y servidor de lenguaje</span></a></li>
+      <li><a href="#ch16"><span class="num">16</span><span class="title">Un recorrido completo</span></a></li>
+      <li><a href="#ch17"><span class="num">17</span><span class="title">Referencia rápida</span></a></li>
+    </ol>
+  </nav>
+
+  <!-- ============================ PRÓLOGO ============================ -->
+  <section class="chapter" id="@foreword">
+    <header class="chap-head" id="foreword">
+      <div class="chap-kicker">Prólogo</div>
+      <h2>Por qué un lenguaje pequeño</h2>
+    </header>
+
+    <p class="lead">Snow existe para construir programas útiles con menos ceremonias. Es un lenguaje pequeño e interpretado: booleanos, números, cadenas, listas, diccionarios, funciones y módulos son casi todo lo que tiene, y casi todo el mundo exterior se alcanza a través de un módulo que cargas con <code>using</code>.</p>
+
+    <p>Este libro explica todo el lenguaje, de forma completa y explícita. Cada valor, cada operador, cada función incorporada, cada módulo y cada herramienta se describe con su comportamiento exacto y al menos un ejemplo verificable. Cuando una regla es sutil &mdash; la división que siempre devuelve un flotante, un respaldo que solo actúa sobre <code>nil</code>, condiciones que deben ser booleanos reales &mdash; se dice en voz alta en lugar de dejarlo a la intuición.</p>
+
+    <p>La mejor manera de leerlo es con el intérprete abierto. Todos los listados de este libro están pensados para ejecutarse. Escríbelos, ejecútalos, cámbialos, rómpelos y lee lo que dice el error: los errores de Snow señalan la línea, la columna y la construcción exacta.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 1 ============================ -->
+  <section class="chapter" id="@ch1">
+    <header class="chap-head" id="ch1">
+      <div class="chap-kicker">1 &middot; Orientación</div>
+      <h2>Empieza aquí</h2>
+    </header>
+
+    <p class="lead">Un programa de Snow es un archivo de texto que se lee de arriba a abajo. Las sentencias asignan valores, llaman funciones, importan módulos, definen funciones o controlan la ejecución. Los bloques empiezan después de dos puntos y usan cuatro espacios de sangría; no hay llaves ni palabras clave de cierre, así que la forma del archivo es la forma del programa.</p>
+
+    <h3><span class="hnum">1.1</span>Tu primer programa</h3>
+    <p>Guarda este archivo como <code>hello.snow</code>:</p>
+
+    <figure class="listing">
+      <figcaption>Listado 1 &middot; Hola, Snow</figcaption>
+      <pre><code>print("Hello from Snow")
+name = "snow"
+print("Running: " + name)</code></pre>
+    </figure>
+
+    <p>Ejecútalo con el comando <code>snowman</code>:</p>
+
+    <pre><code>snowman hello.snow</code></pre>
+
+    <p><code>print</code> escribe sus argumentos en la terminal, separados por un espacio y seguidos de un salto de línea. La segunda línea asigna la cadena <code>"snow"</code> al nombre <code>name</code>. La tercera línea concatena dos cadenas con <code>+</code> e imprime <code>Running: snow</code>.</p>
+
+    <h3><span class="hnum">1.2</span>Experimentar en el REPL</h3>
+    <p>El REPL lee una sentencia cada vez, la evalúa e imprime el resultado.</p>
+
+    <pre><code>snowman repl</code></pre>
+
+    <p>Dentro verás el prompt <code>snow&gt;</code>. Escribe <code>2 + 2</code>, pulsa Enter y responderá <code>4</code> con un tinte amarillo. Un encabezado de bloque, como el de abajo, mantiene el prompt abierto hasta que termines el bloque con una línea en blanco; la sangría se añade por ti.</p>
+
+    <pre><code>snow&gt; pub fn cal(a, b):
+...&gt;     for i in range(a, b):
+...&gt;         print(i * 2)
+...&gt;
+0
+2</code></pre>
+
+    <p>La línea en blanco cierra el bloque y el cuerpo de la función se ejecuta. Para un experimento rápido sin guardar un archivo, también puedes evaluar una cadena directamente:</p>
+
+    <pre><code>snowman eval 'print("hi")'
+snowman -e 'print(6 * 7)'</code></pre>
+
+    <h3><span class="hnum">1.3</span>Leer los errores</h3>
+    <p>Los errores son precisos. Un error de análisis muestra el archivo, la línea, la columna y un caret bajo el carácter que lo provoca:</p>
+
+    <pre><code>examples/test.snow:2:1: error: expected an indented block after the 'fn' statement
+    fn add(a, b):
+    ^</code></pre>
+
+    <p>El mensaje nombra el archivo, la línea y la columna después del número de línea, te dice exactamente lo que el analizador esperaba e imprime la línea culpable con un caret en la posición del error. Los errores en tiempo de ejecución llevan el archivo, la línea, la columna y &mdash; si no se capturan &mdash; un rastro de pila.</p>
+
+    <h3><span class="hnum">1.4</span>La estructura de un proyecto, de un vistazo</h3>
+    <p>Para algo más grande que un archivo suelto, sigue la convención: el código fuente en <code>src/</code>, las pruebas en archivos cuyo nombre termine en <code>_test.snow</code> y la configuración en <code>snow.toml</code>. Ejecuta un proyecto completo con <code>snowman run</code>, que elige <code>src/main.snow</code> automáticamente.</p>
+
+    <pre><code>snowman init my_app
+cd my_app
+snowman run</code></pre>
+
+    <p>Cada pieza se explica en profundidad en el capítulo 14.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 2 ============================ -->
+  <section class="chapter" id="@ch2">
+    <header class="chap-head" id="ch2">
+      <div class="chap-kicker">2 &middot; Diseño</div>
+      <h2>El modelo del lenguaje</h2>
+    </header>
+
+    <p class="lead">Snow sigue un breve pipeline de ejecución: tokenizar, analizar, comprobar, compilar, interpretar. Cada etapa tiene exactamente un trabajo y cada fallo lleva una ubicación precisa. Entender este pipeline te ayudará a interpretar los errores que veas.</p>
+
+    <ul>
+      <li><b>Tokenizador.</b> Convierte el texto fuente en tokens. La sangría, los números, las cadenas, las f-strings y los operadores son su responsabilidad.</li>
+      <li><b>Analizador.</b> Construye el árbol del programa. Sus errores significan que el texto no pudo convertirse en un programa en absoluto &mdash; estos son los errores más comunes para principiantes.</li>
+      <li><b>Comprobador.</b> Inspecciona nombres, tipos, módulos y código inalcanzable sin ejecutar el programa. Es el análisis estático que hay detrás de <code>snowman check</code> y de los diagnósticos del editor.</li>
+      <li><b>Compilador.</b> Emite operaciones para una máquina virtual.</li>
+      <li><b>Intérprete.</b> Ejecuta las operaciones. Los fallos en tiempo de ejecución se informan con la ubicación en el código y, si no se capturan, llevan un rastro de pila.</li>
+    </ul>
+
+    <h3><span class="hnum">2.1</span>Dinámico por defecto</h3>
+    <p>Los nombres no necesitan anotaciones. La misma variable puede contener un entero y luego una cadena. Los tipos no son decoraciones opcionales de un contrato fijo: son <em>graduales</em>. Puedes añadir anotaciones en las fronteras donde un contrato tiene valor, y Snow las comprueba en tiempo de ejecución.</p>
+
+    <pre><code>value = 10
+value = "now a string"</code></pre>
+
+    <h3><span class="hnum">2.2</span>Valores en lugar de clases</h3>
+    <p>No hay clases. Las listas, los diccionarios, las funciones, los módulos y los valores nativos se combinan directamente, y los datos siempre están a la vista: un diccionario es el registro, una lista es la secuencia, una función es el comportamiento.</p>
+
+    <h3><span class="hnum">2.3</span>Efectos explícitos</h3>
+    <p>El acceso a la red, los archivos, los procesos y el entorno viven en módulos (<code>http</code>, <code>fs</code>, <code>sys</code>). Un programa que toca el mundo exterior tiene que decirlo. Esto mantiene los efectos secundarios visibles y hace los scripts predecibles.</p>
+
+    <h3><span class="hnum">2.4</span>Análisis estático sin ejecutar</h3>
+    <p>Como el comprobador nunca ejecuta el código, <code>snowman check file.snow</code> informa de nombres indefinidos, variables sin usar, código inalcanzable, módulos desconocidos y desajustes de tipo de forma instantánea y segura &mdash; sin llamadas de red ni cambios de archivos.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 3 ============================ -->
+  <section class="chapter" id="@ch3">
+    <header class="chap-head" id="ch3">
+      <div class="chap-kicker">3 &middot; El texto</div>
+      <h2>El texto fuente</h2>
+    </header>
+
+    <p class="lead">Este capítulo cubre la materia prima de un programa de Snow: comentarios, nombres, palabras clave, sangría, números y las tres maneras de escribir una cadena.</p>
+
+    <h3><span class="hnum">3.1</span>Comentarios</h3>
+    <p>Un comentario empieza con <code>#</code> y llega hasta el final de la línea. Los comentarios se ignoran y pueden aparecer después del código.</p>
+
+    <pre><code># un comentario de línea completa
+count = 1  # un comentario al final
+</code></pre>
+
+    <h3><span class="hnum">3.2</span>Nombres y palabras clave</h3>
+    <p>Los nombres contienen letras, dígitos y guiones bajos, y no pueden empezar por un dígito. Se permiten letras Unicode en los nombres. Los nombres distinguen mayúsculas: <code>count</code> y <code>Count</code> son variables distintas.</p>
+
+    <p>Las siguientes palabras están reservadas y no pueden usarse como nombres:</p>
+
+    <pre><code>using import pub priv const as
+fn return if elif else for in where while break continue
+and or not try catch always match case with</code></pre>
+
+    <p>Esa es la lista completa de palabras clave. <code>true</code>, <code>false</code> y <code>nil</code> son valores, no palabras clave.</p>
+
+    <h3><span class="hnum">3.3</span>Sangría y diseño</h3>
+    <p>Los bloques empiezan después de dos puntos y usan cuatro espacios de sangría. Las líneas con la misma sangría forman un bloque; un cambio de sangría abre o cierra bloques. Un bloque con sangría también puede aparecer en la misma línea después de los dos puntos.</p>
+
+    <pre><code>fn double(x): x * 2
+if ready: print("go")</code></pre>
+
+    <p>Un punto y coma puede separar sentencias en una misma línea:</p>
+
+    <pre><code>a = 1; b = 2; print(a + b)</code></pre>
+
+    <p>Las expresiones largas pueden continuar dentro de <code>(&nbsp;)</code>, <code>[&nbsp;]</code>, <code>{&nbsp;}</code> y <code>?[</code> sin un carácter de continuación.</p>
+
+    <h3><span class="hnum">3.4</span>Números</h3>
+    <p>Los enteros pueden escribirse en decimal o en otra base. Los flotantes llevan un punto decimal y pueden terminar en uno.</p>
+
+    <pre><code>decimal     = 42
+binary      = 0b1010
+octal       = 0o17
+hexadecimal = 0xFF
+float_value = 3.14
+trailing    = 9.</code></pre>
+
+    <p>Las bases también aceptan prefijos en mayúsculas (<code>0X</code>, <code>0B</code>, <code>0O</code>). Un dígito inválido para la base es un error, así que <code>0b102</code> y <code>0o8</code> no se analizan.</p>
+
+    <h3><span class="hnum">3.5</span>Cadenas</h3>
+    <p>Las comillas dobles y simples son equivalentes. Los únicos escapes son <code>\n</code> (salto de línea), <code>\t</code> (tabulador), <code>\r</code> (retorno de carro), <code>\\</code> (barra invertida), <code>\"</code> y <code>\'</code>. Cualquier otra secuencia con barra invertida es un error.</p>
+
+    <pre><code>a = "double"
+b = 'single'
+c = "line one\ntab\there"</code></pre>
+
+    <h3><span class="hnum">3.6</span>Cadenas entre triples comillas</h3>
+    <p>Las cadenas entre triples comillas pueden ocupar varias líneas y conservan sus saltos de línea.</p>
+
+    <pre><code>poem = """
+On the snow
+a single line
+of code.
+"""</code></pre>
+
+    <h3><span class="hnum">3.7</span>F-strings</h3>
+    <p>Una <code>f</code> antes de la comilla de apertura crea una f-string: <code>{expresión}</code> dentro se evalúa y su resultado se inserta. Las llaves se anidan contando profundidad, así que <code>f"{ {a: 1} }"</code> funciona. Usa <code>{{</code> y <code>}}</code> para llaves literales. Combina <code>f</code> con triples comillas para interpolar en varias líneas.</p>
+
+    <pre><code>user = "Ada"
+age = 36
+print(f"Hello, {user}!")
+print(f"{user} is {age} years old.")
+print(f"Curly: {{ {user} }}")</code></pre>
+
+    <p>La salida es <code>Hello, Ada!</code>, luego <code>Ada is 36 years old.</code> y luego <code>Curly: { Ada }</code>. Las f-strings funcionan con comillas dobles, simples y triples (<code>f"&hellip;"</code>, <code>f'&hellip;'</code>, <code>f"""&hellip;"""</code>).</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 4 ============================ -->
+  <section class="chapter" id="@ch4">
+    <header class="chap-head" id="ch4">
+      <div class="chap-kicker">4 &middot; Los sustantivos</div>
+      <h2>Valores</h2>
+    </header>
+
+    <p class="lead">Todo en Snow es un valor. Hay diez clases: <code>nil</code>, booleanos, enteros, flotantes, cadenas, listas, diccionarios, funciones, módulos y valores nativos. Este capítulo define cada uno con precisión.</p>
+
+    <h3><span class="hnum">4.1</span>nil</h3>
+    <p><code>nil</code> representa la ausencia. No es un error por sí mismo: las funciones pueden devolverlo, y los operadores nullish lo tratan de forma especial. Una variable de entorno sin definir, una clave de diccionario ausente bajo acceso seguro y un <code>first</code> con resultado vacío producen <code>nil</code>.</p>
+
+    <h3><span class="hnum">4.2</span>Booleanos, enteros y flotantes</h3>
+    <pre><code>on = true
+off = false
+n = 42
+p = 3.14159</code></pre>
+
+    <p>Los enteros son números enteros de ancho arbitrario. Los flotantes son dobles IEEE-754. Un entero y un flotante son iguales cuando tienen el mismo valor: <code>1 == 1.0</code> es <code>true</code>.</p>
+
+    <h3><span class="hnum">4.3</span>Cadenas</h3>
+    <p>Las cadenas son secuencias de caracteres y se indexan por carácter, no por byte. Los índices negativos cuentan desde el final. El corte usa rangos semiabiertos <code>[start:end]</code> y respeta caracteres Unicode.</p>
+
+    <pre><code>s = "hello"
+print(s[1])      # e
+print(s[-1])     # o
+print(s[1:4])    # ell
+print(len(s))    # 5</code></pre>
+
+    <p>Los métodos de cadena que conoces de otros lenguajes son aquí funciones normales: usa <code>upper(s)</code>, <code>lower(s)</code> y <code>trim(s)</code>, no <code>s.upper()</code>.</p>
+
+    <h3><span class="hnum">4.4</span>Listas</h3>
+    <p>Las listas guardan cualquier valor en orden. Son mutables: puedes asignar a través de un índice. La indexación admite negativos y cortes, igual que las cadenas.</p>
+
+    <pre><code>items = [10, 20, 30]
+print(items[0])   # 10
+print(items[-1])  # 30
+print(items[1:])  # [20, 30]
+items[1] = 99     # muta en el lugar
+print(items)      # [10, 99, 30]</code></pre>
+
+    <p>Una lista puede contener tipos mezclados y otras listas:</p>
+
+    <pre><code>mix = [1, "two", [3, 4], {"five": 5}]</code></pre>
+
+    <h3><span class="hnum">4.5</span>Diccionarios</h3>
+    <p>Un diccionario asocia claves con valores y recuerda el orden de inserción. En los literales, las claves pueden escribirse sin comillas. Accede a un atributo con un punto, a una clave con corchetes, asigna claves nuevas libremente e itera en orden de inserción.</p>
+
+    <pre><code>config = {"theme": "dark"}
+config.timeout = 30
+config["region"] = "us"
+print(config)             # {theme: dark, timeout: 30, region: us}
+print(config.theme)       # dark
+print(config["timeout"])  # 30</code></pre>
+
+    <p>Leer una clave que no existe con acceso normal es un error: <code>config.nope</code> lanza <code>key not found: nope</code>. Para leer datos opcionales de forma segura usa los operadores nullish y de acceso seguro del capítulo 5, o <code>get(config, "nope")</code>, que devuelve <code>nil</code>.</p>
+
+    <h3><span class="hnum">4.6</span>Funciones, módulos y valores nativos</h3>
+    <p>Las funciones son valores que defines con <code>fn</code> o escribes como lambdas (capítulo 7). Los módulos son espacios de nombres que devuelven <code>using</code> e <code>import</code> (capítulo 10). Los valores nativos son objetos que proporciona el anfitrión, como el <code>store</code> que devuelve <code>db.open</code> (capítulo 12) y las respuestas HTTP.</p>
+
+    <h3><span class="hnum">4.7</span>Conocer el tipo</h3>
+    <p><code>type(x)</code> devuelve la clase de un valor como una cadena. Los nombres posibles son: <code>nil</code>, <code>bool</code>, <code>int</code>, <code>float</code>, <code>str</code>, <code>list</code>, <code>dict</code>, <code>fn</code>, <code>module</code>, <code>native</code> y <code>response</code>.</p>
+
+    <pre><code>print(type(42))       # int
+print(type([1, 2]))   # list
+print(type({}))       # dict
+print(type(nil))      # nil</code></pre>
+
+    <h3><span class="hnum">4.8</span>Cómo se imprimen los valores</h3>
+    <p><code>print</code> muestra los valores directamente. Las listas se imprimen como <code>[a, b]</code>, los diccionarios como <code>{key: value}</code>, y el contenido de las cadenas dentro de colecciones se imprime sin comillas.</p>
+
+    <pre><code>print(["a", "b"])              # [a, b]
+print(keys({a: 1}))            # [a]
+print({"name": "snow", "n": 2})# {name: snow, n: 2}</code></pre>
+
+    <p>Los flotantes se imprimen en la forma más corta que conserva el valor: <code>3.5</code>, <code>0.2</code>, <code>2.5</code>.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 5 ============================ -->
+  <section class="chapter" id="@ch5">
+    <header class="chap-head" id="ch5">
+      <div class="chap-kicker">5 &middot; Los verbos</div>
+      <h2>Operadores</h2>
+    </header>
+
+    <p class="lead">Los operadores combinan valores en expresiones. Snow usa palabras para la lógica (<code>and</code>, <code>or</code>, <code>not</code>, <code>in</code>) y símbolos para la aritmética, las comparaciones y el manejo de nullish. Este capítulo es la especificación precisa.</p>
+
+    <h3><span class="hnum">5.1</span>Precedencia, del más laxo al más estricto</h3>
+    <table>
+      <tr><th>Nivel</th><th>Operadores</th><th>Notas</th></tr>
+      <tr><td>Condicional</td><td><code>x if cond else y</code></td><td>El ternario, leído en voz alta.</td></tr>
+      <tr><td>O lógico</td><td><code>or</code></td><td>Hace cortocircuito; necesita booleanos.</td></tr>
+      <tr><td>Nullish</td><td><code>??</code></td><td>Respaldo solo para <code>nil</code>.</td></tr>
+      <tr><td>Y lógico</td><td><code>and</code></td><td>Hace cortocircuito; necesita booleanos.</td></tr>
+      <tr><td>NO</td><td><code>not</code></td><td>Niega un booleano.</td></tr>
+      <tr><td>Comparación</td><td><code>== != &lt; &lt;= &gt;=</code>, <code>in</code>, <code>not in</code></td><td>Se permiten cadenas.</td></tr>
+      <tr><td>Aditivo</td><td><code>+ -</code></td><td>El signo más también concatena.</td></tr>
+      <tr><td>Multiplicativo</td><td><code>* / // %</code></td><td>Fíjate en la división entera.</td></tr>
+      <tr><td>Potencia</td><td><code>**</code></td><td>Asociativa por la derecha.</td></tr>
+      <tr><td>Unario</td><td><code>- +</code>, <code>not</code></td><td>Se aplica a la siguiente expresión.</td></tr>
+      <tr><td>Postfijo</td><td><code>call()</code>, <code>[]</code>, <code>?[]</code>, <code>.</code>, <code>?.</code>, cortes</td><td>Acceso y cortes.</td></tr>
+    </table>
+
+    <h3><span class="hnum">5.2</span>Aritmética</h3>
+    <pre><code>print(7 + 2)   # 9
+print(7 - 2)   # 5
+print(7 * 2)   # 14
+print(7 / 2)   # 3.5   (nunca es división entera)
+print(7 // 2)  # 3     (división entera con piso)
+print(7 % 2)   # 1</code></pre>
+
+    <p>La división con <code>/</code> siempre devuelve un flotante: <code>7 / 2</code> es <code>3.5</code>, no <code>3</code>. Usa <code>//</code> para la división con piso. El operador módulo <code>%</code> toma el signo del dividendo: <code>-7 % 2</code> es <code>1</code>, y <code>-7 // 2</code> es <code>-4</code> (piso, no truncamiento).</p>
+
+    <p>El operador de potencia es asociativo por la derecha y nunca sorprende:</p>
+
+    <pre><code>print(2 ** 10)    # 1024
+print(2 ** 3 ** 2)# 512   (2 ** (3 ** 2))
+print(2 ** 0.5)   # 1.4142135623730951</code></pre>
+
+    <p><code>+</code> concatena cadenas, pega listas y fusiona diccionarios; <code>*</code> repite cadenas un número no negativo de veces.</p>
+
+    <pre><code>print("snow" + "fall")   # snowfall
+print("ab" * 3)          # ababab
+print([1, 2] + [3])      # [1, 2, 3]</code></pre>
+
+    <h3><span class="hnum">5.3</span>Comparaciones</h3>
+    <p>Las comparaciones funcionan sobre números (los enteros y los flotantes son comparables entre sí), cadenas (lexicográfico) y booleanos (<code>false</code> es menor que <code>true</code>). Las cadenas de comparaciones se evalúan tal como se leen:</p>
+
+    <pre><code>print(1 &lt; 2 and 2 &lt; 3)   # true
+print(3 &gt;= 3)             # true
+print("abc" &lt; "abd")      # true</code></pre>
+
+    <p>La igualdad es profunda: las listas y los diccionarios se comparan valor a valor. Mezclar clases incomparables lanza un error: usa <code>type()</code> para comprobar primero si tienes dudas.</p>
+
+    <h3><span class="hnum">5.4</span>Lógica y pertenencia</h3>
+    <pre><code>print(true and false)     # false
+print(not false)          # true
+print("ow" in "snow")     # true  (subcadena)
+print(3 in [1, 2, 3])     # true  (pertenencia en lista)
+print("x" not in {a: 1})  # true  (prueba de clave en diccionario)
+print(false or 2 == 2)    # true</code></pre>
+
+    <p><code>and</code> y <code>or</code> hacen cortocircuito: el segundo operando solo se evalúa si hace falta. También exigen que ambos operandos sean booleanos. <code>in</code> y <code>not in</code> son operadores de comparación: subcadena en cadenas, pertenencia profunda en listas, prueba de clave en diccionarios y módulos.</p>
+
+    <h3><span class="hnum">5.5</span>Nullish: ?? y ??=</h3>
+    <p><code>??</code> devuelve su lado derecho solo cuando el izquierdo es <code>nil</code>. El cero y <code>false</code> pasan intactos. <code>??=</code> asigna el lado derecho solo si el izquierdo es nil.</p>
+
+    <pre><code>x = nil
+print(x ?? "fallback")    # fallback
+print(0 ?? "nope")        # 0
+print(false ?? "nope")    # false
+x ??= "assigned"
+print(x)                  # assigned</code></pre>
+
+    <h3><span class="hnum">5.6</span>Acceso seguro: ?. y ?[</h3>
+    <p>El acceso normal lanza un error ante una clave que falta o un índice fuera de rango. El acceso seguro devuelve <code>nil</code> en su lugar, y una cadena se detiene en el primer valor ausente:</p>
+
+    <pre><code>user = {name: "ada"}
+print(user?.name)     # ada
+print(user?.age)      # nil
+print(user?.a?.b)     # nil   (la cadena se detiene antes)
+items = [1, 2, 3]
+print(items?[9])      # nil
+print(items?[1])      # 2</code></pre>
+
+    <p>Los operadores nullish y de acceso seguro trabajan juntos de forma natural para datos opcionales: <code>user?.email ?? "no email"</code>.</p>
+
+    <h3><span class="hnum">5.7</span>El operador ternario</h3>
+    <p>La expresión condicional se lee <code>value if condition else other</code>. Solo se evalúa la rama elegida.</p>
+
+    <pre><code>active = true
+status = "on" if active else "off"
+print(status)          # on</code></pre>
+
+    <h3><span class="hnum">5.8</span>Asignación compuesta</h3>
+    <p>Los operadores de asignación aumentada <code>+= -= *= /= //= %= ??=</code> aplican el operador y guardan el resultado de nuevo en un único nombre.</p>
+
+    <pre><code>n = 100
+n += 20     # 120
+n *= 2      # 240
+n //= 7     # 34
+print(n)    # 34</code></pre>
+  </section>
+
+  <!-- ============================ CAPÍTULO 6 ============================ -->
+  <section class="chapter" id="@ch6">
+    <header class="chap-head" id="ch6">
+      <div class="chap-kicker">6 &middot; Dar significado a los nombres</div>
+      <h2>Asignaciones y desestructuración</h2>
+    </header>
+
+    <p class="lead">La asignación vincula un valor con un nombre. Snow ofrece asignación simple, asignación múltiple, asignación con tipo, constantes, desestructuración y asignación a través de atributos o índices. Cada una tiene una forma específica.</p>
+
+    <h3><span class="hnum">6.1</span>Asignar un valor</h3>
+    <pre><code>count = 1
+name = "snow"
+</code></pre>
+
+    <h3><span class="hnum">6.2</span>Asignar varios nombres a la vez</h3>
+    <p>Escribe varios nombres a la izquierda y el mismo número de valores a la derecha:</p>
+
+    <pre><code>a, b = 1, 2
+print(a, b)      # 1 2
+
+apple, banana = banana, apple   # intercambia en un solo paso</code></pre>
+
+    <h3><span class="hnum">6.3</span>Asignación con tipo</h3>
+    <p>Un nombre puede llevar un tipo que Snow comprueba en tiempo de ejecución: <code>name: type = value</code>. Los tipos admitidos son <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>, <code>dict</code>, <code>list</code>, <code>nil</code>, <code>any</code>, uniones como <code>int|float</code> y listas con tipo como <code>str[]</code>.</p>
+
+    <pre><code>age: int = 30
+names: str[] = ["Ada", "Linus"]
+either: int|float = 1.5
+
+age = "thirty"           # error en tiempo de ejecución: expected int, received str</code></pre>
+
+    <p>Una lista con tipo comprueba cada elemento en tiempo de ejecución:</p>
+
+    <pre><code>nombres: str[] = ["Julian", "Ana"]
+nombres = ["Julian", 5]  # error: element 1: expected str, received int</code></pre>
+
+    <h3><span class="hnum">6.4</span>Constantes</h3>
+    <p><code>const</code> marca un nombre como inmutable. Reasignarlo lanza un error en tiempo de ejecución.</p>
+
+    <pre><code>const PORT = 8080
+PORT = 9000    # error: const cannot be reassigned</code></pre>
+
+    <h3><span class="hnum">6.5</span>Desestructurar listas</h3>
+    <p>Desempaqueta un solo valor en varios nombres con patrones de corchetes:</p>
+
+    <pre><code>[first, second] = [10, 20]
+print(first, second)      # 10 20
+
+head, rest = [1, 2, 3]    # el patrón se ajusta a lo que hay
+print(head)               # 1
+print(rest)               # 2  (rest es el segundo elemento)</code></pre>
+
+    <p>Una coma final o nombres de más manejan la cola:</p>
+
+    <pre><code>[a, b, c] = [1, 2, 3, 4]  # ignora el resto
+print(a + b + c)            # 6</code></pre>
+
+    <h3><span class="hnum">6.6</span>Desestructurar diccionarios</h3>
+    <p>Las llaves extraen claves nombradas de un diccionario:</p>
+
+    <pre><code>point = {x: 10, y: 20}
+{x, y} = point
+print(x, y)      # 10 20</code></pre>
+
+    <h3><span class="hnum">6.7</span>Asignar a través de atributos e índices</h3>
+    <p>Puedes colocar un valor a través de una clave de diccionario o un índice de lista.</p>
+
+    <pre><code>config = {}
+config.theme = "dark"
+config["timeout"] = 30
+
+values = [1, 2, 3]
+values[0] = 99
+values[-1] = 33
+print(values)      # [99, 2, 33]
+print(config)      # {theme: dark, timeout: 30}</code></pre>
+
+    <p>Las claves de diccionario deben ser cadenas; los índices de lista deben ser enteros, y los negativos cuentan desde el final.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 7 ============================ -->
+  <section class="chapter" id="@ch7">
+    <header class="chap-head" id="ch7">
+      <div class="chap-kicker">7 &middot; Bloques de construcción</div>
+      <h2>Funciones</h2>
+    </header>
+
+    <p class="lead">Las funciones son valores. Puedes definir una función con nombre, escribir una función anónima como expresión, guardar funciones en listas y diccionarios, pasarlas a ayudantes de orden superior y dejar que cierren sobre los nombres que las rodean.</p>
+
+    <h3><span class="hnum">7.1</span>Funciones con nombre</h3>
+    <p>Un bloque <code>fn</code> vincula un nombre. Sin un <code>return</code>, la función devuelve <code>nil</code>.</p>
+
+    <pre><code>fn greet(name):
+    return "Hello, " + name
+
+print(greet("Ada"))    # Hello, Ada</code></pre>
+
+    <h3><span class="hnum">7.2</span>Parámetros y tipos de retorno</h3>
+    <p>Los tipos son opcionales y se comprueban en tiempo de ejecución, tanto en los argumentos de entrada como en el valor de salida:</p>
+
+    <pre><code>fn repeat(word: str, times: int) -> str:
+    return word * times
+
+fn add(left: int, right: int) -> int:
+    return left + right
+
+print(add(2, 3))       # 5
+print(repeat("ab", 3)) # ababab</code></pre>
+
+    <p>Un desajuste como <code>add("x", 3)</code> falla en tiempo de ejecución indicando el nombre y los tipos. Los parámetros sin tipo siguen siendo dinámicos.</p>
+
+    <h3><span class="hnum">7.3</span>Funciones anónimas</h3>
+    <pre><code>double = fn(value): value * 2
+print(double(21))      # 42
+
+fn apply(f, x):
+    return f(x)
+
+print(apply(double, 21))   # 42</code></pre>
+
+    <p>Una función anónima con una sola expresión puede escribirse en una línea después de los dos puntos. Un cuerpo largo usa un bloque.</p>
+
+    <h3><span class="hnum">7.4</span>return y varios valores</h3>
+    <p><code>return</code> solo devuelve <code>nil</code>. Una función puede devolver varios valores.</p>
+
+    <pre><code>fn split_point():
+    return 10, 20
+
+x, y = split_point()
+print(x, y)    # 10 20</code></pre>
+
+    <h3><span class="hnum">7.5</span>Closures</h3>
+    <p>Una función captura los nombres que la rodean en el punto donde se crea.</p>
+
+    <pre><code>minimum = 10
+is_large = fn(value): value &gt;= minimum
+print(is_large(5))    # false
+print(is_large(50))   # true</code></pre>
+
+    <h3><span class="hnum">7.6</span>Recursión</h3>
+    <pre><code>fn fib(n):
+    if n &lt; 2:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+print(fib(10))    # 55</code></pre>
+
+    <p>La profundidad de la recursión está protegida por un límite; la recursión profunda e infinita se detiene con un error en lugar de reventar el anfitrión.</p>
+
+    <h3><span class="hnum">7.7</span>Ayudantes de orden superior</h3>
+    <p><code>map</code> transforma cada elemento, <code>filter</code> conserva los que cumplen un predicado y <code>fold</code> reduce una lista. Para <code>fold</code>, el acumulador puede ir antes o después de la función: <code>fold(list, acc, fn)</code> o <code>fold(fn, acc, list)</code>.</p>
+
+    <pre><code>fn double(n): n * 2
+fn is_even(n): n % 2 == 0
+fn add(a, b): a + b
+
+numbers = [1, 2, 3, 4]
+
+print(map(double, numbers))    # [2, 4, 6, 8]
+print(filter(is_even, numbers))# [2, 4]
+print(fold(numbers, 0, add))   # 10
+print(fold(add, 0, numbers))   # 10</code></pre>
+
+    <p>Las funciones de orden superior también son un encaje natural para lambdas:</p>
+
+    <pre><code>names = ["ada", "linus", "grace"]
+shouts = map(fn(n): upper(n), names)
+print(shouts)    # [ADA, LINUS, GRACE]</code></pre>
+
+    <h3><span class="hnum">7.8</span>Llamar a través de un valor</h3>
+    <p><code>call(fn, args&hellip;)</code> invoca una función guardada en un valor.</p>
+
+    <pre><code>fn add3(a, b, c): a + b + c
+print(call(add3, 1, 2, 3))   # 6</code></pre>
+  </section>
+
+  <!-- ============================ CAPÍTULO 8 ============================ -->
+  <section class="chapter" id="@ch8">
+    <header class="chap-head" id="ch8">
+      <div class="chap-kicker">8 &middot; Decisiones y bucles</div>
+      <h2>Control de flujo</h2>
+    </header>
+
+    <p class="lead">El control de flujo dobla el orden de ejecución. Snow elige entre ramas con <code>if</code> y <code>match</code>, repite con <code>for</code> y <code>while</code>, y deja que <code>break</code> y <code>continue</code> dirijan los bucles con precisión. Hay una regla que merece decirse dos veces: <b>las condiciones deben ser booleanos reales</b> &mdash; varios operadores exigen <code>true</code> o <code>false</code>, no valores que "sean como verdaderos".</p>
+
+    <h3><span class="hnum">8.1</span>if, elif y else</h3>
+    <pre><code>score = 85
+
+if score &gt;= 90:
+    grade = "A"
+elif score &gt;= 70:
+    grade = "B"
+else:
+    grade = "C"
+
+print(grade)    # B</code></pre>
+
+    <p>Cada rama es un bloque. La condición entre <code>if</code> y los dos puntos debe evaluarse a un booleano.</p>
+
+    <h3><span class="hnum">8.2</span>match y case</h3>
+    <p><code>match</code> compara un valor contra los casos de arriba a abajo y ejecuta el primero que coincida. Un caso puede enumerar varios valores. El comodín <code>_</code> debe estar solo en su caso y debe ir el último.</p>
+
+    <pre><code>command = "stop"
+
+match command:
+    case "start", "go":
+        print("starting")
+    case "stop":
+        print("stopping")
+    case _:
+        print("unknown")
+
+# imprime: stopping</code></pre>
+
+    <h3><span class="hnum">8.3</span>Bucles for</h3>
+    <p>Un único nombre itera los elementos: los valores de una lista, las claves de un diccionario, los caracteres de una cadena (por carácter Unicode) o los números de un rango.</p>
+
+    <pre><code>for x in [10, 20, 30]:
+    print(x)
+
+for key in {"a": 1}:
+    print(key)        # a
+
+for ch in "snow":
+    print(ch)         # s n o w (cada uno en su línea)
+
+for i in range(3):
+    print(i)          # 0 1 2</code></pre>
+
+    <p><code>range(start, stop, step)</code> solo acepta enteros. <code>stop</code> es exclusivo; el paso puede ser negativo y nunca puede ser cero.</p>
+
+    <h3><span class="hnum">8.4</span>Iteración con dos nombres</h3>
+    <p>Dos nombres reciben pares: índice y valor para listas y cadenas, clave y valor para diccionarios.</p>
+
+    <pre><code>for index, value in enumerate(["a", "b"]):
+    print(index, value)
+# 0 a
+# 1 b
+
+for key, value in {"x": 1}:
+    print(key, value)
+# x 1</code></pre>
+
+    <h3><span class="hnum">8.5</span>Filtrar con where</h3>
+    <p><code>where</code> pegado a un <code>for</code> salta los elementos que no cumplen la condición antes de que el cuerpo se ejecute.</p>
+
+    <pre><code>for i in range(6) where i % 2 == 0:
+    print(i)
+# 0 2 4</code></pre>
+
+    <h3><span class="hnum">8.6</span>while, break y continue</h3>
+    <p><code>while</code> repite mientras su condición booleana se cumpla. <code>break</code> sale del bucle más cercano; <code>continue</code> salta a la siguiente iteración.</p>
+
+    <pre><code>n = 0
+while n &lt; 6:
+    n += 1
+    if n == 2:
+        continue
+    if n &gt; 4:
+        break
+    print(n)
+# 1 3 4</code></pre>
+  </section>
+
+  <!-- ============================ CAPÍTULO 9 ============================ -->
+  <section class="chapter" id="@ch9">
+    <header class="chap-head" id="ch9">
+      <div class="chap-kicker">9 &middot; Cuando algo falla</div>
+      <h2>Errores y limpieza</h2>
+    </header>
+
+    <p class="lead">Snow trata el fallo como un valor que puede capturarse. Pides un fallo con <code>fail</code>, acotas el riesgo con <code>try</code>, recibes el fallo con <code>catch</code> y garantizas la limpieza con <code>always</code>. Como los fallos son valores, la recuperación es código normal y no necesita ninguna jerarquía de clases.</p>
+
+    <h3><span class="hnum">9.1</span>Tres tipos de errores</h3>
+    <ul>
+      <li><b>Errores del analizador</b> significan que el texto no pudo convertirse en un programa. Llevan archivo, línea, columna y un caret.</li>
+      <li><b>Diagnósticos del comprobador</b> llegan de <code>snowman check</code> y del editor: nombres indefinidos, variables sin usar, código inalcanzable, módulos desconocidos, desajustes de tipo. No se ejecuta nada.</li>
+      <li><b>Errores en tiempo de ejecución</b> ocurren mientras el programa corre y llevan el archivo, la línea, la columna y &mdash; si no se capturan &mdash; un rastro de pila.</li>
+    </ul>
+
+    <h3><span class="hnum">9.2</span>fail y recuperación</h3>
+    <pre><code>fn require_name(user):
+    if user?.name == nil:
+        fail("name is required")
+    return user.name
+
+try:
+    print(require_name({}))
+catch err:
+    print("caught:", err)
+always:
+    print("cleanup runs either way")
+
+# caught: name is required
+# cleanup runs either way</code></pre>
+
+    <p><code>fail</code> lanza su único argumento, sea lo que sea. <code>catch err</code> vincula ese argumento a <code>err</code> (también puedes escribir <code>catch</code> a secas). <code>always</code> se ejecuta después del éxito y después de un catch.</p>
+
+    <h3><span class="hnum">9.3</span>with: limpieza garantizada</h3>
+    <p>Cuando un valor lleva una función <code>close</code> (un diccionario con un miembro <code>close</code>, o un objeto nativo que la ofrece), <code>with expr as name:</code> la llama al terminar el bloque, tanto si termina bien como si falla. Así es como los recursos se mantienen ordenados.</p>
+
+    <pre><code>fn open_resource():
+    return {data: "hello resource", close: fn(): print("closed")}
+
+with open_resource() as res:
+    print(res.data)
+# hello resource
+# closed</code></pre>
+
+    <h3><span class="hnum">9.4</span>Ocultar y luego detenerse: exit</h3>
+    <p>Los números nativos como valores de error funcionan igual que las cadenas:</p>
+
+    <pre><code>try:
+    fail(42)
+catch n:
+    print(n + 1)   # 43</code></pre>
+
+    <p><code>exit(code)</code> detiene el intérprete con un código de salida de proceso opcional (0 o 1 argumento).</p>
+
+    <h3><span class="hnum">9.5</span>assert</h3>
+    <p><code>assert</code> verifica una creencia y falla ruidosamente cuando se rompe.</p>
+    <ul>
+      <li><code>assert(cond)</code> falla si <code>cond</code> no es veraz.</li>
+      <li><code>assert(a, b)</code> falla a menos que <code>a</code> sea igual a <code>b</code> (igualdad profunda).</li>
+      <li><code>assert(cond, "message")</code> falla con un mensaje personalizado.</li>
+    </ul>
+
+    <pre><code>assert(2 + 2 == 4, "addition")
+assert([1, 2], [1, 2])     # la igualdad profunda pasa
+# assert(1, 2)  ->  assertion failed: expected 1, received 2</code></pre>
+
+    <p>La veracidad es la regla que usan <code>assert</code>, <code>bool()</code> y <code>filter</code>: <code>nil</code>, <code>false</code>, <code>0</code>, <code>0.0</code>, <code>""</code>, <code>[]</code> y <code>{}</code> son falsos; todo lo demás es verdadero. Recuerda que <code>if</code> y <code>while</code> siguen exigiendo booleanos reales.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 10 ============================ -->
+  <section class="chapter" id="@ch10">
+    <header class="chap-head" id="ch10">
+      <div class="chap-kicker">10 &middot; Espacios de nombres</div>
+      <h2>Módulos e importaciones</h2>
+    </header>
+
+    <p class="lead">El código se organiza en módulos: espacios de nombres cuyos miembros son valores normales a los que se llega con un punto. Este capítulo explica las dos puertas a un módulo &mdash; <code>using</code> para la biblioteca estándar e <code>import</code> para archivos de Snow &mdash; y las reglas de visibilidad que controlan <code>pub</code> y <code>priv</code>.</p>
+
+    <h3><span class="hnum">10.1</span>using: la biblioteca estándar</h3>
+    <pre><code>using http
+using fs
+using json
+
+response = http.get("https://example.com")
+print(response.status)</code></pre>
+
+    <p>Cada <code>using</code> carga un módulo estándar en un nombre con el nombre del módulo. La forma larga <code>using snow.http</code> se acepta, y se permite un alias:</p>
+
+    <pre><code>using snow.http as web
+print(web.get("https://example.com").status)</code></pre>
+
+    <h3><span class="hnum">10.2</span>import: tus propios archivos</h3>
+    <p>Las importaciones relativas se resuelven sustituyendo los puntos por barras y vinculando el último segmento (o tu alias):</p>
+
+    <pre><code>import ./formatters as fmt
+print(fmt.title("snow"))
+
+import ./math_utils
+print(math_utils.max3(1, 5, 3))</code></pre>
+
+    <p>Los directorios superiores también están disponibles: <code>import ../shared.validators</code>. Los ciclos de importación se detectan y se informan con <code>import cycle detected</code> en lugar de quedarse dando vueltas para siempre.</p>
+
+    <h3><span class="hnum">10.3</span>Importaciones de módulos de proyecto</h3>
+    <p>Dentro de un proyecto con un <code>snow.toml</code>, los módulos se importan por el nombre del paquete y el archivo:</p>
+
+    <pre><code>import demo.math
+print(math.twice(21))</code></pre>
+
+    <p>La dependencia <code>dep.demo = "packages/demo"</code> en <code>snow.toml</code> apunta a la ubicación del paquete (ver el capítulo 14).</p>
+
+    <h3><span class="hnum">10.4</span>pub y priv</h3>
+    <p>Todo lo que está en el nivel superior de un archivo es público por defecto. <code>priv</code> oculta un nombre de las exportaciones del archivo; <code>pub</code> hace explícita la intención. Un prefijo <code>_</code> no oculta nada &mdash; solo <code>priv</code> lo hace.</p>
+
+    <pre><code># lib/values.snow
+pub fn max3(a, b, c):
+    return max(a, b, c)
+
+priv fn helper(x):
+    return x * 2
+
+pub top_value = 7</code></pre>
+
+    <pre><code># main.snow
+import ./lib/values as v
+print(v.max3(1, 5, 3))   # 5
+# v.helper(2)  ->  attribute not found: helper</code></pre>
+
+    <h3><span class="hnum">10.5</span>Qué exporta un archivo importado</h3>
+    <p>La exportación de un archivo es su entorno de nivel superior menos los nombres de las funciones incorporadas y menos los nombres <code>priv</code>. Los módulos se guardan en caché, así que importar el mismo archivo dos veces comparte una única copia.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 11 ============================ -->
+  <section class="chapter" id="@ch11">
+    <header class="chap-head" id="ch11">
+      <div class="chap-kicker">11 &middot; Verbos de fábrica</div>
+      <h2>Funciones incorporadas</h2>
+    </header>
+
+    <p class="lead">Snow trae 53 funciones incorporadas, siempre disponibles, sin necesitar <code>using</code>. Se agrupan en unas pocas familias: salida y entrada, conversiones, matemáticas, cadenas, colecciones, razonamiento sobre colecciones, seguridad y control de procesos. Cada una se especifica abajo con un ejemplo verificable.</p>
+
+    <h3><span class="hnum">11.1</span>Salida y entrada</h3>
+    <pre><code>print("a", "b", 1)   # a b 1     (espacios sencillos, un salto de línea)
+input("Name: ")      # lee una línea, imprime el prompt</code></pre>
+
+    <ul>
+      <li><code>print(&hellip;)</code> &mdash; escribe los argumentos separados por un espacio y seguidos de un salto de línea.</li>
+      <li><code>input(prompt?)</code> &mdash; imprime un prompt opcional, lee una línea y quita el salto de línea. Devuelve <code>nil</code> al final de la entrada.</li>
+    </ul>
+
+    <h3><span class="hnum">11.2</span>Conversiones y tipos</h3>
+    <pre><code>print(str(42))        # 42       el + necesita cadenas
+print(int("42"))      # 42
+print(int("42"))      # 42
+print(flt("3.14"))    # 3.14
+print(bool(0))        # false (regla de veracidad)
+print(bool(""))       # false
+print(type(42))       # int
+</code></pre>
+
+    <ul>
+      <li><code>str(x)</code> &mdash; la representación en cadena de un valor.</li>
+      <li><code>int(x)</code> &mdash; el entero de un número o de una cadena numérica.</li>
+      <li><code>flt(x)</code> &mdash; el flotante de un número o de una cadena numérica.</li>
+      <li><code>bool(x)</code> &mdash; aplica la regla de veracidad.</li>
+      <li><code>type(x)</code> &mdash; uno de los nombres de clase del capítulo 4.</li>
+    </ul>
+
+    <h3><span class="hnum">11.3</span>Matemáticas</h3>
+    <pre><code>print(abs(-5))       # 5
+print(min(3, 1, 2))  # 1
+print(max([3, 1]))   # 3
+print(clamp(25, 0, 10))  # 10
+print(sum([1, 2, 3]))    # 6
+print(any([false, true])) # true
+print(all([true, true]))  # true
+print(floor(3.9))     # 3
+print(ceil(3.1))      # 4
+print(round(3.5))     # 4
+print(range(5))       # [0, 1, 2, 3, 4]</code></pre>
+
+    <ul>
+      <li><code>min(a, b, &hellip;)</code> / <code>min(lista)</code> &mdash; el más pequeño; error si está vacía.</li>
+      <li><code>max</code> &mdash; igual, el más grande.</li>
+      <li><code>abs</code>, <code>floor</code>, <code>ceil</code>, <code>round</code> &mdash; número dentro, número fuera (conservan la entereza).</li>
+      <li><code>clamp(x, lo, hi)</code> &mdash; confina x entre lo y hi.</li>
+      <li><code>sum(lista)</code> &mdash; el total.</li>
+      <li><code>any(lista)</code> / <code>all(lista)</code> &mdash; plegado booleano sobre la veracidad.</li>
+      <li><code>range(start?, stop, step?)</code> &mdash; genera una lista de enteros; el paso no puede ser cero; los pasos negativos descienden.</li>
+    </ul>
+
+    <h3><span class="hnum">11.4</span>Cadenas</h3>
+    <pre><code>s = "  Snow  "
+print(len("héllo"))       # 5      (caracteres, no bytes)
+print(upper("snow"))      # SNOW
+print(lower("SNOW"))      # snow
+print(trim(s))            # Snow
+print(split("a,b,c", ","))# [a, b, c]
+print(join(["a", "b"], "-"))   # a-b
+print(replace("aaa", "a", "b"))# bbb    (todas las apariciones)
+print(contains("snow", "ow"))   # true
+print(first("snow"))      # s
+print(last("snow"))       # w</code></pre>
+
+    <ul>
+      <li><code>upper</code>, <code>lower</code>, <code>trim</code> &mdash; mayúsculas, minúsculas y espacios.</li>
+      <li><code>split(str, sep)</code> &mdash; lista de trozos.</li>
+      <li><code>join(lista, sep)</code> &mdash; lista de cadenas unidas (la lista debe contener cadenas).</li>
+      <li><code>replace(s, old, new)</code> &mdash; reemplaza todas las apariciones.</li>
+      <li><code>contains(sujeto, aguja)</code> &mdash; literalmente <code>aguja in sujeto</code>.</li>
+    </ul>
+
+    <h3><span class="hnum">11.5</span>Diccionarios</h3>
+    <pre><code>d = {a: 1, b: 2}
+print(keys(d))        # [a, b]     orden de inserción
+print(values(d))      # [1, 2]
+print(has(d, "a"))    # true
+print(get(d, "zz"))   # nil        la ausencia es nil, no un error</code></pre>
+
+    <h3><span class="hnum">11.6</span>Listas</h3>
+    <pre><code>items = [10, 20, 30]
+print(append(items, 40)) # [10, 20, 30, 40]   (items no cambia)
+print(reverse("snow"))   # wons
+print(sort([3, 1, 2]))   # [1, 2, 3]
+print(first([10, 20]))   # 10
+print(last([10, 20]))    # 20
+print(take([1, 2, 3], 2))# [1, 2]
+print(drop([1, 2, 3], 2))# [3]
+print(enumerate(["a"]))  # [[0, a]]
+print(zip([1, 2], ["a", "b"])) # [[1, a], [2, b]]</code></pre>
+
+    <ul>
+      <li><code>append(lista, v)</code> &mdash; devuelve una lista <em>nueva</em>; la original no se toca. (Las listas son mutables, pero append no muta.)</li>
+      <li><code>reverse(x)</code> &mdash; lista o cadena, respeta caracteres.</li>
+      <li><code>sort(lista)</code> &mdash; ordenación estable según la comparación de Snow.</li>
+      <li><code>first</code> / <code>last</code> &mdash; funcionan sobre listas y cadenas; devuelven <code>nil</code> cuando están vacías.</li>
+      <li><code>take</code> / <code>drop</code> &mdash; los límites se ajustan (los negativos se vuelven cero).</li>
+      <li><code>enumerate(lista)</code> &mdash; pares de <code>[índice, valor]</code>.</li>
+      <li><code>zip(a, b)</code> &mdash; empareja hasta la lista más corta.</li>
+    </ul>
+
+    <h3><span class="hnum">11.7</span>Razonar sobre listas</h3>
+    <pre><code>print(map(fn(n): n * 2, [1, 2, 3]))       # [2, 4, 6]
+print(filter(fn(n): n % 2 == 0, [1, 2, 3, 4])) # [2, 4]
+print(fold([1, 2, 3], 0, fn(a, b): a + b)) # 6
+print(call(fn(a, b): a * b, 6, 7))         # 42</code></pre>
+
+    <h3><span class="hnum">11.8</span>JSON, entorno y procesos</h3>
+    <pre><code>using env
+using sys
+
+print(json_encode({a: 1, b: [true, nil]}))# {"a":1,"b":[true,null]}
+print(json_decode("{\"a\":1}"))            # {a: 1}
+print(env("PATH") != nil)                  # probablemente true
+#print(args())        # lista de argumentos de línea de comandos
+#print(now())         # segundos flotantes desde la época
+#print(sleep(250))    # duerme 250 ms
+print(exit(0))       # detiene el proceso</code></pre>
+
+    <ul>
+      <li><code>json_encode(v)</code> &mdash; texto JSON compacto.</li>
+      <li><code>json_decode(s)</code> &mdash; texto JSON convertido en valores de Snow.</li>
+      <li><code>env(name)</code> &mdash; cadena de entorno o <code>nil</code>.</li>
+      <li><code>args()</code> &mdash; argumentos de línea de comandos.</li>
+      <li><code>now()</code> &mdash; tiempo Unix actual como flotante.</li>
+      <li><code>sleep(ms)</code> &mdash; espera milisegundos.</li>
+      <li><code>exit(code?)</code> &mdash; detiene el proceso (código opcional, &le; 1 argumento).</li>
+    </ul>
+
+    <h3><span class="hnum">11.9</span>fail y assert</h3>
+    <p><code>fail(valor)</code> lanza el valor para que <code>try/catch</code> pueda recuperarlo; <code>assert</code> verifica con las reglas del capítulo 9.</p>
+
+    <pre><code>fn check(ok):
+    if not ok:
+        fail("not ok")
+try:
+    check(false)
+catch e:
+    print("error:", e)   # error: not ok</code></pre>
+  </section>
+
+  <!-- ============================ CAPÍTULO 12 ============================ -->
+  <section class="chapter" id="@ch12">
+    <header class="chap-head" id="ch12">
+      <div class="chap-kicker">12 &middot; Las baterías</div>
+      <h2>La biblioteca estándar</h2>
+    </header>
+
+    <p class="lead">La biblioteca estándar entrega servidores, archivos, procesos, datos y tiempo. Cada módulo se carga con <code>using nombre</code> y expone miembros como valores normales. Hoy se envían trece módulos.</p>
+
+    <h3><span class="hnum">12.1</span>json &mdash; intercambio de datos</h3>
+    <pre><code>using json
+
+json.parse('{"name": "snow", "count": 10, "active": true}')
+obj = json.parse('{"name": "snow"}')
+print(obj.name)             # snow
+print(json.valid("[1,2]"))  # true
+print(json.valid("nope"))   # false
+print(json.stringify({a: 1, b: [2]})) # {"a":1,"b":[2]}</code></pre>
+
+    <ul>
+      <li><code>parse(str)</code> &mdash; decodifica JSON en valores de Snow.</li>
+      <li><code>stringify(valor, indent?)</code> &mdash; codifica de vuelta a texto.</li>
+      <li><code>valid(str)</code> &mdash; comprobación JSON booleana.</li>
+    </ul>
+
+    <h3><span class="hnum">12.2</span>http &mdash; el cliente web</h3>
+    <pre><code>using http
+
+r = http.post("https://api.example.com/items",
+              {name: "snow"},
+              {Authorization: "Bearer xyz"})
+print(r.status)          # código de estado entero
+print(r.ok)              # true para 2xx
+print(r.body)            # texto de respuesta en bruto
+print(r.json().id)       # cuerpo JSON analizado
+print(r.text())          # el cuerpo otra vez, como texto
+</code></pre>
+
+    <ul>
+      <li><code>get(url)</code>, <code>post(url, body?, headers?)</code>, <code>put</code>, <code>delete</code>, <code>patch</code> &mdash; verbos HTTP.</li>
+      <li><code>request(method, url, body?, headers?)</code> &mdash; cualquier verbo.</li>
+      <li>Los cuerpos de diccionario se envían como JSON; un cuerpo de cadena se detecta como JSON cuando empieza por <code>{</code> o <code>[</code>; si no, se envía como texto plano. Las peticiones agotan un tiempo de 30 segundos.</li>
+      <li>La respuesta expone <code>status</code>, <code>ok</code>, <code>body</code>, <code>headers</code> y los ayudantes <code>json()</code> / <code>text()</code>.</li>
+    </ul>
+
+    <h3><span class="hnum">12.3</span>api &mdash; un servidor web integrado</h3>
+    <pre><code>using api
+
+api.cors()
+api.get("/users/:id", fn(req):
+    return {id: req.params.id, status: "active"}
+)
+
+api.post("/echo", fn(req):
+    return api.json({got: req.json}, 201)
+)
+
+api.serve(8080)   # bloquea; imprime "snow listening on http://0.0.0.0:8080"</code></pre>
+
+    <ul>
+      <li><code>route(method, path, handler)</code>, más <code>get</code>/<code>post</code>/<code>put</code>/<code>delete</code>/<code>patch</code>/<code>all</code>.</li>
+      <li>Las rutas admiten parámetros como <code>/users/:id</code>, que se leen con <code>req.params.id</code>.</li>
+      <li><code>req.json</code> guarda el cuerpo JSON analizado; <code>req.query</code>, <code>req.headers</code> y <code>req.remote</code> también están disponibles.</li>
+      <li>Devoluciones del manejador: una cadena es texto plano, un diccionario es JSON, <code>return status</code> es un estado pelado y <code>return status, body</code> los combina.</li>
+      <li><code>use(middleware)</code> encadena middleware; <code>static(dir)</code> sirve archivos; <code>cors()</code> responde las preflight.</li>
+      <li>Constructores de respuesta: <code>api.json(obj, status?)</code>, <code>text(s, status?)</code>, <code>html(s, status?)</code>, <code>redirect(url, status?)</code>, <code>status(n)</code>, <code>response(status, body, headers?)</code>.</li>
+      <li><code>listen(port)</code> / <code>start(port)</code> fijan el puerto sin bloquear; <code>serve(port?)</code> ejecuta el servidor (bloqueante).</li>
+    </ul>
+
+    <h3><span class="hnum">12.4</span>fs &mdash; archivos</h3>
+    <pre><code>using fs
+
+f = "note.txt"
+fs.write(f, "hello ")
+fs.append(f, "world")
+print(fs.read(f))          # hello world
+print(fs.exists(f))        # true
+print(fs.list("."))        # archivos del directorio actual
+fs.remove(f)</code></pre>
+
+    <ul>
+      <li><code>read(path)</code>, <code>write(path, data)</code> (sobrescribe), <code>append(path, data)</code>.</li>
+      <li><code>exists</code>, <code>remove</code>, <code>mkdir(path)</code> (recursivo), <code>list(dir)</code>, <code>is_file</code>, <code>is_dir</code>, <code>stat(path)</code>, <code>copy(src, dst)</code>.</li>
+    </ul>
+
+    <h3><span class="hnum">12.5</span>sys &mdash; procesos y entorno</h3>
+    <pre><code>using sys
+
+res = sys.sh("echo hello-snow")
+print(trim(res.stdout), res.ok)   # hello-snow true
+
+sys.set_env("SNOW_VAR", "snow_val_123")
+print(sys.env("SNOW_VAR"))   # snow_val_123
+print(sys.platform)          # linux (ejemplo)
+print(sys.pid)               # identificador del proceso
+</code></pre>
+
+    <ul>
+      <li><code>exec(cmd, args?)</code> &mdash; ejecuta un programa directamente, sin shell.</li>
+      <li><code>sh(cmdstr)</code> &mdash; ejecuta a través del shell; devuelve <code>{stdout, stderr, ok, code}</code>.</li>
+      <li><code>env(name)</code>, <code>set_env(name, value)</code>, <code>envs()</code> &mdash; acceso al entorno.</li>
+      <li><code>args()</code>, <code>cwd()</code>, <code>cd(path)</code>, <code>hostname()</code>, <code>pid</code>, <code>platform</code>, <code>arch</code> &mdash; hechos del anfitrión.</li>
+      <li><code>exit(code)</code>, <code>now()</code> / <code>time()</code> (segundos flotantes), <code>sleep(ms)</code>.</li>
+      <li>Atajos: <code>read_file</code>, <code>write_file</code>, <code>exists</code>, <code>list_dir</code>.</li>
+    </ul>
+
+    <h3><span class="hnum">12.6</span>env &mdash; configuración</h3>
+    <pre><code>using env
+
+env.set("SNOW_TEST_NUM", "42")
+print(env.get("SNOW_TEST_NUM"))        # 42
+print(env.int("SNOW_TEST_NUM"))        # 42       (coerción a int)
+print(env.float("MISSING", 1.5))       # 1.5      (por defecto)
+print(env.bool("MISSING", false))      # false
+print(env.has("SNOW_TEST_NUM"))        # true
+print(env.load(".env"))                # carga líneas KEY=VALUE</code></pre>
+
+    <p><code>env.get(name, default?)</code>, <code>set</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>has</code>, <code>all()</code>, <code>load(path?)</code>. La función <code>load</code> analiza archivos <code>KEY=VALUE</code> (y tolera <code>export&nbsp;KEY=VALUE</code> y valores entre comillas). Es lo que usa <code>snowman run --env .env</code>.</p>
+
+    <h3><span class="hnum">12.7</span>csv &mdash; tablas de texto</h3>
+    <pre><code>using csv
+
+raw = "id,name,score\n1,Alice,95\n2,Bob,88"
+print(len(csv.parse(raw)))            # 3 filas incluida la cabecera
+print(csv.dicts(raw)[1].name)         # Alice
+print(trim(csv.stringify([["col1", "col2"], ["a", "b"]])))# col1,col2\na,b</code></pre>
+
+    <ul>
+      <li><code>parse(str, sep?)</code> &mdash; lista de listas (filas).</li>
+      <li><code>dicts(str, sep?)</code> &mdash; lista de diccionarios con las claves de la fila de cabecera.</li>
+      <li><code>stringify(filas-o-diccionarios, sep?)</code> &mdash; texto CSV.</li>
+      <li><code>read(path)</code> / <code>write(path, data)</code> &mdash; formas de archivo.</li>
+    </ul>
+
+    <h3><span class="hnum">12.8</span>db &mdash; un almacén de documentos JSON</h3>
+    <pre><code>using db
+using fs
+
+store = db.open("/tmp/snow_db.json")
+store.set("greeting", "hello")
+store.set("count", 42)
+store.save()                          # escritura atómica
+print(store.get("greeting"))          # hello
+print(store.get("missing", "default"))# default
+print(store.has("count"))             # true
+print(store.keys())                   # [greeting, count]</code></pre>
+
+    <ul>
+      <li><code>db.open(path)</code> &mdash; abre o crea el archivo, devuelve el store.</li>
+      <li>El store ofrece <code>get(key, default?)</code>, <code>set</code>, <code>delete</code>, <code>keys()</code>, <code>has()</code>, <code>all()</code>, <code>save()</code> y un miembro <code>path</code>. <code>save()</code> escribe de forma atómica (archivo temporal + renombrado).</li>
+    </ul>
+
+    <h3><span class="hnum">12.9</span>time &mdash; relojes y duraciones</h3>
+    <pre><code>using time
+
+print(time.unix())        # segundos enteros
+print(time.unix_ms())     # milisegundos enteros
+print(time.iso())         # cadena ISO-8601
+print(time.now("%Y"))     # 2026       (estilo strftime)
+t0 = time.unix()
+time.sleep("20ms")        # acepta "20ms" o un número de ms
+print(time.unix_ms() &gt; t0 * 1000)   # true
+print(trim(time.now()))   # p. ej. 2026-09-19 12:00:00</code></pre>
+
+    <ul>
+      <li><code>sleep(d)</code> &mdash; duraciones en cadena como <code>"20ms"</code> o un número de milisegundos.</li>
+      <li><code>now(format?)</code> &mdash; formato por defecto <code>2006-01-02 15:04:05</code>; se permiten directivas <code>%</code>.</li>
+      <li><code>unix()</code>, <code>unix_ms()</code>, <code>iso()</code>, <code>since(prev)</code> (segundos flotantes).</li>
+    </ul>
+
+    <h3><span class="hnum">12.10</span>crypto &mdash; hashes y tokens</h3>
+    <pre><code>using crypto
+
+print(crypto.sha256("hello"))        # 2cf24dba5fb0a30e26e83b2ac5b9e29e…
+print(crypto.md5("hello"))
+print(crypto.random_token())         # 32 caracteres hex por defecto
+
+token = crypto.jwt_sign({user: "snow", role: "admin"}, "secret123")
+print(crypto.jwt_verify(token, "secret123").role)   # admin
+print(crypto.jwt_verify(token, "wrong") == nil)     # true</code></pre>
+
+    <ul>
+      <li><code>sha256</code>, <code>sha1</code>, <code>md5</code> &mdash; hex en minúsculas.</li>
+      <li><code>random_token(n?)</code> &mdash; n caracteres hex (32 por defecto).</li>
+      <li><code>jwt_sign(payloadDict, secret)</code> / <code>jwt_verify(token, secret)</code> &mdash; el verify devuelve el diccionario del payload, o <code>nil</code> cuando el secreto es incorrecto.</li>
+      <li>Una advertencia que merece repetirse: los hashes no son cifrado, y los secretos pertenecen al entorno, no a los archivos fuente.</li>
+    </ul>
+
+    <h3><span class="hnum">12.11</span>task &mdash; trabajo programado</h3>
+    <pre><code>using task
+using time
+
+count = 0
+fn tick():
+    count = count + 1
+
+job = task.every("10ms", tick)
+time.sleep("35ms")
+job.stop()
+print(count &gt;= 2)      # true: el temporizador sonó varias veces</code></pre>
+
+    <ul>
+      <li><code>every("10ms", fn)</code> &mdash; recurrente; el manejador devuelto tiene <code>stop()</code>.</li>
+      <li><code>after(ms, fn)</code> &mdash; se dispara una vez tras una demora; la misma forma de manejador.</li>
+    </ul>
+
+    <h3><span class="hnum">12.12</span>input &mdash; preguntas con tipo</h3>
+    <pre><code>using input
+
+name = input.str("Name: ", "anonymous")
+age  = input.int("Age: ", 18)
+alt  = input.float("Height: ", 1.7)
+yes  = input.bool("Continue? ", true)      # yes/no/si/sí/true/1/0
+pw   = input.hidden("Password: ")           # sin eco</code></pre>
+
+    <ul>
+      <li><code>str</code>, <code>line</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>hidden</code> &mdash; cada una acepta un prompt y un valor por defecto usado con una entrada vacía.</li>
+      <li><code>bool</code> acepta un conjunto amable de respuestas: <code>yes</code>, <code>no</code>, <code>si</code>, <code>sí</code>, <code>true</code>, <code>1</code>, <code>0</code>.</li>
+    </ul>
+
+    <h3><span class="hnum">12.13</span>cli &mdash; interfaces de terminal y argumentos</h3>
+    <pre><code>using cli
+
+parsed = cli.parse(["--port", "8080", "--verbose", "serve", "app.snow"])
+print(parsed.flags.port)      # 8080     (convertido a int automáticamente)
+print(parsed.flags.verbose)   # true     (bandera pelada)
+print(parsed.args[0])         # serve
+
+print(cli.info("note"))
+print(cli.success("done"))
+print(cli.error("oops"))
+print(cli.red("red text"))
+print(cli.bold("heavy"))
+print(cli.box("Title", "body text"))
+print(cli.table([["a", "1"], ["b", "2"]]))</code></pre>
+
+    <ul>
+      <li>Colores: <code>color(text, "red")</code> más <code>red</code>, <code>green</code>, <code>yellow</code>, <code>blue</code>, <code>magenta</code>, <code>cyan</code>, <code>gray</code>, <code>white</code>, <code>bold</code>, <code>dim</code>, <code>italic</code>, <code>underline</code>, <code>reset</code> &mdash; todos devuelven cadenas envueltas en ANSI.</li>
+      <li>Mensajes: <code>info</code>, <code>success</code>, <code>ok</code>, <code>warn</code>, <code>error</code>.</li>
+      <li>Interacción: <code>ask(prompt)</code>, <code>confirm(prompt)</code>.</li>
+      <li>Diseño: <code>box(title, desc?)</code>, <code>table(rows)</code>, <code>divider(text?)</code>, <code>clear()</code>.</li>
+      <li>Argumentos: <code>parse(argv)</code> &rarr; <code>{flags, args}</code>; <code>--name value</code> se convierte en <code>flags.name</code>, <code>--flag</code> se convierte en <code>true</code>, los valores posicionales terminan en <code>args</code>, y los enteros/flotantes se coercionan (<code>--port 8080</code> &rarr; <code>8080</code>). <code>argv</code> también está disponible como <code>cli.args</code>.</li>
+    </ul>
+  </section>
+
+  <!-- ============================ CAPÍTULO 13 ============================ -->
+  <section class="chapter" id="@ch13">
+    <header class="chap-head" id="ch13">
+      <div class="chap-kicker">13 &middot; El banco de trabajo</div>
+      <h2>Herramientas de línea de comandos</h2>
+    </header>
+
+    <p class="lead">Un único binario, <code>snowman</code>, lleva toda la cadena de herramientas: ejecutar, evaluar, formatear, comprobar, probar y gestionar paquetes. Este capítulo es su manual.</p>
+
+    <h3><span class="hnum">13.1</span>Ejecutar programas</h3>
+    <pre><code>snowman hello.snow          # ejecuta un archivo con argumentos
+snowman run                 # ejecuta src/main.snow del proyecto actual
+snowman run --env .env      # carga .env antes de ejecutar
+snowman eval 'print("hi")'  # ejecuta código en línea
+snowman -e 'print(6 * 7)'   # igual, con la bandera corta</code></pre>
+
+    <h3><span class="hnum">13.2</span>Formateo</h3>
+    <pre><code>snowman fmt file.snow       # comprueba el formato; sin cambios
+snowman fmt -w file.snow    # reescribe el archivo en su lugar (sangría de 4 espacios)</code></pre>
+
+    <h3><span class="hnum">13.3</span>Comprobación</h3>
+    <pre><code>snowman check file.snow     # análisis estático, salida 1 con problemas</code></pre>
+
+    <p>Informa de nombres indefinidos, variables sin usar, código inalcanzable, desajustes de tipo y módulos desconocidos, con la línea y la columna de cada problema &mdash; sin ejecutar nada.</p>
+
+    <h3><span class="hnum">13.4</span>Pruebas</h3>
+    <pre><code>snowman test                # ejecuta cada *_test.snow dentro de src/
+snowman test path/to/dir     # o desde un directorio elegido
+snowman test --filter ads    # solo las pruebas cuyo nombre contiene "ads"</code></pre>
+
+    <p>Los archivos de prueba son scripts de Snow normales cuyo nombre termina en <code>_test.snow</code>. Usa <code>assert</code> con un mensaje para que los fallos digan qué importaba:</p>
+
+    <pre><code># math_test.snow
+assert(2 + 2 == 4, "addition")
+assert(upper("snow") == "SNOW", "text")
+print("ok")</code></pre>
+
+    <h3><span class="hnum">13.5</span>Gestión de paquetes</h3>
+    <pre><code>snowman init my_app          # monta un proyecto
+snowman search http          # busca en el registro
+snowman get snow/text.snow@0.1.0   # instala un paquete oficial
+snowman get-local ./lib      # instala un paquete local
+snowman install              # (re)instala desde snow.toml / snow.lock
+snowman add strings vendor/strings  # registra una dependencia en snow.toml
+snowman remove strings       # quita una dependencia
+snowman list                 # lista los paquetes instalados
+snowman info snow/text.snow  # metadatos del paquete
+snowman update text          # mueve una dependencia a la última versión
+snowman index                # refresca el índice local de paquetes</code></pre>
+
+    <h3><span class="hnum">13.6</span>El REPL en detalle</h3>
+    <p>El banner es <code>snow 0.1 &nbsp;type help for commands, .exit to quit</code>. Comandos meta: <code>help</code>/<code>.help</code>, <code>.exit</code>/<code>exit</code>/<code>quit</code>, <code>.clear</code>/<code>clear</code>, <code>.history</code>.</p>
+
+    <ul>
+      <li>Los resultados se imprimen con colores por tipo: cadenas en cian, números en amarillo, booleanos en magenta, <code>nil</code> en gris, listas y diccionarios en azul.</li>
+      <li>El historial persiste en <code>~/.snow_history</code> (permisos 0600, últimas 500 entradas).</li>
+      <li>El autocompletado con Tab ofrece funciones incorporadas, palabras clave y miembros de módulos; Tab también sangra.</li>
+      <li>Los encabezados de bloque mantienen abierto el prompt y sangran cada línea nueva con cuatro espacios hasta que una línea en blanco cierra el bloque.</li>
+    </ul>
+  </section>
+
+  <!-- ============================ CAPÍTULO 14 ============================ -->
+  <section class="chapter" id="@ch14">
+    <header class="chap-head" id="ch14">
+      <div class="chap-kicker">14 &middot; Cómo encaja todo</div>
+      <h2>Proyectos y paquetes</h2>
+    </header>
+
+    <p class="lead">Un proyecto da un hogar a un programa: un manifiesto, un árbol de código fuente, pruebas junto al código y un archivo de bloqueo que hace las instalaciones reproducibles.</p>
+
+    <h3><span class="hnum">14.1</span>snow.toml</h3>
+    <p>El manifiesto vive en la raíz del proyecto. <code>name</code> es obligatorio; <code>source</code> por defecto es <code>src</code>, y <code>dep.&lt;name&gt;</code> registra dependencias locales.</p>
+
+    <pre><code>name = "weather_tool"
+source = "src"
+
+# dep.snow = "packages/snow"
+# dep.strings = "vendor/strings"</code></pre>
+
+    <h3><span class="hnum">14.2</span>El árbol de código fuente</h3>
+    <pre><code>my_app/
+  snow.toml
+  snow.lock
+  src/
+    main.snow
+    weather_test.snow
+  packages/
+    snow/
+      src/
+        weather.snow</code></pre>
+
+    <ul>
+      <li><code>src/main.snow</code> es el punto de entrada que ejecuta <code>snowman run</code>.</li>
+      <li>Los archivos que terminan en <code>_test.snow</code> los descubre <code>snowman test</code>.</li>
+      <li>El código reutilizable vive en sus propios archivos, importados con nombres de proyecto punteados: <code>import my_app.utils</code>.</li>
+      <li>Las dependencias instaladas aterrizan en <code>packages/</code>.</li>
+    </ul>
+
+    <h3><span class="hnum">14.3</span>El archivo de bloqueo</h3>
+    <p><code>snow.lock</code> registra la versión exacta, la fuente y el checksum SHA-256 de cada dependencia. Hazle commit en el repositorio, y <code>snowman install</code> reproducira el mismo árbol en todas las máquinas.</p>
+
+    <h3><span class="hnum">14.4</span>El registro oficial</h3>
+    <p>Los paquetes se traen del índice oficial y se nombran como <code>snow/nombre.snow</code>. El catálogo actual de paquetes oficiales: <code>arrays</code>, <code>collections</code>, <code>csvutil</code>, <code>dict</code>, <code>guards</code>, <code>ids</code>, <code>math</code>, <code>numbers</code>, <code>pagination</code>, <code>query</code>, <code>result</code>, <code>stats</code>, <code>strings</code>, <code>template</code>, <code>text</code>, <code>validate</code>.</p>
+
+    <pre><code>snowman get snow/text.snow@0.1.0
+snowman search text</code></pre>
+  </section>
+
+  <!-- ============================ CAPÍTULO 15 ============================ -->
+  <section class="chapter" id="@ch15">
+    <header class="chap-head" id="ch15">
+      <div class="chap-kicker">15 &middot; La lámpara del taller</div>
+      <h2>Editor y servidor de lenguaje</h2>
+    </header>
+
+    <p class="lead">El servidor de lenguaje de Snow convierte cualquier editor en un taller. Habla JSON-RPC sobre stdin/stdout con el framing estándar <code>Content-Length</code>, y entiende la semántica real de Snow porque reutiliza el compilador y el comprobador de verdad.</p>
+
+    <h3><span class="hnum">15.1</span>Compilar el servidor</h3>
+    <pre><code>cd LSP
+go build -o snow-lsp ./server</code></pre>
+
+    <h3><span class="hnum">15.2</span>Capacidades</h3>
+    <ul>
+      <li><b>Sincronización.</b> <code>didOpen</code>, <code>didChange</code>, <code>didClose</code>.</li>
+      <li><b>Diagnósticos.</b> Cada apertura y cada cambio ejecutan el analizador y el comprobador; los problemas aparecen mientras escribes, con línea y columna.</li>
+      <li><b>Autocompletado.</b> Palabras clave, funciones incorporadas, nombres de documento, todos los nombres de módulo y miembros de módulo después de un punto &mdash; tras <code>using http</code>, escribir <code>http.</code> sugiere <code>get</code>, <code>post</code>, <code>put</code>, <code>delete</code>, <code>patch</code>, <code>request</code>.</li>
+      <li><b>Hover.</b> Información de tipo y definición sobre los símbolos.</li>
+      <li><b>Ir a la definición</b> y <b>renombrar</b> en todo el workspace.</li>
+      <li>El formateo y las referencias aún no están expuestos.</li>
+    </ul>
+
+    <h3><span class="hnum">15.3</span>La extensión de VS Code</h3>
+    <pre><code>cd LSP/vscode_extension
+pnpm install
+pnpm run compile
+npx @vscode/vsce package --no-dependencies
+code --install-extension snow-0.1.0.vsix --force</code></pre>
+
+    <p>La extensión registra <code>.snow</code>, añade el icono del copo de nieve, arranca el servidor, publica diagnósticos y conduce el autocompletado con los caracteres disparadores <code>.</code>, <code>:</code> y el espacio. Respeta dos ajustes: <code>snow.lsp.enabled</code> y <code>snow.lsp.path</code>.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 16 ============================ -->
+  <section class="chapter" id="@ch16">
+    <header class="chap-head" id="ch16">
+      <div class="chap-kicker">16 &middot; Juntando las piezas</div>
+      <h2>Un recorrido completo</h2>
+    </header>
+
+    <p class="lead">Todo lo anterior se aprecia mejor en un único programa ensamblado. Este capítulo construye una pequeña API de notas con <code>api</code>, <code>db</code>, <code>json</code> y <code>cli</code>, y la explica línea por línea. Es exactamente el objetivo del lenguaje: software útil con menos ceremonias.</p>
+
+    <h3><span class="hnum">16.1</span>El programa completo</h3>
+
+    <figure class="listing">
+      <figcaption>Listado 2 &middot; src/main.snow de una API de notas</figcaption>
+      <pre><code>using api
+using db
+using cli
+
+store = db.open("notes.json")
+
+api.get("/notes/:id", fn(req):
+    note = store.get(req.params.id)
+    if note == nil:
+        return 404, {error: "missing"}
+    return note
+)
+
+api.post("/notes", fn(req):
+    body = req.json
+    id = str(len(store.keys()) + 1)
+    store.set(id, body)
+    store.save()
+    return api.json({id: id}, 201)
+)
+
+parsed = cli.parse(args2)
+
+if "serve" in parsed.args:
+    api.serve(8080)
+else:
+    api.listen(8080)
+    api.start()</code></pre>
+    </figure>
+
+    <p><code>using</code> carga los tres módulos. <code>db.open</code> abre (o crea) el archivo JSON y nos entrega un <code>store</code> cuyos miembros son valores de función normales. Las dos llamadas a <code>api.get</code> y <code>api.post</code> registran manejadores de ruta sobre el <code>store</code> del closure. El manejador GET busca el id en el store y devuelve <code>404</code> con un cuerpo de error JSON cuando la nota no existe &mdash; una devolución de dos valores.</p>
+
+    <p>El manejador POST lee el cuerpo JSON analizado de <code>req.json</code>, construye un id a partir del número actual de claves convertido en cadena, guarda la nota, la persiste de forma atómica con <code>store.save()</code> y responde <code>201</code> con el nuevo id.</p>
+
+    <p><code>cli.parse(args2)</code> convierte los argumentos de línea de comandos en una estructura <code>{flags, args}</code>. Si se pasó la palabra <code>serve</code>, el servidor se bloquea en <code>api.serve(8080)</code>; si no, el puerto solo se registra y el programa termina. Una única fuente de verdad &mdash; el diccionario &mdash; conecta el almacenamiento, las rutas, el análisis de argumentos y las respuestas.</p>
+
+    <h3><span class="hnum">16.2</span>Una prueba de acompañamiento</h3>
+
+    <figure class="listing">
+      <figcaption>Listado 3 &middot; src/notes_test.snow</figcaption>
+      <pre><code># ejercita los ayudantes puros sin un servidor
+fn add_ids(notes):
+    result = []
+    for note in notes:
+        result = append(result, {id: str(len(result) + 1), text: note.text})
+    return result
+
+notes = [{text: "first"}, {text: "second"}]
+with_id = add_ids(notes)
+data = store
+assert(len(with_id) == 2, "two notes")
+assert(with_id[0].id == "1", "first id")
+print("ok")</code></pre>
+    </figure>
+
+    <p>La prueba sigue el patrón de <code>snowman test</code>: funciones puras, aserciones pequeñas con mensajes y un <code>ok</code> final. Ejecútala con <code>snowman test</code> y comprueba después con <code>snowman check src/main.snow</code>.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 17 ============================ -->
+  <section class="chapter" id="@ch17">
+    <header class="chap-head" id="ch17">
+      <div class="chap-kicker">17 &middot; De un vistazo</div>
+      <h2>Referencia rápida</h2>
+    </header>
+
+    <h3><span class="hnum">17.1</span>Palabras clave</h3>
+    <pre><code>using import pub priv const as fn return
+if elif else for in where while break continue
+and or not try catch always match case with</code></pre>
+
+    <h3><span class="hnum">17.2</span>Operadores</h3>
+    <pre><code>+ - * / // % **
+== != < <= > >=
+and or not in not in
+?? ??= ?. ?[
+?: none  (el ternario es: value if cond else other)
++= -= *= /= //= %= ??=</code></pre>
+
+    <h3><span class="hnum">17.3</span>Funciones incorporadas</h3>
+    <pre><code>print input str int flt bool type
+abs min max clamp sum any all floor ceil round
+upper lower trim split join replace contains
+first last take drop append enumerate zip reverse sort
+map filter fold call
+keys values has get
+json_encode json_decode
+env args now sleep exit fail assert
+range len</code></pre>
+
+    <h3><span class="hnum">17.4</span>Módulos estándar</h3>
+    <pre><code>api     servidor HTTP, rutas, middleware, respuestas
+http    cliente HTTP (get, post, put, delete, patch, request)
+fs      archivos y directorios
+sys     procesos, entorno, hechos del anfitrión
+cli     colores de terminal, preguntas, tablas, análisis de argumentos
+db      almacén de documentos JSON
+json    parse, stringify, valid
+csv     parse, dicts, stringify, read, write
+env     configuración de entorno y archivos .env
+time    sleep, now, unix, unix_ms, iso, since
+crypto  sha256, sha1, md5, random_token, jwt_sign, jwt_verify
+task    every, after
+input   str, line, int, float, bool, hidden</code></pre>
+
+    <h3><span class="hnum">17.5</span>Nombres de tipos</h3>
+    <pre><code>nil bool int float str list dict fn module native response</code></pre>
+
+    <h3><span class="hnum">17.6</span>Últimas palabras</h3>
+    <p>Empieza con los ejemplos de <code>examples/</code> y trata después <code>snow_test.go</code> como documentación de comportamiento ejecutable. El lenguaje es pequeño a propósito: aprende primero los valores y los bloques del núcleo, y recurre a los módulos solo cuando el programa los necesite.</p>
+  </section>
+
+  <!-- ============================ EPÍLOGO ============================ -->
+  <section class="chapter" id="@afterword">
+    <header class="chap-head" id="afterword">
+      <div class="chap-kicker">Epílogo</div>
+      <h2>La forma de un lenguaje pequeño</h2>
+    </header>
+
+    <p class="lead">Snow mantiene su galería pequeña &mdash; un puñado de valores, bloques después de dos puntos, funciones como valores, fallos que puedes capturar, módulos que cargas por nombre. Como el lenguaje es pequeño, los programas siguen siendo legibles; como las herramientas son honestas, los problemas afloran donde ocurren.</p>
+
+    <p>Todo el lenguaje cabe en este libro. Ese es el punto.</p>
+  </section>
+
+  <div class="colophon">
+    <p>El Lenguaje de Programación Snow &middot; Versión 0.1 &middot; Edición en español</p>
+    <p>Código abierto bajo la licencia MIT &middot; Escrito en Go por <code>JDVA0</code></p>
+  </div>
+
+</main>
+<script src="../viewer.js"></script>
+</body>
+</html>
