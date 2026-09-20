@@ -41,7 +41,28 @@ func Check(src, name string) ([]Issue, error) {
 	if err := c.program(p); err != nil {
 		return nil, err
 	}
+	if line, col, ok := legacySyntaxPosition(src); ok {
+		c.issues = append(c.issues, Issue{
+			Line: line, Col: col, Source: name, Code: CodeLegacy,
+			Msg: "legacy indentation syntax is deprecated; use braces",
+		})
+	}
 	return c.issues, nil
+}
+
+func legacySyntaxPosition(src string) (int, int, bool) {
+	for lineNumber, raw := range strings.Split(strings.ReplaceAll(src, "\r\n", "\n"), "\n") {
+		trimmed := strings.TrimSpace(raw)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") || !strings.HasSuffix(trimmed, ":") {
+			continue
+		}
+		for _, keyword := range []string{"fn ", "if ", "elif ", "else", "for ", "while ", "try", "catch ", "always", "match ", "case ", "with "} {
+			if strings.HasPrefix(trimmed, keyword) {
+				return lineNumber + 1, len(raw) + 1, true
+			}
+		}
+	}
+	return 0, 0, false
 }
 
 var stdMods = map[string]bool{
@@ -69,6 +90,7 @@ type checker struct {
 	topVars map[string]Pos
 	// topPriv records top-level names that are explicitly private.
 	topPriv     map[string]bool
+	inferred    []map[string]string
 	packageFile bool
 	moduleFile  bool
 }
@@ -77,6 +99,7 @@ func (c *checker) program(p *Program) error {
 	c.used = map[string]bool{}
 	c.topVars = map[string]Pos{}
 	c.topPriv = map[string]bool{}
+	c.inferred = nil
 	c.packageFile = isPackageFile(c.name)
 	c.moduleFile = c.packageFile
 	c.push()
@@ -162,10 +185,12 @@ func (c *checker) warn(p Pos, format string, a ...any) {
 
 func (c *checker) push() {
 	c.scopes = append(c.scopes, map[string]bool{})
+	c.inferred = append(c.inferred, map[string]string{})
 }
 
 func (c *checker) pop() {
 	c.scopes = c.scopes[:len(c.scopes)-1]
+	c.inferred = c.inferred[:len(c.inferred)-1]
 }
 
 func (c *checker) define(name string, pos Pos) {
@@ -275,6 +300,17 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 					name = t.Names[0]
 				}
 				c.err(t.Pos, "type mismatch for %q: expected %s, received %s", name, t.Type, got)
+			}
+		}
+		if len(t.Names) == 1 && len(t.Vals) == 1 {
+			name := t.Names[0]
+			got := c.inferExprType(t.Vals[0])
+			if got != "" && got != "nil" {
+				if previous := c.inferredType(name); previous != "" && !staticTypeAccepts(previous, got) {
+					c.err(t.Pos, "type mismatch for %q: expected %s, received %s", name, previous, got)
+				} else if t.Type == "" {
+					c.inferred[len(c.inferred)-1][name] = got
+				}
 			}
 		}
 		for _, n := range t.Names {
@@ -408,6 +444,59 @@ func (c *checker) walkStmt(s Stmt, topLevel bool) error {
 		}
 	}
 	return nil
+}
+
+func (c *checker) inferredType(name string) string {
+	for index := len(c.inferred) - 1; index >= 0; index-- {
+		if typ := c.inferred[index][name]; typ != "" {
+			return typ
+		}
+	}
+	return ""
+}
+
+func (c *checker) inferExprType(e Expr) string {
+	if typ := staticExprType(e); typ != "" {
+		return typ
+	}
+	switch t := e.(type) {
+	case *NameE:
+		return c.inferredType(t.X)
+	case *BinE:
+		left, right := c.inferExprType(t.X), c.inferExprType(t.Y)
+		switch t.Op {
+		case "and", "or", "==", "!=", "<", "<=", ">", ">=", "in", "not in":
+			return "bool"
+		case "+":
+			if left == "str" && right == "str" {
+				return "str"
+			}
+			if left == "float" || right == "float" {
+				return "float"
+			}
+			if left == "int" && right == "int" {
+				return "int"
+			}
+		case "-", "*", "/", "//", "%", "**":
+			if left == "float" || right == "float" || t.Op == "/" {
+				return "float"
+			}
+			if left == "int" && right == "int" {
+				return "int"
+			}
+		}
+	case *UnE:
+		if t.Op == "not" {
+			return "bool"
+		}
+		return c.inferExprType(t.X)
+	case *CondE:
+		left, right := c.inferExprType(t.Yes), c.inferExprType(t.No)
+		if left == right {
+			return left
+		}
+	}
+	return ""
 }
 
 // staticExprType intentionally only identifies values whose type is certain

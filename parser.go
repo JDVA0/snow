@@ -304,7 +304,7 @@ func Parse(src, name string) (*Program, error) {
 }
 
 func (p *parser) errf(t Tok, format string, a ...any) error {
-	return &Errat{p.name, t.Line, t.Col, fmt.Errorf(format, a...)}
+	return &Errat{p.name, t.Line, t.Col, &DiagnosticError{Code: CodeSyntax, Err: fmt.Errorf(format, a...)}}
 }
 
 func (p *parser) peek() Tok {

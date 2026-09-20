@@ -122,7 +122,9 @@ cd LSP && go test ./...
 `blizzard build archivo.blizz` valida el programa y comprueba que el compilador
 puede producir sus operaciones sin ejecutarlo. Los errores posicionados exponen
 los códigos `B001` a `B005` para que editores y herramientas puedan reaccionar
-sin analizar el texto humano del mensaje.
+sin analizar el texto humano del mensaje. `B100` avisa cuando un archivo todavía
+usa bloques por indentación. El checker también infiere tipos ciertos de
+literales, variables y operaciones antes de ejecutar.
 
 El gestor acepta versiones exactas y restricciones `^`, `~`, `>=`, `<=`, `<` y
 `>`. Los lockfiles guardan un checksum SHA-256; la caché global y la validación

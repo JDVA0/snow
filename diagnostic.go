@@ -10,6 +10,16 @@ import (
 // DiagnosticCode identifies a stable class of Blizzard diagnostic.
 type DiagnosticCode string
 
+// DiagnosticError carries a diagnostic code at the point where an error is
+// created, rather than requiring tools to infer it from human text.
+type DiagnosticError struct {
+	Code DiagnosticCode
+	Err  error
+}
+
+func (e *DiagnosticError) Error() string { return e.Err.Error() }
+func (e *DiagnosticError) Unwrap() error { return e.Err }
+
 const (
 	CodeSyntax    DiagnosticCode = "B001"
 	CodeUndefined DiagnosticCode = "B002"
@@ -17,6 +27,7 @@ const (
 	CodeType      DiagnosticCode = "B004"
 	CodeRuntime   DiagnosticCode = "B005"
 	CodeWarning   DiagnosticCode = "B000"
+	CodeLegacy    DiagnosticCode = "B100"
 	CodeInternal  DiagnosticCode = "B999"
 )
 
@@ -29,6 +40,10 @@ func CodeFor(err error) DiagnosticCode {
 	var at *Errat
 	if errors.As(err, &at) {
 		err = at.Err
+	}
+	var coded *DiagnosticError
+	if errors.As(err, &coded) {
+		return coded.Code
 	}
 	message := err.Error()
 	switch {

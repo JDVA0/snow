@@ -63,7 +63,9 @@ blizzard init nombre
 
 `build` analiza, comprueba y compila sin ejecutar el programa. Los diagnósticos
 estructurados usan códigos estables: `B001` sintaxis, `B002` nombre indefinido,
-`B003` módulo ausente, `B004` tipos y `B005` runtime.
+`B003` módulo ausente, `B004` tipos, `B005` runtime y `B100` sintaxis heredada.
+El checker infiere tipos ciertos de literales, variables, listas, diccionarios y
+operaciones; una reasignación incompatible se detecta antes de ejecutar.
 
 ### Roadmap experimental
 

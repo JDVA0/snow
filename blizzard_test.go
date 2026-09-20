@@ -1607,6 +1607,9 @@ func TestFormatDiagnostic(t *testing.T) {
 }
 
 func TestDiagnosticCodes(t *testing.T) {
+	if _, err := Parse("if true {", "syntax.blizz"); err == nil || CodeFor(err) != CodeSyntax {
+		t.Fatalf("syntax error code = %s, err = %v", CodeFor(err), err)
+	}
 	if got := CodeFor(&Errat{File: "x.blizz", Line: 1, Col: 1, Err: fmt.Errorf("undefined name 'x'")}); got != CodeUndefined {
 		t.Fatalf("undefined code = %s, want %s", got, CodeUndefined)
 	}
@@ -1619,6 +1622,24 @@ func TestDiagnosticCodes(t *testing.T) {
 	}
 	if len(issues) == 0 || issues[0].Code != CodeUndefined || !strings.Contains(issues[0].String(), "B002") {
 		t.Fatalf("unexpected checker diagnostic: %+v", issues)
+	}
+}
+
+func TestStaticInferenceAndLegacyWarning(t *testing.T) {
+	issues, err := Check("fn add(a, b):\n    return a + b\n\nlet count = 1\ncount = \"wrong\"\n", "legacy.blizz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var legacy, mismatch bool
+	for _, issue := range issues {
+		legacy = legacy || issue.Code == CodeLegacy
+		mismatch = mismatch || issue.Code == CodeType
+	}
+	if !legacy {
+		t.Fatalf("expected B100 legacy warning, got %+v", issues)
+	}
+	if !mismatch {
+		t.Fatalf("expected inferred type mismatch, got %+v", issues)
 	}
 }
 
