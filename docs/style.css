@@ -79,7 +79,7 @@ a:hover { color: #000; text-decoration: none; }
   scroll-snap-align: start;
   overflow-y: auto;
   background: #fff;
-  padding: 40px clamp(22px, 7vw, 130px) 70px;
+  padding: 40px clamp(26px, 8vw, 190px) 70px;
 }
 #matter > * + * { border-left: 1px solid var(--line); }
 
@@ -88,7 +88,7 @@ a:hover { color: #000; text-decoration: none; }
 #matter .toc > *,
 #matter .chapter > *,
 #matter .colophon > * {
-  max-width: 44em;
+  max-width: 60em;
   margin-left: auto;
   margin-right: auto;
 }
@@ -198,7 +198,7 @@ figure.listing pre { margin: 0; }
   justify-content: center;
   text-align: center;
 }
-.cover .title-block { max-width: 30em; margin: 0 auto; }
+.cover .title-block { max-width: 38em; margin: 0 auto; }
 .cover .engine {
   font-size: 12px;
   letter-spacing: .22em;

@@ -53,6 +53,12 @@
       <li><a href="#ch15"><span class="num">15</span><span class="title">Editor y servidor de lenguaje</span></a></li>
       <li><a href="#ch16"><span class="num">16</span><span class="title">Un recorrido completo</span></a></li>
       <li><a href="#ch17"><span class="num">17</span><span class="title">Referencia rápida</span></a></li>
+      <li><a href="#ch18"><span class="num">18</span><span class="title">Números, cadenas y texto</span></a></li>
+      <li><a href="#ch19"><span class="num">19</span><span class="title">Colecciones en profundidad</span></a></li>
+      <li><a href="#ch20"><span class="num">20</span><span class="title">Funciones y closures en la práctica</span></a></li>
+      <li><a href="#ch21"><span class="num">21</span><span class="title">Errores, pruebas y defensa en profundidad</span></a></li>
+      <li><a href="#ch22"><span class="num">22</span><span class="title">Módulos y proyectos en la práctica</span></a></li>
+      <li><a href="#ch23"><span class="num">23</span><span class="title">El sistema de cerca</span></a></li>
     </ol>
   </nav>
 
@@ -661,16 +667,22 @@ for i in range(3):
     <p><code>range(start, stop, step)</code> solo acepta enteros. <code>stop</code> es exclusivo; el paso puede ser negativo y nunca puede ser cero.</p>
 
     <h3><span class="hnum">8.4</span>Iteración con dos nombres</h3>
-    <p>Dos nombres reciben pares: índice y valor para listas y cadenas, clave y valor para diccionarios.</p>
+    <p>Dos nombres reciben pares: índice y valor para listas y cadenas, clave y valor para diccionarios. Para llegar a los pares que producen <code>enumerate</code> o <code>zip</code>, iterálos y desestructura con <code>[primero, segundo] = par</code>.</p>
 
-    <pre><code>for index, value in enumerate(["a", "b"]):
+    <pre><code>for index, value in ["a", "b"]:
     print(index, value)
 # 0 a
 # 1 b
 
 for key, value in {"x": 1}:
     print(key, value)
-# x 1</code></pre>
+# x 1
+
+for pair in enumerate(["a", "b"]):
+    [i, v] = pair
+    print(i, v)
+# 0 a
+# 1 b</code></pre>
 
     <h3><span class="hnum">8.5</span>Filtrar con where</h3>
     <p><code>where</code> pegado a un <code>for</code> salta los elementos que no cumplen la condición antes de que el cuerpo se ejecute.</p>
@@ -832,7 +844,7 @@ print(v.max3(1, 5, 3))   # 5
       <h2>Funciones incorporadas</h2>
     </header>
 
-    <p class="lead">Snow trae 53 funciones incorporadas, siempre disponibles, sin necesitar <code>using</code>. Se agrupan en unas pocas familias: salida y entrada, conversiones, matemáticas, cadenas, colecciones, razonamiento sobre colecciones, seguridad y control de procesos. Cada una se especifica abajo con un ejemplo verificable.</p>
+    <p class="lead">Snow trae 52 funciones incorporadas, siempre disponibles, sin necesitar <code>using</code>. Se agrupan en unas pocas familias: salida y entrada, conversiones, matemáticas, cadenas, colecciones, razonamiento sobre colecciones, seguridad y control de procesos. Cada una se especifica abajo con un ejemplo verificable.</p>
 
     <h3><span class="hnum">11.1</span>Salida y entrada</h3>
     <pre><code>print("a", "b", 1)   # a b 1     (espacios sencillos, un salto de línea)
@@ -1394,7 +1406,7 @@ api.post("/notes", fn(req):
     return api.json({id: id}, 201)
 )
 
-parsed = cli.parse(args2)
+parsed = cli.parse(args())
 
 if "serve" in parsed.args:
     api.serve(8080)
@@ -1407,7 +1419,7 @@ else:
 
     <p>El manejador POST lee el cuerpo JSON analizado de <code>req.json</code>, construye un id a partir del número actual de claves convertido en cadena, guarda la nota, la persiste de forma atómica con <code>store.save()</code> y responde <code>201</code> con el nuevo id.</p>
 
-    <p><code>cli.parse(args2)</code> convierte los argumentos de línea de comandos en una estructura <code>{flags, args}</code>. Si se pasó la palabra <code>serve</code>, el servidor se bloquea en <code>api.serve(8080)</code>; si no, el puerto solo se registra y el programa termina. Una única fuente de verdad &mdash; el diccionario &mdash; conecta el almacenamiento, las rutas, el análisis de argumentos y las respuestas.</p>
+    <p><code>cli.parse(args())</code> convierte los argumentos de línea de comandos de la función incorporada <code>args()</code> en una estructura <code>{flags, args}</code>. Si se pasó la palabra <code>serve</code>, el servidor se bloquea en <code>api.serve(8080)</code>; si no, el puerto solo se registra y el programa termina. Una única fuente de verdad &mdash; el diccionario &mdash; conecta el almacenamiento, las rutas, el análisis de argumentos y las respuestas.</p>
 
     <h3><span class="hnum">16.2</span>Una prueba de acompañamiento</h3>
 
@@ -1422,7 +1434,6 @@ fn add_ids(notes):
 
 notes = [{text: "first"}, {text: "second"}]
 with_id = add_ids(notes)
-data = store
 assert(len(with_id) == 2, "two notes")
 assert(with_id[0].id == "1", "first id")
 print("ok")</code></pre>
@@ -1482,6 +1493,619 @@ input   str, line, int, float, bool, hidden</code></pre>
 
     <h3><span class="hnum">17.6</span>Últimas palabras</h3>
     <p>Empieza con los ejemplos de <code>examples/</code> y trata después <code>snow_test.go</code> como documentación de comportamiento ejecutable. El lenguaje es pequeño a propósito: aprende primero los valores y los bloques del núcleo, y recurre a los módulos solo cuando el programa los necesite.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 18 ============================ -->
+  <section class="chapter" id="@ch18">
+    <header class="chap-head" id="ch18">
+      <div class="chap-kicker">18 &middot; Texto y números</div>
+      <h2>Números, cadenas y texto</h2>
+    </header>
+
+    <p class="lead">Los números y las cadenas son la materia prima de casi cualquier programa. Los capítulos 4 y 5 los recorrieron por encima; este capítulo es la referencia completa: las formas literales exactas, las reglas estrictas de conversión, la división en coma flotante, la indexación y las rebanadas que cuentan caracteres, la caja de herramientas de cadenas, los escapes y los f-strings aplicados.</p>
+
+    <h3><span class="hnum">18.1</span>Formas literales de enteros</h3>
+    <p>Un literal de entero es decimal por defecto. Los prefijos <code>0b</code>/<code>0B</code> (binario), <code>0o</code>/<code>0O</code> (octal) y <code>0x</code>/<code>0X</code> (hexadecimal) eligen otra base, con los dígitos hexadecimales sin distinguir mayúsculas. Un <code>-</code> inicial es una negación ordinaria, no parte del literal.</p>
+
+    <pre><code>print(42)       # 42
+print(0b1010)   # 10
+print(0o17)     # 15
+print(0x1F)     # 31
+print(-7)       # -7</code></pre>
+
+    <p>La conversión <code>int()</code> es decimal exclusivamente: analiza una cadena en base 10 tras recortar los espacios circundantes. <code>int(" 42 ")</code> es <code>42</code>, pero <code>int("0x1A")</code> es un error porque los prefijos de base son una característica de los literales, no del análisis.</p>
+
+    <pre><code>print(int("42"))     # 42
+print(int(3.99))     # 3      (truncado hacia cero)
+print(int(true))     # 1
+print(int(false))    # 0
+print(int(0x1f))     # 31     (desde un int, sin cambios)</code></pre>
+
+    <h3><span class="hnum">18.2</span>Las conversiones que usarás de verdad</h3>
+    <p><code>flt()</code> convierte números, booleanos y cadenas a flotantes; <code>str()</code> muestra cualquier valor exactamente como lo hace <code>print</code>. Juntas cubren la gran mayoría de conversiones en programas reales. No hay coerción implícita: las cadenas nunca se convierten en números en silencio, así que <code>"4" + 1</code> es un error de tipos.</p>
+
+    <pre><code>print(flt(2))        # 2.0
+print(flt("3.14"))   # 3.14
+print(flt(" 2.5 "))  # 2.5
+print(str(3.14))     # 3.14
+print(str(100))      # 100
+print(str(true))     # true</code></pre>
+
+    <h3><span class="hnum">18.3</span>La división siempre es flotante</h3>
+    <p>El matiz más repetido en Snow: <code>/</code> siempre produce un flotante, tanto para enteros como para flotantes. <code>//</code> redondea hacia el infinito negativo, <code>%</code> toma el signo del dividendo y <code>**</code> es asociativo por la derecha.</p>
+
+    <pre><code>print(1 / 2)         # 0.5
+print(7 / 2)         # 3.5
+print(7 // 2)        # 3
+print(-7 // 2)       # -4   (suelo, no truncamiento)
+print(-7 % 2)        # 1    (signo del dividendo)
+print(2 ** 3 ** 2)   # 512  (de derecha a izquierda: 2 ** 9)</code></pre>
+
+    <p>Repetibles: <code>"ab" * 3</code> es <code>ababab</code>, <code>[1, 2] * 2</code> es <code>[1, 2, 1, 2]</code>; y <code>+</code> concatena cadenas, añade listas y fusiona diccionarios. Enteros y flotantes se comparan de forma cruzada: <code>1 == 1.0</code> es <code>true</code>.</p>
+
+    <h3><span class="hnum">18.4</span>Indexación por caracteres</h3>
+    <p>Las cadenas son secuencias de caracteres Unicode. La indexación y <code>len()</code> cuentan caracteres, no bytes, por lo que el texto multibyte se comporta correctamente. Los índices negativos cuentan desde el final y los fuera de rango son un error en tiempo de ejecución.</p>
+
+    <pre><code>word = "snow"
+print(word[0])     # s
+print(word[-1])    # w
+print(len("héllo"))# 5    (cinco caracteres, no seis bytes)
+print("héllo"[1])  # é    (un único carácter)
+print("abc"[5])    # error: index 5 out of range for a string of length 3</code></pre>
+
+    <h3><span class="hnum">18.5</span>Rebanadas</h3>
+    <p>Las rebanadas son semiabiertas, <code>s[inicio:fin]</code>: el inicio se incluye y el final no. Cada rebanada devuelve una cadena nueva (las cadenas son inmutables). Las formas abiertas <code>[:n]</code> y <code>[n:]</code> son la forma habitual de tomar un prefijo o un sufijo; los límites negativos cuentan desde el final.</p>
+
+    <pre><code>s = "snowflake"
+print(s[:4])    # snow
+print(s[4:])    # flake
+print(s[4:6])   # fl
+print(s[-3:])   # ake</code></pre>
+
+    <h3><span class="hnum">18.6</span>La caja de herramientas de cadenas</h3>
+    <p>Seis funciones del núcleo cubren la mayor parte del trabajo con texto. <code>upper</code>, <code>lower</code> y <code>trim</code> cambian la caja y recortan el espacio circundante; <code>split(cadena, sep)</code> devuelve una lista de trozos; <code>join(lista, sep)</code> fusiona una lista de cadenas; <code>replace(s, viejo, nuevo)</code> reemplaza todas las apariciones; y <code>contains(sujeto, aguja)</code> es exactamente <code>aguja in sujeto</code>. Todas devuelven un valor nuevo.</p>
+
+    <pre><code>print(upper("Snow"))      # SNOW
+print(lower("Snow"))      # snow
+print(trim("  hi  "))     # hi
+print(split("a,b,c", ","))# [a, b, c]
+print(join(["sno", "man"], ""))  # snoman
+print(replace("aaa", "a", "b"))  # bbb
+print(contains("snowman", "now"))# true</code></pre>
+
+    <p>Combinadas, convierten texto bruto en datos útiles:</p>
+
+    <pre><code>line = "  alice;ada;grace  "
+names = split(trim(line), ";")
+clean = map(fn(n): upper(trim(n)), names)
+print(join(clean, "-"))   # ALICE-ADA-GRACE</code></pre>
+
+    <h3><span class="hnum">18.7</span>Escapes y texto sin formato</h3>
+    <p>Existen exactamente seis escapes. Cualquier otra secuencia con barra invertida es un error.</p>
+    <table>
+      <tr><th>Escape</th><th>Carácter</th></tr>
+      <tr><td><code>\n</code></td><td>nueva línea</td></tr>
+      <tr><td><code>\t</code></td><td>tabulación</td></tr>
+      <tr><td><code>\r</code></td><td>retorno de carro</td></tr>
+      <tr><td><code>\\</code></td><td>barra invertida</td></tr>
+      <tr><td><code>\"</code></td><td>comillas dobles</td></tr>
+      <tr><td><code>\'</code></td><td>comillas simples</td></tr>
+    </table>
+
+    <pre><code>print("a\tb")          # a	b
+print("line1\nline2")  # dos líneas
+print("no \d escape")  # error: unknown escape sequence \d</code></pre>
+
+    <p>Las cadenas entre comillas triples ocupan varias líneas, de modo que el texto multilínea puede normalizarse en un solo paso:</p>
+
+    <pre><code>poem = """the quick
+brown fox"""
+print(replace(poem, "\n", " "))   # the quick brown fox</code></pre>
+
+    <h3><span class="hnum">18.8</span>F-strings, a fondo</h3>
+    <p>Una <code>f</code> antes de la comilla de apertura interpola cada <code>{expresión}</code>. Las llaves se anidan contando la profundidad, por lo que un literal de diccionario dentro de la interpolación funciona; <code>{{</code> y <code>}}</code> producen llaves literales. Combinada con comillas triples, <code>f</code> interpola a lo largo de varias líneas. La interpolación siempre muestra con semántica de <code>str()</code> &mdash; convierte tú mismo cuando necesites otra forma.</p>
+
+    <pre><code>name = "ada"
+score = 97
+print(f"player {name} scored {score}")  # player ada scored 97
+print(f"{{name}}")                       # {name}
+print(f"{ {a: 1} }")                    # {a: 1}
+print(f"""triple
+line {1 + 1}""")                        # triple / line 2</code></pre>
+  </section>
+
+  <!-- ============================ CAPÍTULO 19 ============================ -->
+  <section class="chapter" id="@ch19">
+    <header class="chap-head" id="ch19">
+      <div class="chap-kicker">19 &middot; Estructuras de datos</div>
+      <h2>Colecciones en profundidad</h2>
+    </header>
+
+    <p class="lead">Las listas y los diccionarios son los caballos de batalla de los programas Snow. Este capítulo es la referencia completa de comportamiento: qué operaciones mutan, cuáles devuelven valores nuevos, cómo construir y seleccionar de las listas, cómo se comportan de verdad los diccionarios y cómo razonar sobre toda una colección con <code>map</code>, <code>filter</code> y <code>fold</code>.</p>
+
+    <h3><span class="hnum">19.1</span>Las listas son contenedores mutables</h3>
+    <p>Una lista puede contener cualquier mezcla de valores, y la asignación a un índice muta la lista en el sitio. En cambio, <code>append</code> y la concatenación devuelven listas <em>nuevas</em>, por lo que debes conservar el resultado si lo quieres.</p>
+
+    <pre><code>items = [1, 2, 3]
+items[0] = 99
+print(items)             # [99, 2, 3]  (mutada en el sitio)
+
+print(append(items, 4))  # [99, 2, 3, 4]  (una lista nueva)
+print(items)             # [99, 2, 3]     (sin cambios)
+
+print([1, 2] + [3])      # [1, 2, 3]
+print([1, 2] * 2)        # [1, 2, 1, 2]
+
+matrix = [[1, 2], [3, 4]]
+print(matrix[0][1])      # 2
+matrix[1][0] = 30
+print(matrix)            # [[1, 2], [30, 4]]</code></pre>
+
+    <h3><span class="hnum">19.2</span>Construir listas con idioma</h3>
+    <p>El patrón acumulador &mdash; empezar con <code>[]</code> y reasignar <code>append</code> &mdash; es la forma estándar de hacer crecer una lista. <code>range</code> genera secuencias de enteros, incluso con paso.</p>
+
+    <pre><code>evens = []
+for n in range(0, 10, 2):
+    evens = append(evens, n)
+print(evens)          # [0, 2, 4, 6, 8]
+
+print(enumerate(["a", "b"]))  # [[0, a], [1, b]]
+print(zip([1, 2], ["a", "b"]))# [[1, a], [2, b]]</code></pre>
+
+    <h3><span class="hnum">19.3</span>Seleccionar de las listas</h3>
+    <p><code>first</code> y <code>last</code> leen los extremos, <code>take</code> y <code>drop</code> cortan desde el frente, y las rebanadas seleccionan cualquier ventana contigua por índice o por índice negativo. <code>sort</code> y <code>reverse</code> devuelven listas nuevas.</p>
+
+    <pre><code>nums = [10, 20, 30, 40]
+print(first(nums))   # 10
+print(last(nums))    # 40
+print(take(nums, 2)) # [10, 20]
+print(drop(nums, 2)) # [30, 40]
+print(nums[:2])      # [10, 20]
+print(nums[2:])      # [30, 40]
+print(nums[-2:])     # [30, 40]
+print(sort([3, 1, 2]))   # [1, 2, 3]
+print(reverse(nums))     # [40, 30, 20, 10]</code></pre>
+
+    <h3><span class="hnum">19.4</span>Bucles con estructura</h3>
+    <p>La iteración con dos nombres sobre una lista produce índice y valor directamente &mdash; esa es la forma idiomática de tener ambos. Sobre un diccionario produce clave y valor, en orden de inserción. Para desestructurar pares, itera un resultado de <code>zip</code> o <code>enumerate</code> y vincula con <code>[primero, segundo] = par</code>.</p>
+
+    <pre><code>for index, value in ["a", "b"]:
+    print(index, value)        # 0 a / 1 b
+
+for key, value in {"x": 1, "y": 2}:
+    print(key, value)          # x 1 / y 2
+
+for pair in zip(["a", "b"], [1, 2]):
+    [letter, number] = pair
+    print(letter, number)      # a 1 / b 2</code></pre>
+
+    <h3><span class="hnum">19.5</span>Diccionarios a fondo</h3>
+    <p>Un diccionario asocia claves de cadena con valores y recuerda el orden de inserción. Las claves pueden escribirse sin comillas en los literales; los valores se alcanzan con un punto o un corchete. Asignar a una clave nueva la crea. <code>get(dict, key)</code> devuelve <code>nil</code> para una clave ausente (solo dos argumentos, sin valor por defecto), <code>has</code> comprueba la presencia e <code>in</code> sobre un diccionario comprueba claves.</p>
+
+    <pre><code>config = {port: 8080, host: "localhost"}
+print(config.port)         # 8080
+print(config["host"])      # localhost
+config.debug = true        # añade una clave nueva
+print(config)              # {port: 8080, host: localhost, debug: true}
+print(keys(config))        # [port, host, debug]
+print(values(config))      # [8080, localhost, true]
+print(has(config, "port")) # true
+print(get(config, "missing"))  # nil
+print("port" in config)    # true</code></pre>
+
+    <p><code>+</code> fusiona dos diccionarios en uno nuevo; el operando derecho gana en los choques, y ambas entradas quedan intactas. Usa <code>?.</code> y <code>?[</code> para acceso seguro ante <code>nil</code> en estructuras anidadas.</p>
+
+    <pre><code>base  = {a: 1, shared: "left"}
+more  = {shared: "right", b: 2}
+print(base + more)   # {a: 1, shared: right, b: 2}
+print(base)          # {a: 1, shared: left}  (sin cambios)
+
+user = {contact: {email: "ada@example.com"}}
+print(user?.contact?.email)      # ada@example.com
+print({}?.contact?.email)        # nil
+print({}?["name"])               # nil
+print({}["name"])                # error: key not found: name</code></pre>
+
+    <p>Un diccionario de conteo es un clásico; combina la asignación por corchetes con <code>get</code> y el fallback solo-para-nil <code>??</code>:</p>
+
+    <pre><code>counts = {}
+words = ["snow", "snow", "flake"]
+for w in words:
+    counts[w] = (get(counts, w) ?? 0) + 1
+print(counts)        # {snow: 2, flake: 1}</code></pre>
+
+    <h3><span class="hnum">19.6</span>Razonar sobre toda la colección</h3>
+    <p><code>sum</code> totaliza números, <code>len</code> cuenta elementos, <code>any</code>/<code>all</code> comprimen una lista de booleanos y <code>map</code>/<code>filter</code>/<code>fold</code> transforman, conservan y reducen. Componen con fluidez porque cada uno devuelve un valor.</p>
+
+    <pre><code>grades = [90, 70, 85]
+print(sum(grades))             # 245
+print(len(grades))             # 3
+print(sum(grades) / len(grades))  # 81.66666666666667
+print(any([false, true]))      # true
+print(all([true, true]))       # true
+print(filter(fn(g): g >= 80, grades))  # [90, 85]
+print(map(fn(g): g + 5, grades))       # [95, 75, 90]
+print(fold(grades, 0, fn(total, g): total + g))  # 245</code></pre>
+
+    <h3><span class="hnum">19.7</span>Igualdad y pertenencia</h3>
+    <p><code>==</code> es igualdad estructural profunda: dos listas son iguales cuando tienen los mismos elementos en el mismo orden, y dos diccionarios cuando guardan las mismas claves asignadas a valores iguales. <code>in</code> es pertenencia profunda para listas, subcadena para cadenas y clave para diccionarios; <code>not in</code> la niega.</p>
+
+    <pre><code>print([1, 2, 3] == [1, 2, 3])   # true
+print([1, 2] == [2, 1])          # false
+print({a: 1} == {a: 1})          # true
+print(2 in [1, 2, 3])            # true
+print([1, 2] in [[1, 2], [3]])   # true
+print("ow" in "snow")            # true
+print("b" in {a: 1, b: 2})       # true
+print(3 not in [1, 2])           # true</code></pre>
+  </section>
+
+  <!-- ============================ CAPÍTULO 20 ============================ -->
+  <section class="chapter" id="@ch20">
+    <header class="chap-head" id="ch20">
+      <div class="chap-kicker">20 &middot; Funciones como valores</div>
+      <h2>Funciones y closures en la práctica</h2>
+    </header>
+
+    <p class="lead">Las funciones son valores de primera clase: se pueden guardar, pasar, devolver, invocar a través de una referencia y cerrar sobre su entorno. Este capítulo es el manual práctico &mdash; los patrones que usas a diario, cada uno con un ejemplo verificable.</p>
+
+    <h3><span class="hnum">20.1</span>Las funciones son valores</h3>
+    <p>Guarda una función en una variable, en una lista o en un diccionario, y llámala a través de ese valor. Un diccionario de manejadores es un interruptor limpio sin <code>match</code>.</p>
+
+    <pre><code>handlers = {
+    twice: fn(x): x * 2,
+    half:  fn(x): x / 2,
+}
+print(handlers.twice(21))    # 42
+print(handlers.half(21))     # 10.5
+print(call(handlers.half, 21))  # 10.5</code></pre>
+
+    <p><code>call(fn, args&hellip;)</code> invoca una función guardada en un valor &mdash; lo mismo que escribir paréntesis.</p>
+
+    <h3><span class="hnum">20.2</span>Parámetros y anotaciones de tipo</h3>
+    <p>Los tipos en los parámetros y en el valor de retorno son opcionales y se comprueban en tiempo de ejecución, a la entrada y a la salida. Una discrepancia falla de forma sonora con el nombre y los tipos en juego, en lugar de fallar más abajo en la cadena.</p>
+
+    <pre><code>fn add(left: int, right: int) -> int:
+    return left + right
+
+print(add(2, 3))      # 5
+# add("x", 3)         ->  error de ejecución: discrepancia de tipos en left</code></pre>
+
+    <h3><span class="hnum">20.3</span>Los closures capturan su entorno</h3>
+    <p>Una función captura los nombres visibles en el punto donde se crea y los conserva durante toda su vida. Una fábrica es el uso clásico: una función que construye funciones a medida.</p>
+
+    <pre><code>fn make_adder(n):
+    return fn(x): x + n
+
+inc = make_adder(1)
+print(inc(41))        # 42
+
+minimum = 10
+is_large = fn(value): value >= minimum
+print(is_large(5))    # false
+print(is_large(50))   # true</code></pre>
+
+    <h3><span class="hnum">20.4</span>Varios valores de retorno</h3>
+    <p><code>return</code> puede devolver varios valores, y la asignación por desestructuración los recibe todos a la vez. Los nombres no necesitan paréntesis a ningún lado.</p>
+
+    <pre><code>fn split_point():
+    return 10, 20
+
+x, y = split_point()
+print(x, y)    # 10 20</code></pre>
+
+    <h3><span class="hnum">20.5</span>Recursión</h3>
+    <p>Las funciones pueden llamarse a sí mismas. La profundidad de recursión está protegida: el intérprete detiene la recursión desbocada con <code>recursion limit exceeded</code> en lugar de tumbar el sistema.</p>
+
+    <pre><code>fn fib(n):
+    if n &lt; 2:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+print(fib(10))    # 55</code></pre>
+
+    <h3><span class="hnum">20.6</span>Composición de orden superior</h3>
+    <p><code>map</code>, <code>filter</code> y <code>fold</code> reciben funciones como argumentos, de modo que una tubería es solo llamadas anidadas de izquierda a derecha. <code>fold</code> acepta el acumulador antes o después de la función: tanto <code>fold(lista, acc, fn)</code> como <code>fold(fn, acc, lista)</code> funcionan.</p>
+
+    <pre><code>fn double(n):
+    return n * 2
+fn is_even(n):
+    return n % 2 == 0
+fn add(a, b):
+    return a + b
+
+numbers = [1, 2, 3, 4]
+print(map(double, numbers))      # [2, 4, 6, 8]
+print(filter(is_even, numbers))  # [2, 4]
+print(fold(numbers, 0, add))     # 10
+print(fold(add, 0, numbers))     # 10</code></pre>
+
+    <p>Las funciones anónimas mantienen la composición en una línea:</p>
+
+    <pre><code>names = ["ada", "linus", "grace"]
+shouts = map(fn(n): upper(n), names)
+print(shouts)    # [ADA, LINUS, GRACE]</code></pre>
+  </section>
+
+  <!-- ============================ CAPÍTULO 21 ============================ -->
+  <section class="chapter" id="@ch21">
+    <header class="chap-head" id="ch21">
+      <div class="chap-kicker">21 &middot; Endurecimiento</div>
+      <h2>Errores, pruebas y defensa en profundidad</h2>
+    </header>
+
+    <p class="lead">Un lenguaje pequeño sigue siendo honesto haciendo visible el fallo. Este capítulo convierte el capítulo 9 en una caja de herramientas: el contrato de fallos, la limpieza garantizada, escribir pruebas que <code>snowman test</code> encuentre y los combinadores defensivos que mantienen a salvo los datos con forma de diccionario.</p>
+
+    <h3><span class="hnum">21.1</span>El contrato de fallos</h3>
+    <p>Existen tres clases de errores: los <b>errores del analizador</b> rechazan el texto que no puede convertirse en programa; los <b>diagnósticos del comprobador</b> vienen de <code>snowman check</code> y del editor sin ejecutar nada; los <b>errores de ejecución</b> ocurren mientras el programa corre y llevan traza de pila. <code>fail(x)</code> lanza su único argumento &mdash; cualquier valor &mdash; y <code>try</code>/<code>catch</code> recibe exactamente ese valor.</p>
+
+    <pre><code>fn require_name(user):
+    if user?.name == nil:
+        fail("name is required")
+    return user.name
+
+try:
+    print(require_name({}))
+catch err:
+    print("caught:", err)
+always:
+    print("cleanup runs either way")
+
+# caught: name is required
+# cleanup runs either way</code></pre>
+
+    <h3><span class="hnum">21.2</span>Los fallos son valores</h3>
+    <p>Como se puede lanzar cualquier valor, el equivalente a un código de error es simplemente un número que puedes comparar:</p>
+
+    <pre><code>try:
+    fail(42)
+catch n:
+    print(n + 1)   # 43</code></pre>
+
+    <h3><span class="hnum">21.3</span>always: limpieza que se ejecuta</h3>
+    <p><code>always</code> se ejecuta después de un cuerpo con éxito y después de un <code>catch</code>, de modo que cerrar un archivo o vaciar un mensaje no puede omitirse. <code>with</code> es la forma más corta cuando el propio valor sabe limpiarse: un diccionario u objeto nativo con un miembro <code>close</code> se cierra al terminar el bloque, normal o por fallo.</p>
+
+    <pre><code>with {data: "hello resource", close: fn(): print("closed")} as res:
+    print(res.data)
+# hello resource
+# closed</code></pre>
+
+    <h3><span class="hnum">21.4</span>assert en las pruebas</h3>
+    <p><code>assert</code> verifica una creencia y falla con estrépito cuando se rompe. <code>snowman test</code> descubre todos los archivos <code>*_test.snow</code> bajo <code>src/</code>; un archivo lleno de pequeñas llamadas a <code>assert</code> es una prueba. <code>--filter</code> restringe qué pruebas corren.</p>
+
+    <pre><code>assert(2 + 2 == 4, "addition")
+assert([1, 2], [1, 2])     # la igualdad profunda pasa
+assert(has({a: 1}, "a"), "key present")</code></pre>
+
+    <p>Las tres formas válidas: <code>assert(cond)</code> falla a menos que <code>cond</code> sea veraz; <code>assert(a, b)</code> falla a menos que <code>a</code> iguale a <code>b</code> por igualdad profunda; <code>assert(cond, "mensaje")</code> añade un mensaje.</p>
+
+    <h3><span class="hnum">21.5</span>Defensa en profundidad</h3>
+    <p>Los datos con forma de diccionario merecen lectores defensivos. Llega a las estructuras anidadas sin arriesgar un error de <code>key not found</code>, y falla rápido con una guarda de <code>type()</code> con nombre cuando la forma debe ser exacta.</p>
+
+    <pre><code>print({}?.contact?.email)          # nil
+print({}?["name"])                 # nil
+print(get({port: 8080}, "port"))   # 8080
+print(get({}, "port"))             # nil
+print(has({}, "port"))             # false
+
+fn respond(data):
+    if type(data) != "dict":
+        fail("respond expects a dictionary")
+    return data?.message ?? "no message"
+
+print(respond({message: "hi"}))    # hi
+print(respond({}))                 # no message</code></pre>
+
+    <p><code>??</code> es solo-para-nil: sustituye el lado derecho únicamente cuando el izquierdo es <code>nil</code>, nunca para <code>false</code> o <code>0</code>. Recuerda que <code>if</code> y <code>while</code> necesitan booleanos de verdad &mdash; pero <code>assert</code>, <code>bool()</code> y <code>filter</code> usan veracidad.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 22 ============================ -->
+  <section class="chapter" id="@ch22">
+    <header class="chap-head" id="ch22">
+      <div class="chap-kicker">22 &middot; Proyectos reales</div>
+      <h2>Módulos y proyectos en la práctica</h2>
+    </header>
+
+    <p class="lead">Los capítulos 10 y 14 documentaron la maquinaria; este capítulo muestra la forma de trabajo de un proyecto real de varios archivos Snow: importaciones relativas, el contrato de visibilidad, las importaciones de módulos de proyecto y el ciclo de vida del proyecto con <code>snowman</code>.</p>
+
+    <h3><span class="hnum">22.1</span>Una estructura realista</h3>
+    <pre><code>my_app/
+  snow.toml
+  snow.lock
+  src/
+    main.snow
+    helpers_test.snow
+  lib/
+    values.snow
+  packages/</code></pre>
+
+    <p><code>src/main.snow</code> es el punto de entrada que ejecuta <code>snowman run</code>; <code>*_test.snow</code> bajo <code>src/</code> los descubre <code>snowman test</code>; el código compartido vive en sus propios archivos; las dependencias aterrizan en <code>packages/</code>.</p>
+
+    <h3><span class="hnum">22.2</span>Importaciones relativas</h3>
+    <p>Las importaciones relativas se resuelven sustituyendo los puntos por barras y vinculando el último segmento (o tu alias). El prefijo <code>../</code> sale del directorio actual.</p>
+
+    <pre><code>import ./formatters as fmt
+print(fmt.title("snow"))
+
+import ../lib.values as v
+print(v.max3(1, 5, 3))    # 5
+print(v.top_value)        # 7</code></pre>
+
+    <h3><span class="hnum">22.3</span>El contrato de visibilidad</h3>
+    <p>Todo lo que está en el nivel superior de un archivo se exporta por defecto. <code>priv</code> oculta un nombre de las exportaciones del archivo; <code>pub</code> hace explícita la intención pública (un prefijo <code>_</code> no hace nada). Los módulos importados se guardan en caché, por lo que importar el mismo archivo dos veces comparte una copia, y los ciclos de importación se detectan y se notifican.</p>
+
+    <pre><code># lib/values.snow
+pub fn max3(a, b, c):
+    return max(a, b, c)
+
+priv fn helper(x):
+    return x * 2
+
+pub top_value = 7</code></pre>
+
+    <pre><code># main.snow
+import ../lib.values as v
+print(v.max3(1, 5, 3))   # 5
+# v.helper(2)  ->  attribute not found: helper</code></pre>
+
+    <h3><span class="hnum">22.4</span>Importaciones de módulos de proyecto</h3>
+    <p>Dentro de un proyecto, el código reutilizable se importa por nombre de paquete y ruta de archivo con puntos, y <code>using</code> acepta la forma larga <code>snow.</code> con un alias:</p>
+
+    <pre><code>import demo.math
+print(math.twice(21))        # 42
+
+using snow.http as web
+print(web.get("https://example.com").status)</code></pre>
+
+    <p>La dependencia <code>dep.demo = "packages/demo"</code> en <code>snow.toml</code> apunta a la ubicación del paquete. <code>snow.lock</code> registra la versión exacta, la fuente y el checksum SHA-256, por lo que <code>snowman install</code> reproduce el mismo árbol en cualquier máquina.</p>
+
+    <h3><span class="hnum">22.5</span>Las funciones incorporadas siempre están a la vista</h3>
+    <p>Las 52 funciones incorporadas no necesitan <code>using</code> &mdash; forman parte de todo programa. Solo la biblioteca estándar y tus propios archivos se cargan por nombre:</p>
+
+    <pre><code>using api     using http   using fs     using sys   using cli
+using db      using json   using csv    using env   using time
+using crypto  using task   using input</code></pre>
+
+    <h3><span class="hnum">22.6</span>El flujo diario</h3>
+    <p>Escribe, comprueba, prueba, ejecuta &mdash; el bucle son cuatro comandos:</p>
+
+    <pre><code>snowman fmt -w src/main.snow   # formatear
+snowman check src/main.snow   # análisis estático
+snowman test                 # ejecutar *_test.snow
+snowman run --env .env       # ejecutar con configuración</code></pre>
+
+    <p><code>snowman get</code>, <code>add</code>, <code>remove</code>, <code>list</code>, <code>info</code>, <code>update</code>, <code>search</code> e <code>index</code> gestionan las dependencias (ver capítulo 13), y el registro oficial ofrece por ahora estos paquetes: <code>arrays</code>, <code>collections</code>, <code>csvutil</code>, <code>dict</code>, <code>guards</code>, <code>ids</code>, <code>math</code>, <code>numbers</code>, <code>pagination</code>, <code>query</code>, <code>result</code>, <code>stats</code>, <code>strings</code>, <code>template</code>, <code>text</code>, <code>validate</code>.</p>
+  </section>
+
+  <!-- ============================ CAPÍTULO 23 ============================ -->
+  <section class="chapter" id="@ch23">
+    <header class="chap-head" id="ch23">
+      <div class="chap-kicker">23 &middot; La máquina</div>
+      <h2>El sistema de cerca</h2>
+    </header>
+
+    <p class="lead">Todo lo que está fuera del intérprete es un módulo. Este último vistazo a fondo recorre los módulos del sistema uno a uno con ejemplos reales y ejecutables: <code>sys</code>, <code>fs</code>, <code>env</code>, <code>time</code>, <code>csv</code>, <code>db</code>, <code>crypto</code>, <code>task</code> y <code>cli</code>.</p>
+
+    <h3><span class="hnum">23.1</span>sys &mdash; procesos y datos del host</h3>
+    <p><code>sh</code> ejecuta a través del shell y devuelve un diccionario con <code>stdout</code>, <code>stderr</code>, <code>ok</code> y <code>code</code>; <code>exec</code> ejecuta un programa directamente con la misma forma. El entorno, el directorio de trabajo y los datos de la máquina son lecturas simples.</p>
+
+    <pre><code>using sys
+
+result = sys.sh("echo hello-snow")
+print(trim(result.stdout), result.ok)   # hello-snow true
+print(sys.pid &gt; 0)                      # true
+print(sys.platform)                     # linux (ejemplo)
+print(sys.arch)                         # amd64 (ejemplo)</code></pre>
+
+    <h3><span class="hnum">23.2</span>fs &mdash; archivos y directorios</h3>
+    <p><code>read</code>, <code>write</code> (sobrescribe) y <code>append</code> cubren los archivos; <code>exists</code>, <code>is_file</code> e <code>is_dir</code> preguntan por rutas; <code>mkdir</code> crea directorios de forma recursiva; <code>list</code> nombra un directorio; <code>stat</code> describe una ruta; <code>copy</code> duplica un archivo.</p>
+
+    <pre><code>using fs
+
+f = "demo.txt"
+fs.write(f, "line one\n")
+print(trim(fs.read(f)))        # line one
+fs.append(f, "line two\n")
+print(trim(fs.read(f)))        # line one / line two
+print(fs.is_file(f))           # true
+fs.remove(f)
+print(fs.exists(f))            # false
+
+fs.mkdir("out")
+print(fs.is_dir("out"))        # true
+fs.write("out/a.txt", "x")
+print("a.txt" in fs.list("out"))   # true</code></pre>
+
+    <h3><span class="hnum">23.3</span>env &mdash; configuración</h3>
+    <p><code>set</code> y <code>get</code> leen y escriben el entorno del proceso; las coerciones <code>int</code>, <code>float</code> y <code>bool</code> aceptan un valor por defecto para variables ausentes o vacías; <code>has</code> pregunta; <code>all</code> vuelca todo; <code>load</code> lee líneas <code>CLAVE=VALOR</code> de un archivo, tolerando prefijos <code>export</code> y comillas.</p>
+
+    <pre><code>using env
+
+env.set("SNOW_DEMO", "42")
+print(env.get("SNOW_DEMO"))          # 42
+print(env.int("SNOW_DEMO"))          # 42
+print(env.float("MISSING", 1.5))     # 1.5
+print(env.bool("MISSING", true))     # true
+print(env.has("SNOW_DEMO"))          # true
+env.load(".env")                     # líneas CLAVE=VALOR</code></pre>
+
+    <h3><span class="hnum">23.4</span>time &mdash; relojes y duraciones</h3>
+    <p><code>sleep</code> acepta duraciones en cadena como <code>"20ms"</code> o un número de milisegundos; <code>now</code> usa por defecto <code>2006-01-02 15:04:05</code> y acepta directivas <code>%</code>; <code>unix</code>, <code>unix_ms</code> e <code>iso</code> son formatos listos; <code>since(anterior)</code> mide un intervalo.</p>
+
+    <pre><code>using time
+
+t0 = time.unix_ms()
+time.sleep("10ms")
+print(time.unix_ms() &gt;= t0)          # true
+print(len(trim(time.now())) == 19)   # true  (p. ej. 2026-09-19 12:00:00)
+print(len(time.now("%Y-%m-%d")) == 10)  # true
+print(len(time.iso()) &gt; 10)           # true</code></pre>
+
+    <h3><span class="hnum">23.5</span>csv &mdash; tablas de texto</h3>
+    <p><code>parse</code> convierte texto en filas, <code>dicts</code> clavea las filas por la cabecera (dado el texto bruto), <code>stringify</code> serializa filas o diccionarios, y <code>read</code>/<code>write</code> trasladan filas de y hacia archivos.</p>
+
+    <pre><code>using csv
+using fs
+
+raw = "name,score\nanna,95\nalex,88"
+print(len(csv.parse(raw)))             # 3
+print(csv.dicts(raw)[0].name)          # anna
+
+rows = [["name", "score"], ["anna", "95"], ["alex", "88"]]
+csv.write("out.csv", rows)
+print(csv.read("out.csv")[1][1])       # 95
+print(csv.dicts(fs.read("out.csv"))[0].name)  # anna</code></pre>
+
+    <h3><span class="hnum">23.6</span>db &mdash; un almacén de documentos JSON</h3>
+    <p><code>db.open(ruta)</code> carga un almacén clave-valor JSON (creando el archivo si no existe) y devuelve un objeto store. Ofrece <code>get(clave, por_defecto?)</code> &mdash; fíjate: el <code>get</code> de este store <em>sí</em> acepta un valor por defecto, a diferencia del <code>get()</code> incorporado &mdash; además de <code>set</code>, <code>delete</code>, <code>keys</code>, <code>has</code>, <code>all</code>, <code>save</code> y un miembro <code>path</code>.</p>
+
+    <pre><code>using db
+
+store = db.open("notes.json")
+store.set("greeting", "hello")
+store.set("count", 3)
+print(store.get("greeting"))           # hello
+print(store.get("missing", "default")) # default
+print(store.has("count"))              # true
+print(store.keys())                    # [greeting, count]
+print(store.all())                     # {greeting: hello, count: 3}
+store.save()                           # escritura atómica en disco</code></pre>
+
+    <h3><span class="hnum">23.7</span>crypto &mdash; hashes y tokens</h3>
+    <p><code>sha256</code>, <code>sha1</code> y <code>md5</code> devuelven hexadecimal en minúsculas; <code>random_token(n?)</code> devuelve <code>n</code> caracteres hexadecimales (32 por defecto); <code>jwt_sign(payload, secreto)</code> y <code>jwt_verify(token, secreto)</code> implementan tokens firmados, y verify devuelve <code>nil</code> cuando el secreto es incorrecto.</p>
+
+    <pre><code>using crypto
+
+print(len(crypto.sha256("hello")) == 64)   # true
+print(len(crypto.random_token()) == 32)     # true
+token = crypto.jwt_sign({role: "admin"}, "secret")
+print(crypto.jwt_verify(token, "secret").role)  # admin
+print(crypto.jwt_verify(token, "wrong") == nil) # true</code></pre>
+
+    <p>Dos avisos que vale la pena repetir: los hashes no son cifrado, y los secretos viven en el entorno, no en los archivos fuente.</p>
+
+    <h3><span class="hnum">23.8</span>task &mdash; trabajo programado y cli &mdash; argumentos y colores</h3>
+    <p><code>task.every(duración, fn)</code> ejecuta una función en un horario; <code>task.after(ms, fn)</code> la ejecuta una vez tras un retraso. Ambos devuelven un manejador con <code>stop()</code>. <code>cli.parse(lista)</code> divide los argumentos en <code>{flags, args}</code> con coerción de enteros y flotantes, y los ayudantes de color envuelven el texto en códigos ANSI (desactivados cuando hay tubería).</p>
+
+    <pre><code>using task
+using time
+using cli
+
+count = 0
+fn bump():
+    count = count + 1
+
+job = task.every("5ms", bump)
+time.sleep("30ms")
+job.stop()
+print(count &gt;= 2)                  # true
+
+parsed = cli.parse(["serve", "--port", "8080"])
+print(parsed.args)       # [serve]
+print(parsed.flags.port) # 8080
+print(cli.green("ok"))   # texto en color (o plano con tubería)</code></pre>
+
+    <p>Los ayudantes <code>ask</code>/<code>confirm</code>/<code>box</code>/<code>table</code>/<code>divider</code>/<code>info</code>/<code>success</code>/<code>warn</code>/<code>error</code> completan el kit (ver capítulo 12).</p>
   </section>
 
   <!-- ============================ EPÍLOGO ============================ -->
