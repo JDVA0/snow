@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ type Issue struct {
 	Line   int
 	Col    int
 	Msg    string
+	Code   DiagnosticCode
 	IsErr  bool
 	Source string
 }
@@ -21,10 +22,10 @@ func (i Issue) String() string {
 	if i.IsErr {
 		kind = "error"
 	}
-	return fmt.Sprintf("%s:%d:%d: %s: %s", i.Source, i.Line, i.Col, kind, i.Msg)
+	return fmt.Sprintf("%s:%d:%d: %s %s: %s", i.Source, i.Line, i.Col, i.Code, kind, i.Msg)
 }
 
-// Check parses, compiles and lints Snow source without running it. If the
+// Check parses, compiles and lints Blizzard source without running it. If the
 // code does not parse or compile, the error is returned and no issues are
 // produced.
 func Check(src, name string) ([]Issue, error) {
@@ -97,10 +98,10 @@ func (c *checker) program(p *Program) error {
 	var uses []*UseStmt
 	collectUsing(p.Stmts, &uses)
 	for _, u := range uses {
-		if len(u.Path) == 2 && u.Path[0] == "snow" && !stdMods[u.Path[1]] && !repoMods[u.Path[1]] {
-			message := fmt.Sprintf("unknown standard module 'snow.%s'", u.Path[1])
+		if len(u.Path) == 2 && u.Path[0] == "blizzard" && !stdMods[u.Path[1]] && !repoMods[u.Path[1]] {
+			message := fmt.Sprintf("unknown standard module 'blizzard.%s'", u.Path[1])
 			if suggestion := moduleSuggestion(u.Path[1]); suggestion != "" {
-				message += fmt.Sprintf("; did you mean 'snow.%s'?", suggestion)
+				message += fmt.Sprintf("; did you mean 'blizzard.%s'?", suggestion)
 			}
 			c.err(u.Pos, "%s", message)
 		}
@@ -133,14 +134,29 @@ func isPackageFile(name string) bool {
 func (c *checker) err(p Pos, format string, a ...any) {
 	c.issues = append(c.issues, Issue{
 		Line: p.Line, Col: p.Col, Source: c.name, IsErr: true,
-		Msg: fmt.Sprintf(format, a...),
+		Code: codeForMessage(fmt.Sprintf(format, a...)),
+		Msg:  fmt.Sprintf(format, a...),
 	})
+}
+
+func codeForMessage(message string) DiagnosticCode {
+	switch {
+	case strings.Contains(message, "undefined name"):
+		return CodeUndefined
+	case strings.Contains(message, "unknown standard module"):
+		return CodeModule
+	case strings.Contains(message, "type mismatch"):
+		return CodeType
+	default:
+		return CodeRuntime
+	}
 }
 
 func (c *checker) warn(p Pos, format string, a ...any) {
 	c.issues = append(c.issues, Issue{
 		Line: p.Line, Col: p.Col, Source: c.name,
-		Msg: fmt.Sprintf(format, a...),
+		Code: CodeWarning,
+		Msg:  fmt.Sprintf(format, a...),
 	})
 }
 
@@ -456,6 +472,10 @@ func (c *checker) walkExpr(e Expr) error {
 				return err
 			}
 		}
+	case *SpreadE:
+		if err := c.walkExpr(t.X); err != nil {
+			return err
+		}
 	case *IndexE:
 		if err := c.walkExpr(t.X); err != nil {
 			return err
@@ -636,6 +656,8 @@ func (c *checker) markExpr(e Expr) {
 		for _, a := range t.Args {
 			c.markExpr(a)
 		}
+	case *SpreadE:
+		c.markExpr(t.X)
 	case *IndexE:
 		c.markExpr(t.X)
 		c.markExpr(t.Key)

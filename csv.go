@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"bytes"
@@ -23,10 +23,10 @@ func csvParse(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("csv.parse requires at least 1 argument (text)")
 	}
-	text := SnowStr(args[0])
+	text := BlizzardStr(args[0])
 	r := csv.NewReader(strings.NewReader(text))
 	if len(args) >= 2 {
-		delimStr := SnowStr(args[1])
+		delimStr := BlizzardStr(args[1])
 		if len(delimStr) > 0 {
 			r.Comma = rune(delimStr[0])
 		}
@@ -63,7 +63,7 @@ func csvDicts(i *Interp, args []Val) ([]Val, error) {
 	headerRow := matrix[0].(List)
 	headers := make([]string, len(headerRow))
 	for idx, h := range headerRow {
-		headers[idx] = strings.TrimSpace(SnowStr(h))
+		headers[idx] = strings.TrimSpace(BlizzardStr(h))
 	}
 
 	result := make(List, 0, len(matrix)-1)
@@ -98,7 +98,7 @@ func csvStringify(i *Interp, args []Val) ([]Val, error) {
 	var buf bytes.Buffer
 	w := csv.NewWriter(&buf)
 	if len(args) >= 2 {
-		delimStr := SnowStr(args[1])
+		delimStr := BlizzardStr(args[1])
 		if len(delimStr) > 0 {
 			w.Comma = rune(delimStr[0])
 		}
@@ -120,7 +120,7 @@ func csvStringify(i *Interp, args []Val) ([]Val, error) {
 				row := make([]string, len(headers))
 				for idx, h := range headers {
 					val, _ := d.Get(h)
-					row[idx] = SnowStr(val)
+					row[idx] = BlizzardStr(val)
 				}
 				if err := w.Write(row); err != nil {
 					return nil, err
@@ -133,7 +133,7 @@ func csvStringify(i *Interp, args []Val) ([]Val, error) {
 			if rowList, ok := item.(List); ok {
 				row := make([]string, len(rowList))
 				for idx, cell := range rowList {
-					row[idx] = SnowStr(cell)
+					row[idx] = BlizzardStr(cell)
 				}
 				if err := w.Write(row); err != nil {
 					return nil, err
@@ -154,7 +154,7 @@ func csvRead(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("csv.read requires at least 1 argument (path)")
 	}
-	path := SnowStr(args[0])
+	path := BlizzardStr(args[0])
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read csv file '%s': %w", path, err)
@@ -171,7 +171,7 @@ func csvWrite(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 2 {
 		return nil, fmt.Errorf("csv.write requires 2 arguments (path, data)")
 	}
-	path := SnowStr(args[0])
+	path := BlizzardStr(args[0])
 	strArgs := []Val{args[1]}
 	if len(args) >= 3 {
 		strArgs = append(strArgs, args[2])

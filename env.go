@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"bufio"
@@ -26,7 +26,7 @@ func envGet(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("env.get requires at least 1 argument (key)")
 	}
-	key := SnowStr(args[0])
+	key := BlizzardStr(args[0])
 	val, ok := os.LookupEnv(key)
 	if !ok {
 		if len(args) >= 2 {
@@ -42,7 +42,7 @@ func envHas(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("env.has requires 1 argument (key)")
 	}
-	key := SnowStr(args[0])
+	key := BlizzardStr(args[0])
 	_, ok := os.LookupEnv(key)
 	return []Val{Bool(ok)}, nil
 }
@@ -52,8 +52,8 @@ func envSet(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 2 {
 		return nil, fmt.Errorf("env.set requires 2 arguments (key, val)")
 	}
-	key := SnowStr(args[0])
-	val := SnowStr(args[1])
+	key := BlizzardStr(args[0])
+	val := BlizzardStr(args[1])
 	if err := os.Setenv(key, val); err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func envInt(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("env.int requires at least 1 argument (key)")
 	}
-	key := SnowStr(args[0])
+	key := BlizzardStr(args[0])
 	val, ok := os.LookupEnv(key)
 	if !ok || strings.TrimSpace(val) == "" {
 		if len(args) >= 2 {
@@ -99,7 +99,7 @@ func envFloat(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("env.float requires at least 1 argument (key)")
 	}
-	key := SnowStr(args[0])
+	key := BlizzardStr(args[0])
 	val, ok := os.LookupEnv(key)
 	if !ok || strings.TrimSpace(val) == "" {
 		if len(args) >= 2 {
@@ -129,7 +129,7 @@ func envBool(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("env.bool requires at least 1 argument (key)")
 	}
-	key := SnowStr(args[0])
+	key := BlizzardStr(args[0])
 	val, ok := os.LookupEnv(key)
 	if !ok || strings.TrimSpace(val) == "" {
 		if len(args) >= 2 {
@@ -161,7 +161,7 @@ func envAll(i *Interp, args []Val) ([]Val, error) {
 func envLoad(i *Interp, args []Val) ([]Val, error) {
 	path := ".env"
 	if len(args) >= 1 {
-		path = SnowStr(args[0])
+		path = BlizzardStr(args[0])
 	}
 	file, err := os.Open(path)
 	if err != nil {

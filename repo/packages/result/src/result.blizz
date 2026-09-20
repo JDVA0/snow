@@ -1,0 +1,27 @@
+# Official Blizzard library: explicit success and error values
+
+fn ok(value) {
+    return {ok: true, value: value, error: nil};
+}
+
+fn err(message) {
+    return {ok: false, value: nil, error: message};
+}
+
+fn unwrap(result, fallback) {
+    if (result.ok) {
+        return result.value;
+    }
+    return fallback;
+}
+
+fn message(result, fallback) {
+    if (result.ok) {
+        return fallback;
+    }
+    return result.error;
+}
+
+fn is_ok(result) {
+    return result.ok == true;
+}

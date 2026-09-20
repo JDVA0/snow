@@ -1,0 +1,31 @@
+# Official Blizzard library: string formatting helpers
+
+fn words(value) {
+    return filter(fn(part) { return len(part) > 0; }, split(trim(value), " "));
+}
+
+fn snake_case(value) {
+    value = lower(trim(value));
+    value = replace(value, "-", " ");
+    return join(words(value), "_");
+}
+
+fn kebab_case(value) {
+    return replace(snake_case(value), "_", "-");
+}
+
+fn title_case(value) {
+    let result = [];
+    for word in words(value) {
+        result = append(result, upper(word[:1]) + lower(word[1:]));
+    }
+    return join(result, " ");
+}
+
+fn pad_left(value, width, fill) {
+    let result = str(value);
+    while (len(result) < width) {
+        result = fill + result;
+    }
+    return result;
+}

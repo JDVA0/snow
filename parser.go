@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"fmt"
@@ -8,10 +8,10 @@ import (
 // Pos is a source position.
 type Pos struct{ Line, Col int }
 
-// Stmt is a Snow statement.
+// Stmt is a Blizzard statement.
 type Stmt interface{ stmt() }
 
-// Expr is a Snow expression.
+// Expr is a Blizzard expression.
 type Expr interface{ expr() }
 
 // Program is a parsed source file.
@@ -23,9 +23,9 @@ type Program struct {
 
 type UseStmt struct {
 	Pos
-	Path     []string // snow.api or a/b (file module)
+	Path     []string // blizzard.api or a/b (file module)
 	Alias    string
-	Import   bool // import loads a .snow file; using may load stdlib or a file
+	Import   bool // import loads a .blizz file; using may load stdlib or a file
 	Relative int  // explicit ./ (1) or ../ (2+) import level
 }
 type AssignStmt struct {
@@ -33,6 +33,7 @@ type AssignStmt struct {
 	Names   []string
 	Op      byte // 0 for '=', otherwise the binary op code
 	Vals    []Expr
+	Let     bool
 	Type    string // declared type, e.g. "str", "str[]"; "" keeps the variable dynamic
 	Vis     string // "pub", "priv" or "" (default: pub)
 	Const   bool
@@ -57,6 +58,7 @@ type FnStmt struct {
 	Name       string
 	Params     []string
 	ParamTypes []string // len(Params), "" when a param is untyped
+	Rest       bool     // final parameter collects remaining positional arguments
 	Ret        string   // declared return type, "" when untyped
 	Body       []Stmt
 	Vis        string // "pub", "priv" or "" (default: pub)
@@ -154,6 +156,12 @@ type CallE struct {
 	Fn   Expr
 	Args []Expr
 }
+
+// SpreadE expands a list or dictionary in a collection literal or call.
+type SpreadE struct {
+	Pos
+	X Expr
+}
 type IndexE struct {
 	Pos
 	X   Expr
@@ -215,13 +223,14 @@ type ListLit struct {
 }
 type DictLit struct {
 	Pos
-	Pairs [][2]Expr
+	Pairs [][2]Expr // a spread entry has nil key and its value is the expanded dict
 }
 
 type FnExpr struct {
 	Pos
 	Params     []string
 	ParamTypes []string
+	Rest       bool
 	Ret        string
 	Body       []Stmt
 }
@@ -261,6 +270,7 @@ func (*NameE) expr()        {}
 func (*BinE) expr()         {}
 func (*UnE) expr()          {}
 func (*CallE) expr()        {}
+func (*SpreadE) expr()      {}
 func (*IndexE) expr()       {}
 func (*SafeIndexE) expr()   {}
 func (*AttrE) expr()        {}
@@ -283,7 +293,7 @@ type parser struct {
 	atTop      bool // true while parsing the file's top level
 }
 
-// Parse parses Snow source into a program.
+// Parse parses Blizzard source into a program.
 func Parse(src, name string) (*Program, error) {
 	toks, err := Tokenize(src, name)
 	if err != nil {
@@ -414,6 +424,18 @@ func (p *parser) parseStmt() (Stmt, error) {
 	k := p.peek()
 	if k.Kind == tIdent {
 		switch k.Text {
+		case "let":
+			p.next()
+			s, err := p.parseSimple()
+			if err != nil {
+				return nil, err
+			}
+			a, ok := s.(*AssignStmt)
+			if !ok || a.Op != 0 {
+				return nil, p.errf(k, "let requires a simple assignment")
+			}
+			a.Let = true
+			return a, nil
 		case "using":
 			return p.parseUsing()
 		case "import":
@@ -720,7 +742,7 @@ func (p *parser) lineEnd() error {
 	case tNewline:
 		p.next()
 		return nil
-	case tEOF, tDedent:
+	case tEOF, tDedent, tRBrace:
 		return nil
 	}
 	return p.errf(k, "unexpected %s", k.String())
@@ -755,7 +777,7 @@ func (p *parser) parseUsing() (Stmt, error) {
 
 // parseImport parses an import statement. It follows dotted module paths and
 // explicit relative forms: import ./utils and import ../shared.helpers.
-// path syntax as using, but always resolves to a .snow file relative
+// path syntax as using, but always resolves to a .blizz file relative
 // to the current file's directory:
 //
 //	import lib.utils
@@ -846,7 +868,7 @@ func (p *parser) parseFn() (Stmt, error) {
 		return nil, p.errf(k, "expected '(' after function name")
 	}
 	p.next()
-	params, ptypes, err := p.parseParams()
+	params, ptypes, rest, err := p.parseParams()
 	if err != nil {
 		return nil, err
 	}
@@ -858,34 +880,43 @@ func (p *parser) parseFn() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	colon, err := p.expectColon()
+	start, brace, err := p.expectBlockStart("function declaration")
 	if err != nil {
 		return nil, err
 	}
 	p.fnN++
-	body, err := p.parseSuite(colon, "function")
+	body, err := p.parseBlock(start, brace, "function")
 	p.fnN--
 	if err != nil {
 		return nil, err
 	}
-	return &FnStmt{Pos: Pos{st.Line, st.Col}, Name: name, Params: params, ParamTypes: ptypes, Ret: ret, Body: body}, nil
+	return &FnStmt{Pos: Pos{st.Line, st.Col}, Name: name, Params: params, ParamTypes: ptypes, Rest: rest, Ret: ret, Body: body}, nil
 }
 
-func (p *parser) parseParams() ([]string, []string, error) {
+func (p *parser) parseParams() ([]string, []string, bool, error) {
 	var names, types []string
+	rest := false
 	if p.peek().Kind == tRParen {
-		return names, types, nil
+		return names, types, rest, nil
 	}
 	for {
+		isRest := p.peek().Kind == tEllipsis
+		if isRest {
+			p.next()
+			if rest {
+				return nil, nil, false, p.errf(p.peek(), "only one rest parameter is allowed")
+			}
+			rest = true
+		}
 		n, err := p.expectIdent()
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, false, err
 		}
 		typ := ""
 		if p.peek().Kind == tColon {
 			p.next()
 			if typ, err = p.parseType(); err != nil {
-				return nil, nil, err
+				return nil, nil, false, err
 			}
 		}
 		names = append(names, n)
@@ -893,16 +924,22 @@ func (p *parser) parseParams() ([]string, []string, error) {
 		k := p.peek()
 		switch k.Kind {
 		case tRParen:
-			return names, types, nil
+			return names, types, rest, nil
 		case tComma:
+			if isRest {
+				return nil, nil, false, p.errf(k, "rest parameter must be last")
+			}
 			p.next()
 			if p.peek().Kind == tRParen {
-				return names, types, nil
+				return names, types, rest, nil
 			}
 		case tIdent:
+			if isRest {
+				return nil, nil, false, p.errf(k, "rest parameter must be last")
+			}
 			// optional commas: fn f(a b):
 		default:
-			return nil, nil, p.errf(k, "expected a parameter name or ')'")
+			return nil, nil, false, p.errf(k, "expected a parameter name or ')'")
 		}
 	}
 }
@@ -956,6 +993,19 @@ func (p *parser) expectColon() (Tok, error) {
 	return k, nil
 }
 
+func (p *parser) expectBlockStart(ctx string) (Tok, bool, error) {
+	k := p.peek()
+	if k.Kind == tLBrace {
+		p.next()
+		return k, true, nil
+	}
+	if k.Kind == tColon {
+		p.next()
+		return k, false, nil
+	}
+	return k, false, p.errf(k, "expected '{' after %s", ctx)
+}
+
 // parseSuite parses the block that follows the ':' of a compound statement.
 // colon is the header's ':' token and ctx the statement kind, so a missing
 // block is reported at the point where the block must begin (never on a
@@ -979,6 +1029,41 @@ func (p *parser) parseSuite(colon Tok, ctx string) ([]Stmt, error) {
 		return nil, err
 	}
 	return []Stmt{s}, nil
+}
+
+func (p *parser) parseBraceBlock(ctx string) ([]Stmt, error) {
+	var stmts []Stmt
+	for {
+		k := p.peek()
+		switch k.Kind {
+		case tRBrace:
+			p.next()
+			return stmts, nil
+		case tEOF:
+			return nil, p.errf(k, "expected '}' to close %s block", ctx)
+		case tNewline:
+			p.next()
+		default:
+			s, err := p.parseStmt()
+			if err != nil {
+				return nil, err
+			}
+			stmts = append(stmts, s)
+		}
+	}
+}
+
+func (p *parser) parseBlock(start Tok, brace bool, ctx string) ([]Stmt, error) {
+	if brace {
+		return p.parseBraceBlock(ctx)
+	}
+	return p.parseSuite(start, ctx)
+}
+
+func (p *parser) skipNewlines() {
+	for p.peek().Kind == tNewline {
+		p.next()
+	}
 }
 
 func (p *parser) parseBlockStmts() ([]Stmt, error) {
@@ -1018,41 +1103,43 @@ func (p *parser) parseIf() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	c, err := p.expectColon()
+	c, brace, err := p.expectBlockStart("if condition")
 	if err != nil {
 		return nil, err
 	}
-	body, err := p.parseSuite(c, "if")
+	body, err := p.parseBlock(c, brace, "if")
 	if err != nil {
 		return nil, err
 	}
 	conds := []Expr{cond}
 	bodies := [][]Stmt{body}
 	var els []Stmt
+	p.skipNewlines()
 	for p.peek().Kind == tIdent && p.peek().Text == "elif" {
 		p.next()
 		c, err := p.parseOr()
 		if err != nil {
 			return nil, err
 		}
-		cc, err := p.expectColon()
+		cc, brace, err := p.expectBlockStart("elif condition")
 		if err != nil {
 			return nil, err
 		}
-		b, err := p.parseSuite(cc, "elif")
+		b, err := p.parseBlock(cc, brace, "elif")
 		if err != nil {
 			return nil, err
 		}
 		conds = append(conds, c)
 		bodies = append(bodies, b)
+		p.skipNewlines()
 	}
 	if p.peek().Kind == tIdent && p.peek().Text == "else" {
 		p.next()
-		cc, err := p.expectColon()
+		cc, brace, err := p.expectBlockStart("else")
 		if err != nil {
 			return nil, err
 		}
-		if els, err = p.parseSuite(cc, "else"); err != nil {
+		if els, err = p.parseBlock(cc, brace, "else"); err != nil {
 			return nil, err
 		}
 	}
@@ -1090,12 +1177,12 @@ func (p *parser) parseFor() (Stmt, error) {
 			return nil, err
 		}
 	}
-	colon, err := p.expectColon()
+	start, brace, err := p.expectBlockStart("for statement")
 	if err != nil {
 		return nil, err
 	}
 	p.loopN++
-	body, err := p.parseSuite(colon, "for")
+	body, err := p.parseBlock(start, brace, "for")
 	p.loopN--
 	if err != nil {
 		return nil, err
@@ -1109,12 +1196,12 @@ func (p *parser) parseWhile() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	colon, err := p.expectColon()
+	start, brace, err := p.expectBlockStart("while condition")
 	if err != nil {
 		return nil, err
 	}
 	p.loopN++
-	body, err := p.parseSuite(colon, "while")
+	body, err := p.parseBlock(start, brace, "while")
 	p.loopN--
 	if err != nil {
 		return nil, err
@@ -1148,8 +1235,12 @@ func (p *parser) parseMatch() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := p.expectColon(); err != nil {
+	_, brace, err := p.expectBlockStart("match expression")
+	if err != nil {
 		return nil, err
+	}
+	if brace {
+		return p.parseBraceMatch(target)
 	}
 	if k := p.peek(); k.Kind != tNewline {
 		return nil, p.errf(k, "expected a newline after 'match ...:'")
@@ -1207,11 +1298,11 @@ func (p *parser) parseMatch() (Stmt, error) {
 					seenWildcard = true
 				}
 			}
-			c, err := p.expectColon()
+			c, brace, err := p.expectBlockStart("case")
 			if err != nil {
 				return nil, err
 			}
-			body, err := p.parseSuite(c, "case")
+			body, err := p.parseBlock(c, brace, "case")
 			if err != nil {
 				return nil, err
 			}
@@ -1223,16 +1314,74 @@ func (p *parser) parseMatch() (Stmt, error) {
 	}
 }
 
+func (p *parser) parseBraceMatch(target Expr) (Stmt, error) {
+	ms := &MatchStmt{Pos: posOf(target), Target: target}
+	seenWildcard := false
+	for {
+		k := p.peek()
+		switch k.Kind {
+		case tRBrace:
+			p.next()
+			return ms, nil
+		case tNewline:
+			p.next()
+			continue
+		case tEOF:
+			return nil, p.errf(k, "expected '}' to close match block")
+		}
+		if k.Kind != tIdent || k.Text != "case" {
+			return nil, p.errf(k, "expected 'case' in match")
+		}
+		p.next()
+		if seenWildcard {
+			return nil, p.errf(k, "'case _' must be the last case in match")
+		}
+		var vals []Expr
+		for {
+			v, err := p.parseOr()
+			if err != nil {
+				return nil, err
+			}
+			vals = append(vals, v)
+			if p.peek().Kind != tComma {
+				break
+			}
+			p.next()
+		}
+		for _, v := range vals {
+			if name, ok := v.(*NameE); ok && name.X == "_" {
+				if len(vals) != 1 {
+					return nil, p.errf(k, "'_' wildcard must be the only value in a case")
+				}
+				seenWildcard = true
+			}
+		}
+		start, brace, err := p.expectBlockStart("case")
+		if err != nil {
+			return nil, err
+		}
+		if !brace {
+			return nil, p.errf(start, "match cases require '{' blocks")
+		}
+		body, err := p.parseBraceBlock("case")
+		if err != nil {
+			return nil, err
+		}
+		ms.Cases = append(ms.Cases, MatchCase{Vals: vals, Body: body})
+	}
+}
+
 func (p *parser) parseTry() (Stmt, error) {
 	st := p.next() // consume 'try'
-	colon, err := p.expectColon()
+	start, brace, err := p.expectBlockStart("try")
 	if err != nil {
 		return nil, err
 	}
-	tryBody, err := p.parseSuite(colon, "try")
+	tryBody, err := p.parseBlock(start, brace, "try")
 	if err != nil {
 		return nil, err
 	}
+	p.skipNewlines()
 	k := p.peek()
 	if k.Kind != tIdent || k.Text != "catch" {
 		return nil, p.errf(k, "expected 'catch' after try block")
@@ -1242,22 +1391,23 @@ func (p *parser) parseTry() (Stmt, error) {
 		return nil, p.errf(p.peek(), "expected a name after 'catch'")
 	}
 	catchVar := p.next().Text
-	colon, err = p.expectColon()
+	start, brace, err = p.expectBlockStart("catch")
 	if err != nil {
 		return nil, err
 	}
-	catchBody, err := p.parseSuite(colon, "catch")
+	catchBody, err := p.parseBlock(start, brace, "catch")
 	if err != nil {
 		return nil, err
 	}
+	p.skipNewlines()
 	var always []Stmt
 	if p.peek().Kind == tIdent && p.peek().Text == "always" {
 		p.next()
-		colon, err = p.expectColon()
+		start, brace, err = p.expectBlockStart("always")
 		if err != nil {
 			return nil, err
 		}
-		always, err = p.parseSuite(colon, "always")
+		always, err = p.parseBlock(start, brace, "always")
 		if err != nil {
 			return nil, err
 		}
@@ -1279,11 +1429,11 @@ func (p *parser) parseWith() (Stmt, error) {
 		}
 		name = p.next().Text
 	}
-	colon, err := p.expectColon()
+	start, brace, err := p.expectBlockStart("with")
 	if err != nil {
 		return nil, err
 	}
-	body, err := p.parseSuite(colon, "with")
+	body, err := p.parseBlock(start, brace, "with")
 	if err != nil {
 		return nil, err
 	}
@@ -1312,7 +1462,7 @@ func (p *parser) parseReturn() (Stmt, error) {
 
 func (p *parser) parseExprList() ([]Expr, error) {
 	var xs []Expr
-	e, err := p.parseOr()
+	e, err := p.parseSpreadExpr()
 	if err != nil {
 		return nil, err
 	}
@@ -1322,19 +1472,19 @@ func (p *parser) parseExprList() ([]Expr, error) {
 		switch {
 		case k.Kind == tComma:
 			p.next()
-			if !exprStart(p.peek()) {
+			if !exprStart(p.peek()) && p.peek().Kind != tEllipsis {
 				return xs, nil
 			}
-			e, err := p.parseOr()
+			e, err := p.parseSpreadExpr()
 			if err != nil {
 				return nil, err
 			}
 			xs = append(xs, e)
-		case exprStart(k):
+		case exprStart(k), k.Kind == tEllipsis:
 			if p.pos > 0 && p.toks[p.pos-1].Kind == tDedent {
 				return xs, nil
 			}
-			e, err := p.parseOr()
+			e, err := p.parseSpreadExpr()
 			if err != nil {
 				return nil, err
 			}
@@ -1343,6 +1493,18 @@ func (p *parser) parseExprList() ([]Expr, error) {
 			return xs, nil
 		}
 	}
+}
+
+func (p *parser) parseSpreadExpr() (Expr, error) {
+	if p.peek().Kind != tEllipsis {
+		return p.parseOr()
+	}
+	t := p.next()
+	x, err := p.parseOr()
+	if err != nil {
+		return nil, err
+	}
+	return &SpreadE{Pos: Pos{t.Line, t.Col}, X: x}, nil
 }
 
 func (p *parser) parseValueList() ([]Expr, error) {
@@ -1699,7 +1861,18 @@ func (p *parser) parseCallArgs() ([]Expr, error) {
 		for p.peek().Kind == tNewline || p.peek().Kind == tIndent {
 			p.next()
 		}
-		a, err := p.parseOr()
+		var a Expr
+		var err error
+		if p.peek().Kind == tEllipsis {
+			spread := p.next()
+			x, parseErr := p.parseOr()
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			a = &SpreadE{Pos: Pos{spread.Line, spread.Col}, X: x}
+		} else {
+			a, err = p.parseOr()
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -1747,7 +1920,7 @@ func (p *parser) parsePrimary() (Expr, error) {
 		if k.Text == "fn" && p.pos+1 < len(p.toks) && p.toks[p.pos+1].Kind == tLParen {
 			p.next() // consume 'fn'
 			p.next() // consume '('
-			params, ptypes, err := p.parseParams()
+			params, ptypes, rest, err := p.parseParams()
 			if err != nil {
 				return nil, err
 			}
@@ -1759,25 +1932,25 @@ func (p *parser) parsePrimary() (Expr, error) {
 			if err != nil {
 				return nil, err
 			}
-			colon, err := p.expectColon()
+			start, brace, err := p.expectBlockStart("function expression")
 			if err != nil {
 				return nil, err
 			}
-			if p.peek().Kind != tNewline {
+			if !brace && p.peek().Kind != tNewline {
 				expr, err := p.parseOr()
 				if err != nil {
 					return nil, err
 				}
 				body := []Stmt{&ReturnStmt{Pos: posOf(expr), Vals: []Expr{expr}}}
-				return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, ParamTypes: ptypes, Ret: ret, Body: body}, nil
+				return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, ParamTypes: ptypes, Rest: rest, Ret: ret, Body: body}, nil
 			}
 			p.fnN++
-			body, err := p.parseSuite(colon, "function")
+			body, err := p.parseBlock(start, brace, "function")
 			p.fnN--
 			if err != nil {
 				return nil, err
 			}
-			return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, ParamTypes: ptypes, Ret: ret, Body: body}, nil
+			return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, ParamTypes: ptypes, Rest: rest, Ret: ret, Body: body}, nil
 		}
 		switch k.Text {
 		case "true":
@@ -1789,7 +1962,7 @@ func (p *parser) parsePrimary() (Expr, error) {
 		case "nil":
 			p.next()
 			return &NilLit{Pos{k.Line, k.Col}}, nil
-		case "and", "or", "not", "in", "using", "import", "pub", "priv", "const", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue", "try", "catch", "always", "match", "case", "where", "with":
+		case "and", "or", "not", "in", "using", "import", "let", "pub", "priv", "const", "as", "fn", "return", "if", "elif", "else", "for", "while", "break", "continue", "try", "catch", "always", "match", "case", "where", "with":
 			return nil, p.errf(k, "unexpected %q", k.Text)
 		}
 		p.next()
@@ -1824,6 +1997,18 @@ func (p *parser) parsePrimary() (Expr, error) {
 		p.next()
 		var pairs [][2]Expr
 		for p.peek().Kind != tRBrace {
+			if p.peek().Kind == tEllipsis {
+				spread := p.next()
+				val, err := p.parseOr()
+				if err != nil {
+					return nil, err
+				}
+				pairs = append(pairs, [2]Expr{nil, &SpreadE{Pos: Pos{spread.Line, spread.Col}, X: val}})
+				if p.peek().Kind == tComma {
+					p.next()
+				}
+				continue
+			}
 			key, err := p.parseOr()
 			if err != nil {
 				return nil, err
@@ -1897,7 +2082,7 @@ func exprStart(k Tok) bool {
 
 func isReserved(w string) bool {
 	switch w {
-	case "using", "import", "pub", "priv", "const", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not", "try", "catch", "always", "match", "case", "where", "with":
+	case "using", "import", "let", "pub", "priv", "const", "as", "fn", "return", "if", "elif", "else", "for", "in", "while", "break", "continue", "and", "or", "not", "try", "catch", "always", "match", "case", "where", "with":
 		return true
 	}
 	return false
@@ -1924,6 +2109,8 @@ func posOf(e Expr) Pos {
 	case *UnE:
 		return x.Pos
 	case *CallE:
+		return x.Pos
+	case *SpreadE:
 		return x.Pos
 	case *IndexE:
 		return x.Pos

@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"fmt"
@@ -129,7 +129,7 @@ func dbOpen(i *Interp, args []Val) ([]Val, error) {
 		}
 		// Atomic write via temp file
 		dir := filepath.Dir(filePath)
-		tmp, err := os.CreateTemp(dir, ".snowdb-*.tmp")
+		tmp, err := os.CreateTemp(dir, ".blizzdb-*.tmp")
 		if err != nil {
 			return nil, fmt.Errorf("store.save: %v", err)
 		}

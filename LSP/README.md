@@ -1,16 +1,19 @@
-# Snow LSP
+# Blizzard LSP 0.2
 
-The Snow Language Server uses standard JSON-RPC over stdin/stdout with
+Blizzard is an experimental AI-assisted language project. The LSP protocol and
+editor settings may change abruptly with the language.
+
+The Blizzard Language Server uses standard JSON-RPC over stdin/stdout with
 `Content-Length` framing. It is used by the VS Code extension and can also be
 connected to other editors that support custom language servers.
 
 ## Current support
 
 - Full document synchronization for open, change, and close events.
-- Syntax diagnostics from the Snow parser.
-- Static diagnostics from `snow.Check`, including undefined and unused names,
+- Syntax diagnostics from the Blizzard parser.
+- Static diagnostics from `blizzard.Check`, including undefined and unused names,
   unreachable code, and unknown modules.
-- Completion for Snow keywords, built-ins, constants, standard modules, and
+- Completion for Blizzard keywords, built-ins, constants, standard modules, and
   module members.
 - Hover documentation for built-ins, local definitions, and symbols.
 - Local go-to-definition and rename support for symbols in the open document.
@@ -21,7 +24,7 @@ connected to other editors that support custom language servers.
 The language features covered by the current parser, compiler, and tests also
 include `const` immutable bindings, `always` cleanup blocks, ternary
 expressions (`value if condition else other_value`), `enumerate()` and `zip()`.
-The package manager provides `snowman update` for refreshing locked packages.
+The package manager provides `blizzard update` for refreshing locked packages.
 
 The server currently does not provide hover, go-to-definition, references,
 formatting, or rename support.
@@ -30,11 +33,11 @@ formatting, or rename support.
 
 ```bash
 cd LSP
-go build -o snow-lsp ./server
+go build -o blizzard-lsp ./server
 ```
 
-The resulting `LSP/snow-lsp` must be executable. The server is an editor
-service; it does not accept a `.snow` filename as a command-line argument.
+The resulting `LSP/blizzard-lsp` must be executable. The server is an editor
+service; it does not accept a `.blizz` filename as a command-line argument.
 
 ## Tests
 
@@ -63,24 +66,24 @@ cd LSP/vscode_extension
 pnpm install
 pnpm run compile
 npx @vscode/vsce package --no-dependencies
-code --install-extension snow-0.1.0.vsix --force
+code --install-extension blizzard-0.1.0.vsix --force
 ```
 
 The package bundles `vscode-languageclient`; `node_modules`, source maps, and
 development metadata are excluded from the VSIX. The extension contributes the
-Snow language, TextMate grammar, and Snowflake file icon.
+Blizzard language, TextMate grammar, and Blizzard file icon.
 
-By default the extension looks for `LSP/snow-lsp` in the opened workspace. A
+By default the extension looks for `LSP/blizzard-lsp` in the opened workspace. A
 custom executable can be configured with:
 
 ```json
 {
-  "snow.lsp.enabled": true,
-  "snow.lsp.path": "/absolute/path/to/snow-lsp"
+  "blizzard.lsp.enabled": true,
+  "blizzard.lsp.path": "/absolute/path/to/blizzard-lsp"
 }
 ```
 
-Leave `snow.lsp.path` empty to use the workspace-relative default. After
+Leave `blizzard.lsp.path` empty to use the workspace-relative default. After
 installing or rebuilding, use `Developer: Reload Window` in VS Code.
 
 ## Manual protocol check

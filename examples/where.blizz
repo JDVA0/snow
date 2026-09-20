@@ -1,0 +1,5 @@
+let users = [{name: "Alice", active: true}, {name: "Bob", active: false}, {name: "Charlie", active: true}];
+
+for u in users {
+    print("Usuario activo:", u.name);
+}

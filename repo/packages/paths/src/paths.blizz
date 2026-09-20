@@ -1,0 +1,28 @@
+fn extension(path) {
+    let parts = split(path, ".");
+    if (len(parts) < 2) {
+        return "";
+    }
+    return last(parts);
+}
+
+fn basename(path) {
+    let parts = split(path, "/");
+    return last(parts);
+}
+
+fn without_extension(path) {
+    let name = basename(path);
+    let parts = split(name, ".");
+    if (len(parts) < 2) {
+        return name;
+    }
+    let result = "";
+    for index in range(0, len(parts) - 1) {
+        if (index > 0) {
+            result += ".";
+        }
+        result += parts[index];
+    }
+    return result;
+}

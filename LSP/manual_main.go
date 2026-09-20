@@ -4,21 +4,21 @@ package main
 
 import (
 	"fmt"
-	"github.com/JDVA0/snow/lsp/analyzer"
+	"github.com/JDVA0/blizzard/lsp/analyzer"
 )
 
 func main() {
 	anlzr := analyzer.NewAnalyzer()
 	
-	// Test parsing valid Snow code
+	// Test parsing valid Blizzard code
 	validCode := `const PORT = 8080
 print("Hello, World!")
 x = 10
 y = x + 5
 print(y)`
 	
-	fmt.Println("Testing valid Snow code:")
-	result, err := anlzr.Parse(validCode, "test.snow")
+	fmt.Println("Testing valid Blizzard code:")
+	result, err := anlzr.Parse(validCode, "test.blizz")
 	if err != nil {
 		fmt.Printf("Error parsing valid code: %v\n", err)
 	} else {
@@ -31,12 +31,12 @@ print(y)`
 		}
 	}
 	
-	// Test parsing invalid Snow code
+	// Test parsing invalid Blizzard code
 	invalidCode := `const PORT = 8080
 print("Hello, World!"` // Missing closing quote
 	
-	fmt.Println("\nTesting invalid Snow code:")
-	result, err = anlzr.Parse(invalidCode, "test.snow")
+	fmt.Println("\nTesting invalid Blizzard code:")
+	result, err = anlzr.Parse(invalidCode, "test.blizz")
 	if err != nil {
 		fmt.Printf("Error parsing invalid code: %v\n", err)
 	} else {
@@ -70,7 +70,7 @@ print("Hello, World!"` // Missing closing quote
 print(y)` // y is undefined
 	
 	fmt.Println("\nTesting undefined variable:")
-	result, err = anlzr.Parse(undefinedCode, "test.snow")
+	result, err = anlzr.Parse(undefinedCode, "test.blizz")
 	if err != nil {
 		fmt.Printf("Error parsing code: %v\n", err)
 	} else {

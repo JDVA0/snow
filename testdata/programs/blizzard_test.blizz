@@ -1,0 +1,9 @@
+let values = [1, 2, 3];
+let total = 0;
+
+for value in values {
+    total += value;
+}
+
+assert(total == 6, "loop total");
+assert(values?[8] ?? "missing" == "missing", "safe index");

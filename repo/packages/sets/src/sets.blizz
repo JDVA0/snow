@@ -1,0 +1,33 @@
+fn unique(values) {
+    let result = [];
+    for value in values {
+        if (value not in result) {
+            result = append(result, value);
+        }
+    }
+    return result;
+}
+
+fn union(left, right) {
+    return unique(left + right);
+}
+
+fn intersection(left, right) {
+    let result = [];
+    for value in unique(left) {
+        if (value in right) {
+            result = append(result, value);
+        }
+    }
+    return result;
+}
+
+fn difference(left, right) {
+    let result = [];
+    for value in unique(left) {
+        if (value not in right) {
+            result = append(result, value);
+        }
+    }
+    return result;
+}

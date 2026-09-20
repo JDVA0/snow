@@ -1,0 +1,21 @@
+# Official Blizzard library: readable identifier helpers
+
+fn prefixed(prefix, value) {
+    return str(prefix) + "_" + str(value);
+}
+
+fn zero_pad(value, width) {
+    let result = str(value);
+    while (len(result) < width) {
+        result = "0" + result;
+    }
+    return result;
+}
+
+fn sequence(prefix, value, width) {
+    return prefixed(prefix, zero_pad(value, width));
+}
+
+fn is_prefixed(value, prefix) {
+    return value[:len(prefix) + 1] == str(prefix) + "_";
+}

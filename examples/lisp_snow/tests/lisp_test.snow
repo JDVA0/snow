@@ -1,5 +1,0 @@
-# Smoke test for the Lisp interpreter project.
-# Run from examples/lisp_snow with: snowman test
-
-assert(1 + 1 == 2, "Snow test runner is active")
-print("Lisp project test passed")

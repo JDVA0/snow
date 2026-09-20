@@ -1,0 +1,410 @@
+# A small Lisp interpreter written in Blizzard.
+# It intentionally keeps the runtime visible: Lisp values are Blizzard values,
+# environments are dictionaries, and user functions are dictionaries too.
+
+import fs;
+import sys;
+import input;
+
+fn symbol(name) {
+    return {kind: "symbol", value: name};
+}
+
+fn is_symbol(value, name) {
+    return type(value) == "dict" and value.kind == "symbol" and value.value == name;
+}
+
+fn tokenize(source) {
+    let lines = split(source, """
+""");
+    let uncommented = [];
+    for line in lines {
+        uncommented = append(uncommented, split(line, ";")[0]);
+    }
+    let spaced = replace(join(uncommented, " "), "\r", " ");
+    spaced = replace(spaced, "(", " ( ");
+    spaced = replace(spaced, ")", " ) ");
+    spaced = replace(spaced, "'", " ' ");
+    let raw = split(trim(spaced), " ");
+    let tokens = [];
+    for token in raw {
+        if (token != "") {
+            tokens = append(tokens, token);
+        }
+    }
+    return tokens;
+}
+
+fn token_at(state) {
+    if (state.pos >= len(state.tokens)) {
+        return nil;
+    }
+    return state.tokens[state.pos];
+}
+
+fn take(state) {
+    let token = token_at(state);
+    state.pos = state.pos + 1;
+    return token;
+}
+
+fn atom(token) {
+    if (token == "#t") {
+        return true;
+    }
+    if (token == "#f") {
+        return false;
+    }
+    if (token == "nil") {
+        return nil;
+    }
+    if (len(token) >= 2 and token[0] == "\"" and token[-1] == "\"") {
+        return token[1:-1];
+    }
+
+    try {
+        return int(token);
+    } catch int_error {
+        try {
+            return flt(token);
+        } catch float_error {
+            return symbol(token);
+        }
+    }
+}
+
+fn parse_expr(state) {
+    let token = take(state);
+    if (token == nil) {
+        fail("unexpected end of input");
+    }
+    if (token == "(") {
+        let values = [];
+        while (token_at(state) != ")") {
+            if (token_at(state) == nil) {
+                fail("unexpected end of input");
+            }
+            values = append(values, parse_expr(state));
+        }
+        take(state);
+        return values;
+    }
+    if (token == "'") {
+        return [symbol("quote"), parse_expr(state)];
+    }
+    if (token == ")") {
+        fail("unexpected )");
+    }
+    return atom(token);
+}
+
+fn parse_all(source) {
+    let state = {tokens: tokenize(source), pos: 0};
+    let expressions = [];
+    while (token_at(state) != nil) {
+        expressions = append(expressions, parse_expr(state));
+    }
+    return expressions;
+}
+
+fn env_new(parent) {
+    return {values: {}, parent: parent};
+}
+
+fn env_get(env, name) {
+    if (has(env.values, name)) {
+        return env.values[name];
+    }
+    if (env.parent != nil) {
+        return env_get(env.parent, name);
+    }
+    fail("unbound symbol: " + name);
+}
+
+fn env_has(env, name) {
+    if (has(env.values, name)) {
+        return true;
+    }
+    if (env.parent != nil) {
+        return env_has(env.parent, name);
+    }
+    return false;
+}
+
+fn env_set(env, name, value) {
+    env.values[name] = value;
+    return value;
+}
+
+fn truthy(value) {
+    return value != nil and value != false;
+}
+
+fn lisp_string(value) {
+    if (type(value) == "dict" and value.kind == "symbol") {
+        return value.value;
+    }
+    if (type(value) == "dict" and value.kind == "function") {
+        return "<function>";
+    }
+    if (type(value) == "list") {
+        let parts = [];
+        for item in value {
+            parts = append(parts, lisp_string(item));
+        }
+        return "(" + join(parts, " ") + ")";
+    }
+    return str(value);
+}
+
+fn eval_sequence(expressions, env) {
+    let result = nil;
+    for expression in expressions {
+        result = eval_expr(expression, env);
+    }
+    return result;
+}
+
+fn eval_args(expressions, env) {
+    let values = [];
+    for expression in expressions {
+        values = append(values, eval_expr(expression, env));
+    }
+    return values;
+}
+
+fn numeric_args(args, name) {
+    for value in args {
+        if (type(value) != "int" and type(value) != "float") {
+            fail(name + " expects numbers");
+        }
+    }
+    return args;
+}
+
+fn call_builtin(name, args) {
+    if (name == "+") {
+        numeric_args(args, name);
+        let result = 0;
+        for value in args {
+            result += value;
+        }
+        return result;
+    }
+    if (name == "-") {
+        numeric_args(args, name);
+        if (len(args) == 1) {
+            return 0 - args[0];
+        }
+        result = args[0];
+        for index in range(1, len(args)) {
+            result -= args[index];
+        }
+        return result;
+    }
+    if (name == "*") {
+        numeric_args(args, name);
+        result = 1;
+        for value in args {
+            result *= value;
+        }
+        return result;
+    }
+    if (name == "/") {
+        numeric_args(args, name);
+        result = args[0];
+        for index in range(1, len(args)) {
+            result /= args[index];
+        }
+        return result;
+    }
+    if (name == "=") {
+        return len(args) >= 2 and args[0] == args[1];
+    }
+    if (name == "<") {
+        return args[0] < args[1];
+    }
+    if (name == ">") {
+        return args[0] > args[1];
+    }
+    if (name == "list") {
+        return args;
+    }
+    if (name == "cons") {
+        return [args[0]] + args[1];
+    }
+    if (name == "car") {
+        return args[0][0];
+    }
+    if (name == "cdr") {
+        return args[0][1:];
+    }
+    if (name == "null?") {
+        return len(args[0]) == 0;
+    }
+    if (name == "not") {
+        if (truthy(args[0])) {
+            return false;
+        }
+        return true;
+    }
+    if (name == "length") {
+        return len(args[0]);
+    }
+    if (name == "print") {
+        print(lisp_string(args[0]));
+        return nil;
+    }
+    fail("unknown function: " + name);
+}
+
+fn call_user(function, args) {
+    if (len(args) != len(function.params)) {
+        fail("wrong number of arguments");
+    }
+    let local = env_new(function.env);
+    for index in range(0, len(function.params)) {
+        env_set(local, function.params[index].value, args[index]);
+    }
+    return eval_sequence(function.body, local);
+}
+
+fn call_value(function, args) {
+    if (type(function) == "dict" and function.kind == "function") {
+        return call_user(function, args);
+    }
+    fail("value is not callable");
+}
+
+fn eval_expr(expression, env) {
+    if (type(expression) != "list") {
+        if (type(expression) == "dict" and expression.kind == "symbol") {
+            return env_get(env, expression.value);
+        }
+        return expression;
+    }
+    if (len(expression) == 0) {
+        return nil;
+    }
+
+    let operator = expression[0];
+    if (is_symbol(operator, "quote")) {
+        return expression[1];
+    }
+    if (is_symbol(operator, "if")) {
+        if (truthy(eval_expr(expression[1], env))) {
+            return eval_expr(expression[2], env);
+        }
+        return eval_expr(expression[3], env);
+    }
+    if (is_symbol(operator, "begin")) {
+        return eval_sequence(expression[1:], env);
+    }
+    if (is_symbol(operator, "define")) {
+        let name = expression[1].value;
+        return env_set(env, name, eval_expr(expression[2], env));
+    }
+    if (is_symbol(operator, "lambda")) {
+        return {kind: "function", params: expression[1], body: expression[2:], env: env};
+    }
+    if (is_symbol(operator, "define-function")) {
+        name = expression[1].value;
+        let function = {kind: "function", params: expression[2], body: expression[3:], env: env};
+        return env_set(env, name, function);
+    }
+
+    if (type(operator) == "dict" and operator.kind == "symbol") {
+        name = operator.value;
+        let args = eval_args(expression[1:], env);
+        if (name == "apply") {
+            return call_value(args[0], args[1]);
+        }
+        if (env_has(env, name)) {
+            let candidate = env_get(env, name);
+            if (type(candidate) == "dict" and candidate.kind == "function") {
+                return call_user(candidate, args);
+            }
+        }
+        return call_builtin(name, args);
+    }
+
+    function = eval_expr(operator, env);
+    return call_value(function, eval_args(expression[1:], env));
+}
+
+fn standard_env() {
+    let env = env_new(nil);
+    for name in ["+", "-", "*", "/", "=", "<", ">", "list", "cons", "car", "cdr", "null?", "not", "length", "print", "apply"] {
+        env_set(env, name, symbol(name));
+    }
+    return env;
+}
+
+fn eval_source(source, env) {
+    let expressions = parse_all(source);
+    return eval_sequence(expressions, env);
+}
+
+fn demo_path() {
+    if (fs.exists("tests/demo.lisp")) {
+        return "tests/demo.lisp";
+    }
+    if (fs.exists("examples/lisp_blizzard/tests/demo.lisp")) {
+        return "examples/lisp_blizzard/tests/demo.lisp";
+    }
+    fail("cannot find tests/demo.lisp; run from the project or lisp_blizzard directory");
+}
+
+fn run(path) {
+    let env = standard_env();
+    let result = eval_source(fs.read(path), env);
+    print("=> " + lisp_string(result));
+}
+
+fn repl() {
+    let env = standard_env();
+    let buffer = "";
+    print("Lisp Blizzard REPL. Use :help for commands and :quit to exit.");
+    while (true) {
+        let prompt = "lisp> ";
+        if (buffer != "") {
+            prompt = "....> ";
+        }
+        let line = input.line(prompt);
+        if (line == nil) {
+            print("");
+            return nil;
+        }
+        let command = trim(line);
+        if (buffer == "" and (command == ":quit" or command == ":exit")) {
+            return nil;
+        }
+        if (buffer == "" and command == ":help") {
+            print(":help  show this message");
+            print(":quit  leave the REPL");
+        } elif (command != "" or buffer != "") {
+            let source = buffer + line;
+            try {
+                let result = eval_source(source, env);
+                print("=> " + lisp_string(result));
+                buffer = "";
+            } catch error {
+                if (str(error) == "unexpected end of input") {
+                    buffer = source + """
+""";
+                } else {
+                    print("error: " + str(error));
+                    buffer = "";
+                }
+            }
+        }
+    }
+    return nil;
+}
+
+let arguments = sys.args();
+if (len(arguments) > 0 and arguments[0] == "--repl") {
+    repl();
+} else {
+    run(demo_path());
+}

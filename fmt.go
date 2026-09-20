@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"strconv"
@@ -23,19 +23,33 @@ type trivia struct {
 }
 
 type formatter struct {
-	b      strings.Builder
-	orig   []string
-	trivia []trivia
+	b         strings.Builder
+	orig      []string
+	trivia    []trivia
+	modern    bool
+	declared  map[string]bool
+	inFString bool
 }
 
-// Format pretty-prints Snow source with 4-space indentation.
+// Format pretty-prints Blizzard source with 4-space indentation.
 // Full-line comments and blank lines are preserved in order.
 func Format(src string) (string, error) {
+	return formatSource(src, false)
+}
+
+// FormatModern formats source using the Blizzard 0.2 brace syntax, even when
+// the input still uses the legacy colon-and-indentation form.
+func FormatModern(src string) (string, error) {
+	return formatSource(src, true)
+}
+
+func formatSource(src string, forceModern bool) (string, error) {
 	p, err := Parse(src, "<fmt>")
 	if err != nil {
 		return "", err
 	}
-	f := &formatter{orig: splitSrcLines(src), trivia: collectTrivia(src)}
+	modern := forceModern || strings.Contains(src, "import ") || strings.Contains(src, "let ") || strings.Contains(src, ") {")
+	f := &formatter{orig: splitSrcLines(src), trivia: collectTrivia(src), modern: modern, declared: map[string]bool{}}
 	f.program(p)
 	out := f.b.String()
 	if out != "" && !strings.HasSuffix(out, "\n") {
@@ -151,15 +165,37 @@ func (f *formatter) stmt(s Stmt, indent int) {
 	switch t := s.(type) {
 	case *UseStmt:
 		f.ind(indent)
-		f.b.WriteString("using ")
+		if f.modern {
+			f.b.WriteString("import ")
+		} else {
+			f.b.WriteString("using ")
+		}
 		f.b.WriteString(strings.Join(t.Path, "."))
 		if t.Alias != "" && (len(t.Path) == 0 || t.Alias != t.Path[len(t.Path)-1]) {
 			f.b.WriteString(" as ")
 			f.b.WriteString(t.Alias)
 		}
-		f.b.WriteByte('\n')
+		if f.modern {
+			f.b.WriteString(";\n")
+		} else {
+			f.b.WriteByte('\n')
+		}
 	case *AssignStmt:
 		f.ind(indent)
+		declare := t.Let
+		if f.modern && !declare && t.Op == 0 {
+			for _, name := range t.Names {
+				if !f.declared[name] {
+					declare = true
+				}
+			}
+		}
+		if f.modern && declare {
+			f.b.WriteString("let ")
+		}
+		for _, name := range t.Names {
+			f.declared[name] = true
+		}
 		if t.Type != "" {
 			f.b.WriteString(t.Names[0])
 			f.b.WriteString(": ")
@@ -176,7 +212,11 @@ func (f *formatter) stmt(s Stmt, indent int) {
 			}
 			f.expr(v, 0)
 		}
-		f.b.WriteByte('\n')
+		if f.modern {
+			f.b.WriteString(";\n")
+		} else {
+			f.b.WriteByte('\n')
+		}
 	case *SetAttrStmt:
 		f.ind(indent)
 		f.expr(t.Container, 0)
@@ -186,7 +226,11 @@ func (f *formatter) stmt(s Stmt, indent int) {
 		f.b.WriteString(assignOp(t.Op))
 		f.b.WriteByte(' ')
 		f.expr(t.Val, 0)
-		f.b.WriteByte('\n')
+		if f.modern {
+			f.b.WriteString(";\n")
+		} else {
+			f.b.WriteByte('\n')
+		}
 	case *SetIndexStmt:
 		f.ind(indent)
 		f.expr(t.Container, 0)
@@ -196,14 +240,32 @@ func (f *formatter) stmt(s Stmt, indent int) {
 		f.b.WriteString(assignOp(t.Op))
 		f.b.WriteByte(' ')
 		f.expr(t.Val, 0)
-		f.b.WriteByte('\n')
+		if f.modern {
+			f.b.WriteString(";\n")
+		} else {
+			f.b.WriteByte('\n')
+		}
 	case *FnStmt:
+		previous := f.declared
+		f.declared = map[string]bool{}
+		for _, param := range t.Params {
+			f.declared[param] = true
+		}
 		f.ind(indent)
 		f.b.WriteString("fn ")
 		f.b.WriteString(t.Name)
-		f.writeFnSig(t.Params, t.ParamTypes, t.Ret)
-		f.b.WriteString(":\n")
+		f.writeFnSig(t.Params, t.ParamTypes, t.Rest, t.Ret)
+		if f.modern {
+			f.b.WriteString(" {\n")
+		} else {
+			f.b.WriteString(":\n")
+		}
 		f.stmts(t.Body, indent+1)
+		if f.modern {
+			f.ind(indent)
+			f.b.WriteString("}\n")
+		}
+		f.declared = previous
 	case *ReturnStmt:
 		f.ind(indent)
 		f.b.WriteString("return")
@@ -215,23 +277,58 @@ func (f *formatter) stmt(s Stmt, indent int) {
 			}
 			f.expr(v, 0)
 		}
-		f.b.WriteByte('\n')
+		if f.modern {
+			f.b.WriteString(";\n")
+		} else {
+			f.b.WriteByte('\n')
+		}
 	case *IfStmt:
 		for i, cond := range t.Conds {
-			f.ind(indent)
+			if !(f.modern && i > 0) {
+				f.ind(indent)
+			}
 			if i == 0 {
 				f.b.WriteString("if ")
 			} else {
 				f.b.WriteString("elif ")
 			}
+			if f.modern {
+				f.b.WriteByte('(')
+			}
 			f.expr(cond, 0)
-			f.b.WriteString(":\n")
+			if f.modern {
+				f.b.WriteByte(')')
+			}
+			if f.modern {
+				f.b.WriteString(" {\n")
+			} else {
+				f.b.WriteString(":\n")
+			}
 			f.stmts(t.Bodies[i], indent+1)
+			if f.modern {
+				f.ind(indent)
+				f.b.WriteString("}")
+				if i+1 < len(t.Conds) || len(t.Else) > 0 {
+					f.b.WriteByte(' ')
+				} else {
+					f.b.WriteByte('\n')
+				}
+			}
 		}
 		if len(t.Else) > 0 {
-			f.ind(indent)
-			f.b.WriteString("else:\n")
+			if !(f.modern && len(t.Conds) > 0) {
+				f.ind(indent)
+			}
+			if f.modern {
+				f.b.WriteString("else {\n")
+			} else {
+				f.b.WriteString("else:\n")
+			}
 			f.stmts(t.Else, indent+1)
+			if f.modern {
+				f.ind(indent)
+				f.b.WriteString("}\n")
+			}
 		}
 	case *ForStmt:
 		f.ind(indent)
@@ -243,35 +340,112 @@ func (f *formatter) stmt(s Stmt, indent int) {
 		}
 		f.b.WriteString(" in ")
 		f.expr(t.Iter, 0)
-		f.b.WriteString(":\n")
+		if f.modern {
+			f.b.WriteString(" {")
+			f.b.WriteByte('\n')
+		} else {
+			f.b.WriteString(":\n")
+		}
 		f.stmts(t.Body, indent+1)
+		if f.modern {
+			f.ind(indent)
+			f.b.WriteString("}\n")
+		}
 	case *WhileStmt:
 		f.ind(indent)
 		f.b.WriteString("while ")
+		if f.modern {
+			f.b.WriteByte('(')
+		}
 		f.expr(t.Cond, 0)
-		f.b.WriteString(":\n")
+		if f.modern {
+			f.b.WriteByte(')')
+		}
+		if f.modern {
+			f.b.WriteString(" {\n")
+		} else {
+			f.b.WriteString(":\n")
+		}
 		f.stmts(t.Body, indent+1)
+		if f.modern {
+			f.ind(indent)
+			f.b.WriteString("}\n")
+		}
 	case *LoopStmt:
 		f.ind(indent)
 		if t.Break {
-			f.b.WriteString("break\n")
+			if f.modern {
+				f.b.WriteString("break;\n")
+			} else {
+				f.b.WriteString("break\n")
+			}
 		} else {
-			f.b.WriteString("continue\n")
+			if f.modern {
+				f.b.WriteString("continue;\n")
+			} else {
+				f.b.WriteString("continue\n")
+			}
 		}
 	case *TryStmt:
 		f.ind(indent)
-		f.b.WriteString("try:\n")
+		if f.modern {
+			f.b.WriteString("try {\n")
+		} else {
+			f.b.WriteString("try:\n")
+		}
 		f.stmts(t.TryBody, indent+1)
-		f.ind(indent)
+		if f.modern {
+			f.ind(indent)
+			f.b.WriteString("} ")
+		}
+		if !f.modern {
+			f.ind(indent)
+		}
 		f.b.WriteString("catch ")
 		f.b.WriteString(t.CatchVar)
-		f.b.WriteString(":\n")
+		if f.modern {
+			f.b.WriteString(" {\n")
+		} else {
+			f.b.WriteString(":\n")
+		}
 		f.stmts(t.CatchBody, indent+1)
+		if f.modern {
+			f.ind(indent)
+			f.b.WriteString("}")
+			if len(t.Always) > 0 {
+				f.b.WriteByte(' ')
+			} else {
+				f.b.WriteByte('\n')
+			}
+		}
+		if len(t.Always) > 0 {
+			if f.modern {
+				f.b.WriteString("always {\n")
+			} else {
+				f.ind(indent)
+				f.b.WriteString("always:\n")
+			}
+			f.stmts(t.Always, indent+1)
+			if f.modern {
+				f.ind(indent)
+				f.b.WriteString("}\n")
+			}
+		}
 	case *MatchStmt:
 		f.ind(indent)
 		f.b.WriteString("match ")
+		if f.modern {
+			f.b.WriteByte('(')
+		}
 		f.expr(t.Target, 0)
-		f.b.WriteString(":\n")
+		if f.modern {
+			f.b.WriteByte(')')
+		}
+		if f.modern {
+			f.b.WriteString(" {\n")
+		} else {
+			f.b.WriteString(":\n")
+		}
 		for _, cs := range t.Cases {
 			f.ind(indent + 1)
 			f.b.WriteString("case ")
@@ -281,22 +455,59 @@ func (f *formatter) stmt(s Stmt, indent int) {
 				}
 				f.expr(v, 0)
 			}
-			f.b.WriteString(":\n")
+			if f.modern {
+				f.b.WriteString(" {\n")
+			} else {
+				f.b.WriteString(":\n")
+			}
 			f.stmts(cs.Body, indent+2)
+			if f.modern {
+				f.ind(indent + 1)
+				f.b.WriteString("}\n")
+			}
+		}
+		if f.modern {
+			f.ind(indent)
+			f.b.WriteString("}\n")
+		}
+	case *WithStmt:
+		f.ind(indent)
+		f.b.WriteString("with ")
+		f.expr(t.Expr, 0)
+		if t.Name != "" {
+			f.b.WriteString(" as ")
+			f.b.WriteString(t.Name)
+		}
+		if f.modern {
+			f.b.WriteString(" {\n")
+		} else {
+			f.b.WriteString(":\n")
+		}
+		f.stmts(t.Body, indent+1)
+		if f.modern {
+			f.ind(indent)
+			f.b.WriteString("}\n")
 		}
 	case *ExprStmt:
 		f.ind(indent)
 		f.expr(t.X, 0)
-		f.b.WriteByte('\n')
+		if f.modern {
+			f.b.WriteString(";\n")
+		} else {
+			f.b.WriteByte('\n')
+		}
 	}
 }
 
 // writeFnSig writes "(a: str, b: int[]) -> ret" without the surrounding 'fn'.
-func (f *formatter) writeFnSig(params, types []string, ret string) {
+func (f *formatter) writeFnSig(params, types []string, rest bool, ret string) {
 	f.b.WriteByte('(')
 	for i, p := range params {
 		if i > 0 {
 			f.b.WriteString(", ")
+		}
+		if rest && i == len(params)-1 {
+			f.b.WriteString("...")
 		}
 		f.b.WriteString(p)
 		if i < len(types) && types[i] != "" {
@@ -360,7 +571,11 @@ func (f *formatter) expr(e Expr, parentPrec int) {
 			f.b.WriteString(strconv.FormatInt(t.Int, 10))
 		}
 	case *StrLit:
-		f.writeStr(t.V)
+		if f.inFString {
+			f.writeSingleStr(t.V)
+		} else {
+			f.writeStr(t.V)
+		}
 	case *BoolLit:
 		if t.V {
 			f.b.WriteString("true")
@@ -413,6 +628,9 @@ func (f *formatter) expr(e Expr, parentPrec int) {
 			f.expr(a, 0)
 		}
 		f.b.WriteByte(')')
+	case *SpreadE:
+		f.b.WriteString("...")
+		f.expr(t.X, 0)
 	case *IndexE:
 		f.expr(t.X, 8)
 		f.b.WriteByte('[')
@@ -465,32 +683,55 @@ func (f *formatter) expr(e Expr, parentPrec int) {
 			if i > 0 {
 				f.b.WriteString(", ")
 			}
+			if pr[0] == nil {
+				f.expr(pr[1], 0)
+				continue
+			}
 			f.dictKey(pr[0])
 			f.b.WriteString(": ")
 			f.expr(pr[1], 0)
 		}
 		f.b.WriteByte('}')
 	case *FnExpr:
+		previous := f.declared
+		f.declared = map[string]bool{}
+		for _, param := range t.Params {
+			f.declared[param] = true
+		}
+		baseIndent := 0
+		if newline := strings.LastIndex(f.b.String(), "\n"); newline >= 0 {
+			tail := f.b.String()[newline+1:]
+			baseIndent = strings.Count(tail, fmtIndent)
+		}
 		f.b.WriteString("fn")
-		f.writeFnSig(t.Params, t.ParamTypes, t.Ret)
-		f.b.WriteString(":")
+		f.writeFnSig(t.Params, t.ParamTypes, t.Rest, t.Ret)
+		if f.modern {
+			f.b.WriteString(" {")
+		} else {
+			f.b.WriteString(":")
+		}
 		if len(t.Body) == 1 {
 			if r, ok := t.Body[0].(*ReturnStmt); ok && len(r.Vals) == 1 {
-				f.b.WriteByte(' ')
+				if f.modern {
+					f.b.WriteString(" return ")
+				} else {
+					f.b.WriteByte(' ')
+				}
 				f.expr(r.Vals[0], 0)
+				if f.modern {
+					f.b.WriteString("; }")
+				}
+				f.declared = previous
 				return
 			}
 		}
 		f.b.WriteByte('\n')
-		// Nested fn body: infer indent from current line start. Use a
-		// conservative extra indent of one level relative to last newline.
-		nested := strings.LastIndex(f.b.String(), "\n")
-		col := 0
-		if nested >= 0 {
-			tail := f.b.String()[nested+1:]
-			col = strings.Count(tail, fmtIndent)
+		f.stmts(t.Body, baseIndent+1)
+		if f.modern {
+			f.ind(baseIndent)
+			f.b.WriteString("}")
 		}
-		f.stmts(t.Body, col+1)
+		f.declared = previous
 	case *FStrLit:
 		f.writeFStr(t)
 	}
@@ -607,8 +848,32 @@ func (f *formatter) writeFStr(t *FStrLit) {
 			continue
 		}
 		f.b.WriteByte('{')
+		previous := f.inFString
+		f.inFString = true
 		f.expr(part.Expr, 0)
+		f.inFString = previous
 		f.b.WriteByte('}')
 	}
 	f.b.WriteByte('"')
+}
+
+func (f *formatter) writeSingleStr(s string) {
+	f.b.WriteByte('\'')
+	for _, r := range s {
+		switch r {
+		case '\\':
+			f.b.WriteString(`\\`)
+		case '\'':
+			f.b.WriteString(`\'`)
+		case '\n':
+			f.b.WriteString(`\n`)
+		case '\r':
+			f.b.WriteString(`\r`)
+		case '\t':
+			f.b.WriteString(`\t`)
+		default:
+			f.b.WriteRune(r)
+		}
+	}
+	f.b.WriteByte('\'')
 }

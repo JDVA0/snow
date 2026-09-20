@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"bufio"
@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 type bfunc func(i *Interp, args []Val) ([]Val, error)
@@ -37,10 +38,17 @@ func stdBuiltins() map[string]bfunc {
 		"upper":       bUpper,
 		"lower":       bLower,
 		"trim":        bTrim,
+		"trim_left":   bTrimLeft,
+		"trim_right":  bTrimRight,
 		"split":       bSplit,
 		"join":        bJoin,
 		"replace":     bReplace,
 		"contains":    bContains,
+		"starts_with": bStartsWith,
+		"ends_with":   bEndsWith,
+		"count":       bCount,
+		"index_of":    bIndexOf,
+		"repeat":      bRepeat,
 		"has":         bHas,
 		"keys":        bKeys,
 		"values":      bValues,
@@ -85,7 +93,7 @@ func want(args []Val, name string, n int) error {
 func bPrint(i *Interp, args []Val) ([]Val, error) {
 	parts := make([]string, len(args))
 	for k, a := range args {
-		parts[k] = SnowStr(a)
+		parts[k] = BlizzardStr(a)
 	}
 	fmt.Fprintln(i.out, strings.Join(parts, " "))
 	return []Val{}, nil
@@ -174,7 +182,7 @@ func bStr(i *Interp, args []Val) ([]Val, error) {
 	if err := want(args, "str", 1); err != nil {
 		return nil, err
 	}
-	return []Val{Str(SnowStr(args[0]))}, nil
+	return []Val{Str(BlizzardStr(args[0]))}, nil
 }
 
 func bInt(i *Interp, args []Val) ([]Val, error) {
@@ -421,6 +429,28 @@ func bTrim(i *Interp, args []Val) ([]Val, error) {
 	return []Val{Str(strings.TrimSpace(string(s)))}, nil
 }
 
+func bTrimLeft(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "trim_left", 1); err != nil {
+		return nil, err
+	}
+	s, err := strArg(args[0], "trim_left")
+	if err != nil {
+		return nil, err
+	}
+	return []Val{Str(strings.TrimLeftFunc(string(s), unicode.IsSpace))}, nil
+}
+
+func bTrimRight(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "trim_right", 1); err != nil {
+		return nil, err
+	}
+	s, err := strArg(args[0], "trim_right")
+	if err != nil {
+		return nil, err
+	}
+	return []Val{Str(strings.TrimRightFunc(string(s), unicode.IsSpace))}, nil
+}
+
 func bSplit(i *Interp, args []Val) ([]Val, error) {
 	if err := want(args, "split", 2); err != nil {
 		return nil, err
@@ -492,6 +522,81 @@ func bContains(i *Interp, args []Val) ([]Val, error) {
 		return nil, err
 	}
 	return []Val{got}, nil
+}
+
+func bStartsWith(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "starts_with", 2); err != nil {
+		return nil, err
+	}
+	s, err := strArg(args[0], "starts_with")
+	if err != nil {
+		return nil, err
+	}
+	prefix, err := strArg(args[1], "starts_with")
+	if err != nil {
+		return nil, err
+	}
+	return []Val{Bool(strings.HasPrefix(string(s), string(prefix)))}, nil
+}
+
+func bEndsWith(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "ends_with", 2); err != nil {
+		return nil, err
+	}
+	s, err := strArg(args[0], "ends_with")
+	if err != nil {
+		return nil, err
+	}
+	suffix, err := strArg(args[1], "ends_with")
+	if err != nil {
+		return nil, err
+	}
+	return []Val{Bool(strings.HasSuffix(string(s), string(suffix)))}, nil
+}
+
+func bCount(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "count", 2); err != nil {
+		return nil, err
+	}
+	s, err := strArg(args[0], "count")
+	if err != nil {
+		return nil, err
+	}
+	sub, err := strArg(args[1], "count")
+	if err != nil {
+		return nil, err
+	}
+	return []Val{Int(strings.Count(string(s), string(sub)))}, nil
+}
+
+func bIndexOf(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "index_of", 2); err != nil {
+		return nil, err
+	}
+	s, err := strArg(args[0], "index_of")
+	if err != nil {
+		return nil, err
+	}
+	sub, err := strArg(args[1], "index_of")
+	if err != nil {
+		return nil, err
+	}
+	return []Val{Int(strings.Index(string(s), string(sub)))}, nil
+}
+
+func bRepeat(i *Interp, args []Val) ([]Val, error) {
+	if err := want(args, "repeat", 2); err != nil {
+		return nil, err
+	}
+	s, err := strArg(args[0], "repeat")
+	if err != nil {
+		return nil, err
+	}
+	n, ok := args[1].(Int)
+	if !ok || n < 0 {
+		return nil, fmt.Errorf("repeat expects a non-negative int count")
+	}
+	return []Val{Str(strings.Repeat(string(s), int(n)))}, nil
 }
 
 func bHas(i *Interp, args []Val) ([]Val, error) {
@@ -956,7 +1061,7 @@ func bFail(i *Interp, args []Val) ([]Val, error) {
 	return nil, &errFail{val: args[0]}
 }
 
-// bAssert provides the minimal assertion primitive used by *_test.snow files.
+// bAssert provides the minimal assertion primitive used by *_test.blizz files.
 // An optional second argument supplies a readable failure message.
 func bAssert(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 || len(args) > 2 {
@@ -967,7 +1072,7 @@ func bAssert(i *Interp, args []Val) ([]Val, error) {
 			if Eql(args[0], args[1]) {
 				return []Val{}, nil
 			}
-			return nil, &errFail{val: Str("assertion failed: expected " + SnowStr(args[0]) + ", received " + SnowStr(args[1]))}
+			return nil, &errFail{val: Str("assertion failed: expected " + BlizzardStr(args[0]) + ", received " + BlizzardStr(args[1]))}
 		}
 	}
 	if Truthy(args[0]) {
@@ -975,7 +1080,7 @@ func bAssert(i *Interp, args []Val) ([]Val, error) {
 	}
 	msg := "assertion failed: condition evaluated to false"
 	if len(args) == 2 {
-		msg = SnowStr(args[1])
+		msg = BlizzardStr(args[1])
 	}
 	return nil, &errFail{val: Str(msg)}
 }

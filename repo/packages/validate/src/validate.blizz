@@ -1,0 +1,14 @@
+# Official Blizzard library: basic input validation
+
+fn non_empty(value) {
+    return len(trim(value)) > 0;
+}
+
+fn email(value) {
+    return contains(value, "@") and contains(value, ".");
+}
+
+fn length_between(value, low, high) {
+    let size = len(value);
+    return size >= low and size <= high;
+}

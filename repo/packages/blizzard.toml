@@ -1,0 +1,6 @@
+name = "blizzard"
+version = "0.1.0"
+description = "Official Blizzard standard library collection"
+license = "MIT"
+repository = "https://github.com/JDVA0/blizzard"
+source = "src"

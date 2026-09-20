@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Snow Programming Language &middot; English Edition</title>
-<meta name="description" content="The complete book of the Snow programming language. English edition, with a page-zoom reader.">
-<link rel="icon" type="image/svg+xml" href="../snowflake.svg">
+<title>The Blizzard Programming Language &middot; English Edition</title>
+<meta name="description" content="The complete book of the Blizzard programming language. English edition, with a page-zoom reader.">
+<link rel="icon" type="image/svg+xml" href="../blizzard.svg">
 <link rel="stylesheet" href="../style.css">
 </head>
 <body data-lang="en"
-      data-book="The Snow Programming Language"
-      data-short="Snow"
+    data-book="The Blizzard Programming Language"
+    data-short="Blizzard"
       data-home="../"
       data-other-label="Leer en espa&ntilde;ol"
       data-other-url="../es/">
@@ -20,12 +20,12 @@
   <!-- ============================ COVER ============================ -->
   <div class="cover">
     <div class="title-block">
-      <img class="mark" src="../snowflake.svg" width="104" height="104" alt="Snowflake">
-      <div class="engine">The Snow Programming Language &middot; English Edition</div>
-      <h1>Snow: The Complete <em>Reference</em></h1>
+      <img class="mark" src="../blizzard.svg" width="104" height="104" alt="Blizzard">
+    <div class="engine">The Blizzard Programming Language &middot; English Edition</div>
+    <h1>Blizzard: The Complete <em>Reference</em></h1>
       <hr class="title-rule">
       <p class="title-sub">A small interpreted language for scripts, command-line tools, web APIs, and automation &mdash; every value, operator, built-in, module, and tool, explained in full.</p>
-      <div class="title-version">Version 0.1</div>
+    <div class="title-version">Version 0.2</div>
     </div>
     <div class="title-press">Open source under the MIT license &middot; Written in Go by <code>JDVA0</code></div>
   </div>
@@ -69,11 +69,11 @@
       <h2>Why a Small Language</h2>
     </header>
 
-    <p class="lead">Snow exists to build useful programs with less ceremony. It is a small, interpreted language: booleans, numbers, strings, lists, dictionaries, functions, and modules are nearly everything it has, and almost all of the outside world is reached through a module you load with <code>using</code>.</p>
+    <p class="lead">Blizzard exists to build useful programs with less ceremony. It is a small, interpreted language: booleans, numbers, strings, lists, dictionaries, functions, and modules are nearly everything it has, and almost all of the outside world is reached through a module you load with <code>using</code>.</p>
 
     <p>This book explains the whole language, completely and explicitly. Every value, every operator, every built-in function, every module, and every tool is described with its exact behavior and at least one verifiable example. Where a rule is subtle &mdash; division that always returns a float, a nil-only fallback, conditions that must be actual booleans &mdash; it is said out loud instead of left to intuition.</p>
 
-    <p>The best way to read it is with the interpreter open. Every listing in this book was designed to run. Type it, run it, change it, break it, and read what the error says: Snow&rsquo;s errors point at the exact line, column, and offending construct.</p>
+    <p>The best way to read it is with the interpreter open. Every listing in this book was designed to run. Type it, run it, change it, break it, and read what the error says: Blizzard&rsquo;s errors point at the exact line, column, and offending construct.</p>
   </section>
 
   <!-- ============================ CHAPTER 1 ============================ -->
@@ -83,32 +83,52 @@
       <h2>Start Here</h2>
     </header>
 
-    <p class="lead">A Snow program is a text file read from top to bottom. Statements assign values, call functions, import modules, define functions, or control execution. Blocks begin after a colon and use four spaces of indentation; there are no braces and no end keywords, so the shape of the file is the shape of the program.</p>
+    <p class="lead">A Blizzard program is a text file read from top to bottom. Statements assign values, call functions, import modules, define functions, or control execution. Modern blocks use braces; the earlier indented form remains accepted during migration.</p>
+
+    <div class="note"><b>Experimental warning.</b> Blizzard is an AI-assisted research project. Syntax, APIs, package formats, and internal structure may change abruptly between versions. Pin versions and do not treat 0.2 as a production stability contract.</div>
+        <p><b>Snow to Blizzard migration:</b> Snow 0.1 files use <code>.snow</code>,
+            <code>snowman</code>, and <code>snow.toml</code>. Blizzard 0.2 uses
+            <code>.blizz</code>, <code>blizzard</code>, and <code>blizzard.toml</code>.
+            New code uses brace blocks, <code>let</code>, and <code>import</code>.</p>
+
+    <div class="note">
+      <b>Blizzard 0.2 syntax.</b> New programs use <code>let</code>, <code>import</code>,
+      and brace-delimited blocks. Newlines separate statements inside a block;
+      semicolons remain available when several statements share a line.
+      <pre><code>import json
+let name = "Ada"
+fn greet(value) {
+    if value != "" {
+        print(json.stringify(value))
+    }
+}
+greet(name)</code></pre>
+    </div>
 
     <h3><span class="hnum">1.1</span>Your first program</h3>
-    <p>Save this file as <code>hello.snow</code>:</p>
+    <p>Save this file as <code>hello.blizz</code>:</p>
 
     <figure class="listing">
-      <figcaption>Listing 1 &middot; Hello, Snow</figcaption>
-      <pre><code>print("Hello from Snow")
-name = "snow"
+      <figcaption>Listing 1 &middot; Hello, Blizzard</figcaption>
+      <pre><code>print("Hello from Blizzard")
+name = "blizzard"
 print("Running: " + name)</code></pre>
     </figure>
 
-    <p>Run it with the <code>snowman</code> command:</p>
+    <p>Run it with the <code>blizzard</code> command:</p>
 
-    <pre><code>snowman hello.snow</code></pre>
+    <pre><code>blizzard hello.blizz</code></pre>
 
-    <p><code>print</code> writes its arguments to the terminal, separated by single spaces, followed by a newline. The second line assigns the string <code>"snow"</code> to the name <code>name</code>. The third line concatenates two strings with <code>+</code> and prints <code>Running: snow</code>.</p>
+    <p><code>print</code> writes its arguments to the terminal, separated by single spaces, followed by a newline. The second line assigns the string <code>"blizzard"</code> to the name <code>name</code>. The third line concatenates two strings with <code>+</code> and prints <code>Running: blizzard</code>.</p>
 
     <h3><span class="hnum">1.2</span>Experimenting in the REPL</h3>
     <p>The REPL reads one statement at a time, evaluates it, and prints the result.</p>
 
-    <pre><code>snowman repl</code></pre>
+    <pre><code>blizzard repl</code></pre>
 
-    <p>Inside it you see the prompt <code>snow&gt;</code>. Type <code>2 + 2</code>, press Enter, and it answers <code>4</code> with a yellow tint. A block header, like the one below, keeps the prompt open until you finish the block with a blank line; the indentation is added for you.</p>
+    <p>Inside it you see the prompt <code>blizzard&gt;</code>. Type <code>2 + 2</code>, press Enter, and it answers <code>4</code> with a yellow tint. A block header, like the one below, keeps the prompt open until you finish the block with a blank line; the indentation is added for you.</p>
 
-    <pre><code>snow&gt; pub fn cal(a, b):
+    <pre><code>blizzard&gt; pub fn cal(a, b):
 ...&gt;     for i in range(a, b):
 ...&gt;         print(i * 2)
 ...&gt;
@@ -117,24 +137,24 @@ print("Running: " + name)</code></pre>
 
     <p>The empty line closes the block and the function body runs. For a quick experiment without saving a file, you can also evaluate a string directly:</p>
 
-    <pre><code>snowman eval 'print("hi")'
-snowman -e 'print(6 * 7)'</code></pre>
+    <pre><code>blizzard eval 'print("hi")'
+blizzard -e 'print(6 * 7)'</code></pre>
 
     <h3><span class="hnum">1.3</span>Reading errors</h3>
     <p>Errors are precise. A parse error shows the file, line, column, and a caret under the offending character:</p>
 
-    <pre><code>examples/test.snow:2:1: error: expected an indented block after the 'fn' statement
+    <pre><code>examples/test.blizz:2:1: error: expected an indented block after the 'fn' statement
     fn add(a, b):
     ^</code></pre>
 
     <p>The message names the file, the line and column after the line number, tells you exactly what the parser expected, and prints the offending source line with a caret at the error position. Runtime errors carry the file, line, column, and &mdash; for uncaught failures &mdash; a stack trace.</p>
 
     <h3><span class="hnum">1.4</span>Project layout in one glance</h3>
-    <p>For anything bigger than a scratch file, follow the convention: source in <code>src/</code>, tests in files whose name ends in <code>_test.snow</code>, and configuration in <code>snow.toml</code>. Run a whole project with <code>snowman run</code>, which picks <code>src/main.snow</code> automatically.</p>
+    <p>For anything bigger than a scratch file, follow the convention: source in <code>src/</code>, tests in files whose name ends in <code>_test.blizz</code>, and configuration in <code>blizzard.toml</code>. Run a whole project with <code>blizzard run</code>, which picks <code>src/main.blizz</code> automatically.</p>
 
-    <pre><code>snowman init my_app
+    <pre><code>blizzard init my_app
 cd my_app
-snowman run</code></pre>
+blizzard run</code></pre>
 
     <p>Each piece is explained in depth in Chapter 14.</p>
   </section>
@@ -146,18 +166,18 @@ snowman run</code></pre>
       <h2>The Language Model</h2>
     </header>
 
-    <p class="lead">Snow follows a short execution pipeline: tokenize, parse, check, compile, interpret. Each stage has exactly one job, and each failure carries a precise location. Understanding this pipeline will help you interpret the errors you see.</p>
+    <p class="lead">Blizzard follows a short execution pipeline: tokenize, parse, check, compile, interpret. Each stage has exactly one job, and each failure carries a precise location. Understanding this pipeline will help you interpret the errors you see.</p>
 
     <ul>
       <li><b>Tokenizer.</b> Turns source text into tokens. Indentation, numbers, strings, f-strings, and operators are its responsibility.</li>
       <li><b>Parser.</b> Builds a program tree. Its errors mean the source could not become a program at all &mdash; these are the most common beginner errors.</li>
-      <li><b>Checker.</b> Inspects names, types, modules, and unreachable code without running the program. This is the static analysis behind <code>snowman check</code> and the editor diagnostics.</li>
+      <li><b>Checker.</b> Inspects names, types, modules, and unreachable code without running the program. This is the static analysis behind <code>blizzard check</code> and the editor diagnostics.</li>
       <li><b>Compiler.</b> Emits operations for a virtual machine.</li>
       <li><b>Interpreter.</b> Executes the operations. Runtime failures are reported with source location, and uncaught failures carry a stack trace.</li>
     </ul>
 
     <h3><span class="hnum">2.1</span>Dynamic by default</h3>
-    <p>Names do not need annotations. The same variable can hold an integer, then later a string. Types are not optional decorations of a fixed contract: they are <em>gradual</em>. You may add annotations at the boundaries where a contract is valuable, and Snow checks them at runtime.</p>
+    <p>Names do not need annotations. The same variable can hold an integer, then later a string. Types are not optional decorations of a fixed contract: they are <em>gradual</em>. You may add annotations at the boundaries where a contract is valuable, and Blizzard checks them at runtime.</p>
 
     <pre><code>value = 10
 value = "now a string"</code></pre>
@@ -169,7 +189,7 @@ value = "now a string"</code></pre>
     <p>Network, files, processes, and environment access live in modules (<code>http</code>, <code>fs</code>, <code>sys</code>). A program that touches the outside world has to say so. This keeps side effects visible and makes scripts predictable.</p>
 
     <h3><span class="hnum">2.4</span>Static analysis without running</h3>
-    <p>Because the checker never executes the code, <code>snowman check file.snow</code> reports undefined names, unused variables, unreachable code, unknown modules, and type mismatches instantly and safely &mdash; no network calls, no file changes.</p>
+    <p>Because the checker never executes the code, <code>blizzard check file.blizz</code> reports undefined names, unused variables, unreachable code, unknown modules, and type mismatches instantly and safely &mdash; no network calls, no file changes.</p>
   </section>
 
   <!-- ============================ CHAPTER 3 ============================ -->
@@ -179,7 +199,7 @@ value = "now a string"</code></pre>
       <h2>Source Text</h2>
     </header>
 
-    <p class="lead">This chapter covers the raw material of a Snow program: comments, names, keywords, indentation, numbers, and the three ways to write a string.</p>
+    <p class="lead">This chapter covers the raw material of a Blizzard program: comments, names, keywords, indentation, numbers, and the three ways to write a string.</p>
 
     <h3><span class="hnum">3.1</span>Comments</h3>
     <p>A comment starts with <code>#</code> and runs to the end of the line. Comments are ignored by the interpreter and may appear after code.</p>
@@ -234,7 +254,7 @@ c = "line one\ntab\there"</code></pre>
     <p>Triple-quoted strings may span multiple lines and keep their line breaks.</p>
 
     <pre><code>poem = """
-On the snow
+On the blizzard
 a single line
 of code.
 """</code></pre>
@@ -258,7 +278,7 @@ print(f"Curly: {{ {user} }}")</code></pre>
       <h2>Values</h2>
     </header>
 
-    <p class="lead">Everything in Snow is a value. There are ten kinds: <code>nil</code>, booleans, integers, floats, strings, lists, dictionaries, functions, modules, and native values. This chapter defines each one precisely.</p>
+    <p class="lead">Everything in Blizzard is a value. There are ten kinds: <code>nil</code>, booleans, integers, floats, strings, lists, dictionaries, functions, modules, and native values. This chapter defines each one precisely.</p>
 
     <h3><span class="hnum">4.1</span>nil</h3>
     <p><code>nil</code> represents absence. It is not an error by itself: functions may return it, and the nullish operators treat it specially. An unset environment variable, a missing dictionary key under safe access, and an empty-result <code>first</code> all produce <code>nil</code>.</p>
@@ -280,7 +300,7 @@ print(s[-1])     # o
 print(s[1:4])    # ell
 print(len(s))    # 5</code></pre>
 
-    <p>The string methods familiar from other languages are plain functions here, so use <code>upper(s)</code>, <code>lower(s)</code>, and <code>trim(s)</code>, not <code>s.upper()</code>.</p>
+    <p>String helpers can be called as functions or methods: <code>upper(s)</code> and <code>s.upper()</code> are equivalent. The method form also works with <code>lower</code>, <code>trim</code>, <code>split</code>, <code>join</code>, <code>replace</code>, <code>contains</code>, and the other string helpers.</p>
 
     <h3><span class="hnum">4.4</span>Lists</h3>
     <p>Lists hold any values in order. They are mutable: you can assign through an index. Indexing supports negatives and slices just like strings.</p>
@@ -324,7 +344,7 @@ print(type(nil))      # nil</code></pre>
 
     <pre><code>print(["a", "b"])              # [a, b]
 print(keys({a: 1}))            # [a]
-print({"name": "snow", "n": 2})# {name: snow, n: 2}</code></pre>
+print({"name": "blizzard", "n": 2})# {name: blizzard, n: 2}</code></pre>
 
     <p>Floats print in the shortest form that preserves value: <code>3.5</code>, <code>0.2</code>, <code>2.5</code>.</p>
   </section>
@@ -336,7 +356,7 @@ print({"name": "snow", "n": 2})# {name: snow, n: 2}</code></pre>
       <h2>Operators</h2>
     </header>
 
-    <p class="lead">Operators combine values into expressions. Snow uses words for logic (<code>and</code>, <code>or</code>, <code>not</code>, <code>in</code>) and symbols for arithmetic, comparison, and nullish handling. This chapter is the precise specification.</p>
+    <p class="lead">Operators combine values into expressions. Blizzard uses words for logic (<code>and</code>, <code>or</code>, <code>not</code>, <code>in</code>) and symbols for arithmetic, comparison, and nullish handling. This chapter is the precise specification.</p>
 
     <h3><span class="hnum">5.1</span>Precedence, loosest first</h3>
     <table>
@@ -372,7 +392,7 @@ print(2 ** 0.5)   # 1.4142135623730951</code></pre>
 
     <p><code>+</code> concatenates strings, appends lists, and merges dictionaries; <code>*</code> repeats strings by a non-negative count.</p>
 
-    <pre><code>print("snow" + "fall")   # snowfall
+    <pre><code>print("blizzard" + "fall")   # blizzardfall
 print("ab" * 3)          # ababab
 print([1, 2] + [3])      # [1, 2, 3]</code></pre>
 
@@ -388,7 +408,7 @@ print("abc" &lt; "abd")      # true</code></pre>
     <h3><span class="hnum">5.4</span>Logic and membership</h3>
     <pre><code>print(true and false)     # false
 print(not false)          # true
-print("ow" in "snow")     # true  (substring)
+print("ow" in "blizzard")     # true  (substring)
 print(3 in [1, 2, 3])     # true  (list membership)
 print("x" not in {a: 1})  # true  (dict key test)
 print(false or 2 == 2)    # true</code></pre>
@@ -442,11 +462,11 @@ print(n)    # 34</code></pre>
       <h2>Assignments and Destructuring</h2>
     </header>
 
-    <p class="lead">Assignment binds a value to a name. Snow offers plain assignment, multiple assignment, typed assignment, constants, destructuring, and attribute or index assignment. Each has a specific shape.</p>
+    <p class="lead">Assignment binds a value to a name. Blizzard offers plain assignment, multiple assignment, typed assignment, constants, destructuring, and attribute or index assignment. Each has a specific shape.</p>
 
     <h3><span class="hnum">6.1</span>Assigning one value</h3>
     <pre><code>count = 1
-name = "snow"
+name = "blizzard"
 </code></pre>
 
     <h3><span class="hnum">6.2</span>Assigning several names at once</h3>
@@ -458,7 +478,7 @@ print(a, b)      # 1 2
 apple, banana = banana, apple   # swaps in one step</code></pre>
 
     <h3><span class="hnum">6.3</span>Typed assignment</h3>
-    <p>A name may carry a type that Snow checks at runtime: <code>name: type = value</code>. Supported types are <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>, <code>dict</code>, <code>list</code>, <code>nil</code>, <code>any</code>, unions like <code>int|float</code>, and typed lists like <code>str[]</code>.</p>
+    <p>A name may carry a type that Blizzard checks at runtime: <code>name: type = value</code>. Supported types are <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>, <code>dict</code>, <code>list</code>, <code>nil</code>, <code>any</code>, unions like <code>int|float</code>, and typed lists like <code>str[]</code>.</p>
 
     <pre><code>age: int = 30
 names: str[] = ["Ada", "Linus"]
@@ -618,7 +638,7 @@ print(call(add3, 1, 2, 3))   # 6</code></pre>
       <h2>Control Flow</h2>
     </header>
 
-    <p class="lead">Control flow bends the order of execution. Snow selects among branches with <code>if</code> and <code>match</code>, repeats with <code>for</code> and <code>while</code>, and lets <code>break</code> and <code>continue</code> steer loops precisely. One rule is worth stating twice: <b>conditions must be actual booleans</b> &mdash; several operators insist on <code>true</code> or <code>false</code>, not truthy values.</p>
+    <p class="lead">Control flow bends the order of execution. Blizzard selects among branches with <code>if</code> and <code>match</code>, repeats with <code>for</code> and <code>while</code>, and lets <code>break</code> and <code>continue</code> steer loops precisely. One rule is worth stating twice: <b>conditions must be actual booleans</b> &mdash; several operators insist on <code>true</code> or <code>false</code>, not truthy values.</p>
 
     <h3><span class="hnum">8.1</span>if, elif, else</h3>
     <pre><code>score = 85
@@ -658,7 +678,7 @@ match command:
 for key in {"a": 1}:
     print(key)        # a
 
-for ch in "snow":
+for ch in "blizzard":
     print(ch)         # s n o w (each on its line)
 
 for i in range(3):
@@ -712,12 +732,12 @@ while n &lt; 6:
       <h2>Errors and Cleanup</h2>
     </header>
 
-    <p class="lead">Snow treats a failure as a value that can be caught. You ask for a failure with <code>fail</code>, bound the risk with <code>try</code>, receive the failure with <code>catch</code>, and guarantee cleanup with <code>always</code>. Because failures are values, recovery is plain code and requires no class hierarchy.</p>
+    <p class="lead">Blizzard treats a failure as a value that can be caught. You ask for a failure with <code>fail</code>, bound the risk with <code>try</code>, receive the failure with <code>catch</code>, and guarantee cleanup with <code>always</code>. Because failures are values, recovery is plain code and requires no class hierarchy.</p>
 
     <h3><span class="hnum">9.1</span>Three kinds of errors</h3>
     <ul>
       <li><b>Parser errors</b> mean the text could not become a program. They carry file, line, column, and a caret.</li>
-      <li><b>Checker diagnostics</b> come from <code>snowman check</code> and the editor: undefined names, unused variables, unreachable code, unknown modules, type mismatches. Nothing executes.</li>
+      <li><b>Checker diagnostics</b> come from <code>blizzard check</code> and the editor: undefined names, unused variables, unreachable code, unknown modules, type mismatches. Nothing executes.</li>
       <li><b>Runtime errors</b> happen while the program runs and carry file, line, column, and &mdash; if uncaught &mdash; a stack trace.</li>
     </ul>
 
@@ -782,7 +802,7 @@ assert([1, 2], [1, 2])     # deep equality passes
       <h2>Modules and Imports</h2>
     </header>
 
-    <p class="lead">Code is organized into modules: namespaces whose members are ordinary values reached with a dot. This chapter explains both doors into a module &mdash; <code>using</code> for the standard library and <code>import</code> for Snow files &mdash; and the visibility rules controlled by <code>pub</code> and <code>priv</code>.</p>
+    <p class="lead">Code is organized into modules: namespaces whose members are ordinary values reached with a dot. This chapter explains both doors into a module &mdash; <code>using</code> for the standard library and <code>import</code> for Blizzard files &mdash; and the visibility rules controlled by <code>pub</code> and <code>priv</code>.</p>
 
     <h3><span class="hnum">10.1</span>using: the standard library</h3>
     <pre><code>using http
@@ -792,16 +812,16 @@ using json
 response = http.get("https://example.com")
 print(response.status)</code></pre>
 
-    <p>Each <code>using</code> loads one standard module into a name with the module&rsquo;s name. The long form <code>using snow.http</code> is accepted, and an alias is allowed:</p>
+    <p>Each <code>using</code> loads one standard module into a name with the module&rsquo;s name. The long form <code>using blizzard.http</code> is accepted, and an alias is allowed:</p>
 
-    <pre><code>using snow.http as web
+    <pre><code>using blizzard.http as web
 print(web.get("https://example.com").status)</code></pre>
 
     <h3><span class="hnum">10.2</span>import: your own files</h3>
     <p>Relative imports resolve by replacing dots with slashes and binding the last segment (or your alias):</p>
 
     <pre><code>import ./formatters as fmt
-print(fmt.title("snow"))
+print(fmt.title("blizzard"))
 
 import ./math_utils
 print(math_utils.max3(1, 5, 3))</code></pre>
@@ -809,17 +829,17 @@ print(math_utils.max3(1, 5, 3))</code></pre>
     <p>Parent directories are available too: <code>import ../shared.validators</code>. Import cycles are detected and reported with <code>import cycle detected</code> instead of looping forever.</p>
 
     <h3><span class="hnum">10.3</span>Project-module imports</h3>
-    <p>Inside a project with a <code>snow.toml</code>, modules are imported by their package name and file:</p>
+    <p>Inside a project with a <code>blizzard.toml</code>, modules are imported by their package name and file:</p>
 
     <pre><code>import demo.math
 print(math.twice(21))</code></pre>
 
-    <p>The dependency <code>dep.demo = "packages/demo"</code> in <code>snow.toml</code> points to the package&rsquo;s location (see Chapter 14).</p>
+    <p>The dependency <code>dep.demo = "packages/demo"</code> in <code>blizzard.toml</code> points to the package&rsquo;s location (see Chapter 14).</p>
 
     <h3><span class="hnum">10.4</span>pub and priv</h3>
     <p>Everything at the top level of a file is public by default. <code>priv</code> hides a name from the exports of the file; <code>pub</code> makes intent explicit. A <code>_</code> prefix does not hide anything &mdash; only <code>priv</code> does.</p>
 
-    <pre><code># lib/values.snow
+    <pre><code># lib/values.blizz
 pub fn max3(a, b, c):
     return max(a, b, c)
 
@@ -828,7 +848,7 @@ priv fn helper(x):
 
 pub top_value = 7</code></pre>
 
-    <pre><code># main.snow
+    <pre><code># main.blizz
 import ./lib/values as v
 print(v.max3(1, 5, 3))   # 5
 # v.helper(2)  ->  attribute not found: helper</code></pre>
@@ -844,7 +864,7 @@ print(v.max3(1, 5, 3))   # 5
       <h2>Built-in Functions</h2>
     </header>
 
-    <p class="lead">Snow ships 52 built-in functions, always available, no <code>using</code> needed. They fall into a handful of families: output and input, conversions, math, strings, collections, reasoning about collections, safety, and process control. Each is specified below with a verifiable example.</p>
+    <p class="lead">Blizzard ships 52 built-in functions, always available, no <code>using</code> needed. They fall into a handful of families: output and input, conversions, math, strings, collections, reasoning about collections, safety, and process control. Each is specified below with a verifiable example.</p>
 
     <h3><span class="hnum">11.1</span>Output and input</h3>
     <pre><code>print("a", "b", 1)   # a b 1     (single spaces, one newline)
@@ -897,17 +917,17 @@ print(range(5))       # [0, 1, 2, 3, 4]</code></pre>
     </ul>
 
     <h3><span class="hnum">11.4</span>Strings</h3>
-    <pre><code>s = "  Snow  "
+    <pre><code>s = "  Blizzard  "
 print(len("héllo"))       # 5      (characters, not bytes)
-print(upper("snow"))      # SNOW
-print(lower("SNOW"))      # snow
-print(trim(s))            # Snow
+print(upper("blizzard"))      # BLIZZARD
+print(lower("BLIZZARD"))      # blizzard
+print(trim(s))            # Blizzard
 print(split("a,b,c", ","))# [a, b, c]
 print(join(["a", "b"], "-"))   # a-b
 print(replace("aaa", "a", "b"))# bbb    (all occurrences)
-print(contains("snow", "ow"))   # true
-print(first("snow"))      # s
-print(last("snow"))       # w</code></pre>
+print(contains("blizzard", "ow"))   # true
+print(first("blizzard"))      # s
+print(last("blizzard"))       # w</code></pre>
 
     <ul>
       <li><code>upper</code>, <code>lower</code>, <code>trim</code> &mdash; case and whitespace.</li>
@@ -927,7 +947,7 @@ print(get(d, "zz"))   # nil        missing is nil, not an error</code></pre>
     <h3><span class="hnum">11.6</span>Lists</h3>
     <pre><code>items = [10, 20, 30]
 print(append(items, 40)) # [10, 20, 30, 40]   (items unchanged)
-print(reverse("snow"))   # wons
+print(reverse("blizzard"))   # wons
 print(sort([3, 1, 2]))   # [1, 2, 3]
 print(first([10, 20]))   # 10
 print(last([10, 20]))    # 20
@@ -939,7 +959,7 @@ print(zip([1, 2], ["a", "b"])) # [[1, a], [2, b]]</code></pre>
     <ul>
       <li><code>append(list, v)</code> &mdash; returns a <em>new</em> list; the original is untouched. (Lists are mutable, but append does not mutate.)</li>
       <li><code>reverse(x)</code> &mdash; list or string, character-aware.</li>
-      <li><code>sort(list)</code> &mdash; stable sort by Snow comparison.</li>
+      <li><code>sort(list)</code> &mdash; stable sort by Blizzard comparison.</li>
       <li><code>first</code> / <code>last</code> &mdash; work on lists and strings; return <code>nil</code> when empty.</li>
       <li><code>take</code> / <code>drop</code> &mdash; counts are clamped (negative becomes zero).</li>
       <li><code>enumerate(list)</code> &mdash; pairs of <code>[index, value]</code>.</li>
@@ -966,7 +986,7 @@ print(exit(0))       # stops the process</code></pre>
 
     <ul>
       <li><code>json_encode(v)</code> &mdash; compact JSON text.</li>
-      <li><code>json_decode(s)</code> &mdash; JSON text into Snow values.</li>
+      <li><code>json_decode(s)</code> &mdash; JSON text into Blizzard values.</li>
       <li><code>env(name)</code> &mdash; environment string or <code>nil</code>.</li>
       <li><code>args()</code> &mdash; command-line arguments.</li>
       <li><code>now()</code> &mdash; current Unix time as a float.</li>
@@ -998,15 +1018,15 @@ catch e:
     <h3><span class="hnum">12.1</span>json &mdash; data interchange</h3>
     <pre><code>using json
 
-json.parse('{"name": "snow", "count": 10, "active": true}')
-obj = json.parse('{"name": "snow"}')
-print(obj.name)             # snow
+json.parse('{"name": "blizzard", "count": 10, "active": true}')
+obj = json.parse('{"name": "blizzard"}')
+print(obj.name)             # blizzard
 print(json.valid("[1,2]"))  # true
 print(json.valid("nope"))   # false
 print(json.stringify({a: 1, b: [2]})) # {"a":1,"b":[2]}</code></pre>
 
     <ul>
-      <li><code>parse(str)</code> &mdash; decodes JSON into Snow values.</li>
+      <li><code>parse(str)</code> &mdash; decodes JSON into Blizzard values.</li>
       <li><code>stringify(value, indent?)</code> &mdash; encodes back to text.</li>
       <li><code>valid(str)</code> &mdash; boolean JSON check.</li>
     </ul>
@@ -1015,7 +1035,7 @@ print(json.stringify({a: 1, b: [2]})) # {"a":1,"b":[2]}</code></pre>
     <pre><code>using http
 
 r = http.post("https://api.example.com/items",
-              {name: "snow"},
+              {name: "blizzard"},
               {Authorization: "Bearer xyz"})
 print(r.status)          # integer status code
 print(r.ok)              # true for 2xx
@@ -1043,7 +1063,7 @@ api.post("/echo", fn(req):
     return api.json({got: req.json}, 201)
 )
 
-api.serve(8080)   # blocks; prints "snow listening on http://0.0.0.0:8080"</code></pre>
+api.serve(8080)   # blocks; prints "blizzard listening on http://0.0.0.0:8080"</code></pre>
 
     <ul>
       <li><code>route(method, path, handler)</code>, plus <code>get</code>/<code>post</code>/<code>put</code>/<code>delete</code>/<code>patch</code>/<code>all</code>.</li>
@@ -1074,11 +1094,11 @@ fs.remove(f)</code></pre>
     <h3><span class="hnum">12.5</span>sys &mdash; processes and environment</h3>
     <pre><code>using sys
 
-res = sys.sh("echo hello-snow")
-print(trim(res.stdout), res.ok)   # hello-snow true
+res = sys.sh("echo hello-blizzard")
+print(trim(res.stdout), res.ok)   # hello-blizzard true
 
-sys.set_env("SNOW_VAR", "snow_val_123")
-print(sys.env("SNOW_VAR"))   # snow_val_123
+sys.set_env("BLIZZARD_VAR", "blizzard_val_123")
+print(sys.env("BLIZZARD_VAR"))   # blizzard_val_123
 print(sys.platform)          # linux (example)
 print(sys.pid)               # process id
 </code></pre>
@@ -1095,15 +1115,15 @@ print(sys.pid)               # process id
     <h3><span class="hnum">12.6</span>env &mdash; configuration</h3>
     <pre><code>using env
 
-env.set("SNOW_TEST_NUM", "42")
-print(env.get("SNOW_TEST_NUM"))        # 42
-print(env.int("SNOW_TEST_NUM"))        # 42       (int coercion)
+env.set("BLIZZARD_TEST_NUM", "42")
+print(env.get("BLIZZARD_TEST_NUM"))        # 42
+print(env.int("BLIZZARD_TEST_NUM"))        # 42       (int coercion)
 print(env.float("MISSING", 1.5))       # 1.5      (default)
 print(env.bool("MISSING", false))      # false
-print(env.has("SNOW_TEST_NUM"))        # true
+print(env.has("BLIZZARD_TEST_NUM"))        # true
 print(env.load(".env"))                # loads KEY=VALUE lines</code></pre>
 
-    <p><code>env.get(name, default?)</code>, <code>set</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>has</code>, <code>all()</code>, <code>load(path?)</code>. The <code>load</code> function parses <code>KEY=VALUE</code> files (and tolerates <code>export&nbsp;KEY=VALUE</code> and quoted values). This is what <code>snowman run --env .env</code> uses.</p>
+    <p><code>env.get(name, default?)</code>, <code>set</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>has</code>, <code>all()</code>, <code>load(path?)</code>. The <code>load</code> function parses <code>KEY=VALUE</code> files (and tolerates <code>export&nbsp;KEY=VALUE</code> and quoted values). This is what <code>blizzard run --env .env</code> uses.</p>
 
     <h3><span class="hnum">12.7</span>csv &mdash; tables of text</h3>
     <pre><code>using csv
@@ -1124,7 +1144,7 @@ print(trim(csv.stringify([["col1", "col2"], ["a", "b"]])))# col1,col2\na,b</code
     <pre><code>using db
 using fs
 
-store = db.open("/tmp/snow_db.json")
+store = db.open("/tmp/blizzard_db.json")
 store.set("greeting", "hello")
 store.set("count", 42)
 store.save()                          # atomic write
@@ -1163,7 +1183,7 @@ print(crypto.sha256("hello"))        # 2cf24dba5fb0a30e26e83b2ac5b9e29e…
 print(crypto.md5("hello"))
 print(crypto.random_token())         # 32 hex characters by default
 
-token = crypto.jwt_sign({user: "snow", role: "admin"}, "secret123")
+token = crypto.jwt_sign({user: "blizzard", role: "admin"}, "secret123")
 print(crypto.jwt_verify(token, "secret123").role)   # admin
 print(crypto.jwt_verify(token, "wrong") == nil)     # true</code></pre>
 
@@ -1209,7 +1229,7 @@ pw   = input.hidden("Password: ")           # no echo</code></pre>
     <h3><span class="hnum">12.13</span>cli &mdash; terminal UIs and arguments</h3>
     <pre><code>using cli
 
-parsed = cli.parse(["--port", "8080", "--verbose", "serve", "app.snow"])
+parsed = cli.parse(["--port", "8080", "--verbose", "serve", "app.blizz"])
 print(parsed.flags.port)      # 8080     (auto-converted to int)
 print(parsed.flags.verbose)   # true     (bare flag)
 print(parsed.args[0])         # serve
@@ -1238,55 +1258,55 @@ print(cli.table([["a", "1"], ["b", "2"]]))</code></pre>
       <h2>Command-Line Tools</h2>
     </header>
 
-    <p class="lead">One binary, <code>snowman</code>, carries the whole toolchain: running, evaluating, formatting, checking, testing, and package management. This chapter is its manual.</p>
+    <p class="lead">One binary, <code>blizzard</code>, carries the whole toolchain: running, evaluating, formatting, checking, testing, and package management. This chapter is its manual.</p>
 
     <h3><span class="hnum">13.1</span>Running programs</h3>
-    <pre><code>snowman hello.snow          # run a file with arguments
-snowman run                 # run src/main.snow of the current project
-snowman run --env .env      # load .env before running
-snowman eval 'print("hi")'  # run inline code
-snowman -e 'print(6 * 7)'   # same, short flag</code></pre>
+    <pre><code>blizzard hello.blizz          # run a file with arguments
+blizzard run                 # run src/main.blizz of the current project
+blizzard run --env .env      # load .env before running
+blizzard eval 'print("hi")'  # run inline code
+blizzard -e 'print(6 * 7)'   # same, short flag</code></pre>
 
     <h3><span class="hnum">13.2</span>Formatting</h3>
-    <pre><code>snowman fmt file.snow       # check formatting; no changes
-snowman fmt -w file.snow    # rewrite the file in place (4-space indent)</code></pre>
+    <pre><code>blizzard fmt file.blizz       # check formatting; no changes
+blizzard fmt -w file.blizz    # rewrite the file in place (4-space indent)</code></pre>
 
     <h3><span class="hnum">13.3</span>Checking</h3>
-    <pre><code>snowman check file.snow     # static analysis, exit 1 on issues</code></pre>
+    <pre><code>blizzard check file.blizz     # static analysis, exit 1 on issues</code></pre>
 
     <p>Reports undefined names, unused variables, unreachable code, type mismatches, and unknown modules, with line and column for each issue &mdash; without running anything.</p>
 
     <h3><span class="hnum">13.4</span>Testing</h3>
-    <pre><code>snowman test                # run every *_test.snow under src/
-snowman test path/to/dir     # or from a chosen directory
-snowman test --filter ads    # only tests whose name contains "ads"</code></pre>
+    <pre><code>blizzard test                # run every *_test.blizz under src/
+blizzard test path/to/dir     # or from a chosen directory
+blizzard test --filter ads    # only tests whose name contains "ads"</code></pre>
 
-    <p>Test files are ordinary Snow scripts whose name ends in <code>_test.snow</code>. Use <code>assert</code> with a message so failures say what mattered:</p>
+    <p>Test files are ordinary Blizzard scripts whose name ends in <code>_test.blizz</code>. Use <code>assert</code> with a message so failures say what mattered:</p>
 
-    <pre><code># math_test.snow
+    <pre><code># math_test.blizz
 assert(2 + 2 == 4, "addition")
-assert(upper("snow") == "SNOW", "text")
+assert(upper("blizzard") == "BLIZZARD", "text")
 print("ok")</code></pre>
 
     <h3><span class="hnum">13.5</span>Package management</h3>
-    <pre><code>snowman init my_app          # scaffold a project
-snowman search http          # search the registry
-snowman get snow/text.snow@0.1.0   # install an official package
-snowman get-local ./lib      # install a local package
-snowman install              # (re)install from snow.toml / snow.lock
-snowman add strings vendor/strings  # record a dependency in snow.toml
-snowman remove strings       # drop a dependency
-snowman list                 # list installed packages
-snowman info snow/text.snow  # package metadata
-snowman update text          # move a dependency to the latest version
-snowman index                # refresh the local package index</code></pre>
+    <pre><code>blizzard init my_app          # scaffold a project
+blizzard search http          # search the registry
+blizzard get blizzard/text.blizz@0.1.0   # install an official package
+blizzard get-local ./lib      # install a local package
+blizzard install              # (re)install from blizzard.toml / blizzard.lock
+blizzard add strings vendor/strings  # record a dependency in blizzard.toml
+blizzard remove strings       # drop a dependency
+blizzard list                 # list installed packages
+blizzard info blizzard/text.blizz  # package metadata
+blizzard update text          # move a dependency to the latest version
+blizzard index                # refresh the local package index</code></pre>
 
     <h3><span class="hnum">13.6</span>The REPL in detail</h3>
-    <p>The banner is <code>snow 0.1 &nbsp;type help for commands, .exit to quit</code>. Meta-commands: <code>help</code>/<code>.help</code>, <code>.exit</code>/<code>exit</code>/<code>quit</code>, <code>.clear</code>/<code>clear</code>, <code>.history</code>.</p>
+    <p>The banner is <code>blizzard 0.1 &nbsp;type help for commands, .exit to quit</code>. Meta-commands: <code>help</code>/<code>.help</code>, <code>.exit</code>/<code>exit</code>/<code>quit</code>, <code>.clear</code>/<code>clear</code>, <code>.history</code>.</p>
 
     <ul>
       <li>Results print with type colors: strings cyan, numbers yellow, booleans magenta, <code>nil</code> gray, lists and dictionaries blue.</li>
-      <li>History persists in <code>~/.snow_history</code> (permissions 0600, last 500 entries).</li>
+      <li>History persists in <code>~/.blizz_history</code> (permissions 0600, last 500 entries).</li>
       <li>Tab completion offers built-ins, keywords, and module members; Tab also indents.</li>
       <li>Block headers keep the prompt open and auto-indent each new line by four spaces until a blank line closes the block.</li>
     </ul>
@@ -1301,42 +1321,42 @@ snowman index                # refresh the local package index</code></pre>
 
     <p class="lead">A project gives a program a home: a manifest, a source tree, tests alongside the code, and a lockfile that makes installs reproducible.</p>
 
-    <h3><span class="hnum">14.1</span>snow.toml</h3>
+    <h3><span class="hnum">14.1</span>blizzard.toml</h3>
     <p>The manifest lives in the project root. <code>name</code> is required; <code>source</code> defaults to <code>src</code>, and <code>dep.&lt;name&gt;</code> records local dependencies.</p>
 
     <pre><code>name = "weather_tool"
 source = "src"
 
-# dep.snow = "packages/snow"
+# dep.blizz = "packages/blizzard"
 # dep.strings = "vendor/strings"</code></pre>
 
     <h3><span class="hnum">14.2</span>The source tree</h3>
     <pre><code>my_app/
-  snow.toml
-  snow.lock
+  blizzard.toml
+  blizzard.lock
   src/
-    main.snow
-    weather_test.snow
+    main.blizz
+    weather_test.blizz
   packages/
-    snow/
+    blizzard/
       src/
-        weather.snow</code></pre>
+        weather.blizz</code></pre>
 
     <ul>
-      <li><code>src/main.snow</code> is the entry point that <code>snowman run</code> executes.</li>
-      <li>Files ending in <code>_test.snow</code> are discovered by <code>snowman test</code>.</li>
+      <li><code>src/main.blizz</code> is the entry point that <code>blizzard run</code> executes.</li>
+      <li>Files ending in <code>_test.blizz</code> are discovered by <code>blizzard test</code>.</li>
       <li>Reusable code lives in its own files, imported by dotted project names: <code>import my_app.utils</code>.</li>
       <li>Installed dependencies land in <code>packages/</code>.</li>
     </ul>
 
     <h3><span class="hnum">14.3</span>The lockfile</h3>
-    <p><code>snow.lock</code> records the exact version, source, and SHA-256 checksum of each dependency. Commit it to the repository, and <code>snowman install</code> reproduces the same tree on every machine.</p>
+    <p><code>blizzard.lock</code> records the exact version, source, and SHA-256 checksum of each dependency. Commit it to the repository, and <code>blizzard install</code> reproduces the same tree on every machine.</p>
 
     <h3><span class="hnum">14.4</span>The official registry</h3>
-    <p>Packages are fetched from the official index and named like <code>snow/name.snow</code>. The current catalog of official packages: <code>arrays</code>, <code>collections</code>, <code>csvutil</code>, <code>dict</code>, <code>guards</code>, <code>ids</code>, <code>math</code>, <code>numbers</code>, <code>pagination</code>, <code>query</code>, <code>result</code>, <code>stats</code>, <code>strings</code>, <code>template</code>, <code>text</code>, <code>validate</code>.</p>
+    <p>Packages are fetched from the official index and named like <code>blizzard/name.blizz</code>. The current catalog of official packages: <code>arrays</code>, <code>collections</code>, <code>csvutil</code>, <code>dict</code>, <code>guards</code>, <code>ids</code>, <code>math</code>, <code>numbers</code>, <code>pagination</code>, <code>query</code>, <code>result</code>, <code>stats</code>, <code>strings</code>, <code>template</code>, <code>text</code>, <code>validate</code>.</p>
 
-    <pre><code>snowman get snow/text.snow@0.1.0
-snowman search text</code></pre>
+    <pre><code>blizzard get blizzard/text.blizz@0.1.0
+blizzard search text</code></pre>
   </section>
 
   <!-- ============================ CHAPTER 15 ============================ -->
@@ -1346,11 +1366,11 @@ snowman search text</code></pre>
       <h2>Editor and Language Server</h2>
     </header>
 
-    <p class="lead">The Snow language server turns any editor into a workshop. It speaks JSON-RPC over stdin/stdout with standard <code>Content-Length</code> framing, and it understands real Snow semantics because it reuses the real compiler and checker.</p>
+    <p class="lead">The Blizzard language server turns any editor into a workshop. It speaks JSON-RPC over stdin/stdout with standard <code>Content-Length</code> framing, and it understands real Blizzard semantics because it reuses the real compiler and checker.</p>
 
     <h3><span class="hnum">15.1</span>Building the server</h3>
     <pre><code>cd LSP
-go build -o snow-lsp ./server</code></pre>
+go build -o blizzard-lsp ./server</code></pre>
 
     <h3><span class="hnum">15.2</span>Capabilities</h3>
     <ul>
@@ -1367,9 +1387,9 @@ go build -o snow-lsp ./server</code></pre>
 pnpm install
 pnpm run compile
 npx @vscode/vsce package --no-dependencies
-code --install-extension snow-0.1.0.vsix --force</code></pre>
+code --install-extension blizzard-0.1.0.vsix --force</code></pre>
 
-    <p>The extension registers <code>.snow</code>, adds the Snowflake icon, starts the server, publishes diagnostics, and drives completion with the trigger characters <code>.</code>, <code>:</code>, and space. It honors two settings: <code>snow.lsp.enabled</code> and <code>snow.lsp.path</code>.</p>
+    <p>The extension registers <code>.blizz</code>, adds the Blizzard icon, starts the server, publishes diagnostics, and drives completion with the trigger characters <code>.</code>, <code>:</code>, and space. It honors two settings: <code>blizzard.lsp.enabled</code> and <code>blizzard.lsp.path</code>.</p>
   </section>
 
   <!-- ============================ CHAPTER 16 ============================ -->
@@ -1384,7 +1404,7 @@ code --install-extension snow-0.1.0.vsix --force</code></pre>
     <h3><span class="hnum">16.1</span>The whole program</h3>
 
     <figure class="listing">
-      <figcaption>Listing 2 &middot; src/main.snow of a notes API</figcaption>
+      <figcaption>Listing 2 &middot; src/main.blizz of a notes API</figcaption>
       <pre><code>using api
 using db
 using cli
@@ -1424,7 +1444,7 @@ else:
     <h3><span class="hnum">16.2</span>A companion test</h3>
 
     <figure class="listing">
-      <figcaption>Listing 3 &middot; src/notes_test.snow</figcaption>
+      <figcaption>Listing 3 &middot; src/notes_test.blizz</figcaption>
       <pre><code># exercises the pure helpers without a server
 fn add_ids(notes):
     result = []
@@ -1439,7 +1459,7 @@ assert(with_id[0].id == "1", "first id")
 print("ok")</code></pre>
     </figure>
 
-    <p>The test follows the pattern from <code>snowman test</code>: pure functions, small assertions with messages, and a final <code>ok</code>. Run it with <code>snowman test</code>, then a check with <code>snowman check src/main.snow</code>.</p>
+    <p>The test follows the pattern from <code>blizzard test</code>: pure functions, small assertions with messages, and a final <code>ok</code>. Run it with <code>blizzard test</code>, then a check with <code>blizzard check src/main.blizz</code>.</p>
   </section>
 
   <!-- ============================ CHAPTER 17 ============================ -->
@@ -1492,7 +1512,7 @@ input   str, line, int, float, bool, hidden</code></pre>
     <pre><code>nil bool int float str list dict fn module native response</code></pre>
 
     <h3><span class="hnum">17.6</span>Last words</h3>
-    <p>Start with the examples in <code>examples/</code>, then treat <code>snow_test.go</code> as executable behavioral documentation. The language is intentionally small: learn the core values and blocks first, then reach for modules only when the program needs them.</p>
+    <p>Start with the examples in <code>examples/</code>, then treat <code>blizzard_test.go</code> as executable behavioral documentation. The language is intentionally small: learn the core values and blocks first, then reach for modules only when the program needs them.</p>
   </section>
 
   <!-- ============================ CHAPTER 18 ============================ -->
@@ -1532,7 +1552,7 @@ print(str(100))      # 100
 print(str(true))     # true</code></pre>
 
     <h3><span class="hnum">18.3</span>Division is always float</h3>
-    <p>The single most repeated subtlety in Snow: <code>/</code> always produces a float, for integers and floats alike. <code>//</code> floors toward negative infinity, <code>%</code> takes the sign of the dividend, and <code>**</code> is right-associative.</p>
+    <p>The single most repeated subtlety in Blizzard: <code>/</code> always produces a float, for integers and floats alike. <code>//</code> floors toward negative infinity, <code>%</code> takes the sign of the dividend, and <code>**</code> is right-associative.</p>
 
     <pre><code>print(1 / 2)         # 0.5
 print(7 / 2)         # 3.5
@@ -1546,7 +1566,7 @@ print(2 ** 3 ** 2)   # 512  (right to left: 2 ** 9)</code></pre>
     <h3><span class="hnum">18.4</span>Character-aware indexing</h3>
     <p>Strings are sequences of Unicode characters. Indexing and <code>len()</code> count characters, not bytes, so multi-byte text behaves correctly. Negative indices count from the end, and out-of-range indexes are an error at runtime.</p>
 
-    <pre><code>word = "snow"
+    <pre><code>word = "blizzard"
 print(word[0])     # s
 print(word[-1])    # w
 print(len("héllo"))# 5    (five characters, not six bytes)
@@ -1556,8 +1576,8 @@ print("abc"[5])    # error: index 5 out of range for a string of length 3</code>
     <h3><span class="hnum">18.5</span>Slices</h3>
     <p>Slices are half-open, <code>s[start:end]</code>: the start is included, the end is not. Every slice returns a new string (strings are immutable). The open forms <code>[:n]</code> and <code>[n:]</code> are the usual way to take a prefix or a suffix; negative bounds count from the end.</p>
 
-    <pre><code>s = "snowflake"
-print(s[:4])    # snow
+    <pre><code>s = "blizzard"
+print(s[:4])    # blizzard
 print(s[4:])    # flake
 print(s[4:6])   # fl
 print(s[-3:])   # ake</code></pre>
@@ -1565,13 +1585,13 @@ print(s[-3:])   # ake</code></pre>
     <h3><span class="hnum">18.6</span>The string toolbox</h3>
     <p>Six core functions cover most text work. <code>upper</code>, <code>lower</code>, and <code>trim</code> change case and strip surrounding whitespace; <code>split(str, sep)</code> yields a list of pieces; <code>join(list, sep)</code> fuses a list of strings; <code>replace(s, old, new)</code> replaces every occurrence; and <code>contains(subject, needle)</code> is exactly <code>needle in subject</code>. Every one returns a new value.</p>
 
-    <pre><code>print(upper("Snow"))      # SNOW
-print(lower("Snow"))      # snow
+    <pre><code>print(upper("Blizzard"))      # BLIZZARD
+print(lower("Blizzard"))      # blizzard
 print(trim("  hi  "))     # hi
 print(split("a,b,c", ","))# [a, b, c]
 print(join(["sno", "man"], ""))  # snoman
 print(replace("aaa", "a", "b"))  # bbb
-print(contains("snowman", "now"))# true</code></pre>
+print(contains("blizzard", "now"))# true</code></pre>
 
     <p>Combined, they turn raw text into usable data:</p>
 
@@ -1621,7 +1641,7 @@ line {1 + 1}""")                        # triple / line 2</code></pre>
       <h2>Collections in Depth</h2>
     </header>
 
-    <p class="lead">Lists and dictionaries are the workhorses of Snow programs. This chapter is the full behavioral reference: which operations mutate, which return new values, how to build and select from lists, how dictionaries actually behave, and how to reason across a whole collection with <code>map</code>, <code>filter</code>, and <code>fold</code>.</p>
+    <p class="lead">Lists and dictionaries are the workhorses of Blizzard programs. This chapter is the full behavioral reference: which operations mutate, which return new values, how to build and select from lists, how dictionaries actually behave, and how to reason across a whole collection with <code>map</code>, <code>filter</code>, and <code>fold</code>.</p>
 
     <h3><span class="hnum">19.1</span>Lists are mutable containers</h3>
     <p>A list can hold any mix of values, and assignment to an index mutates the list in place. By contrast, <code>append</code> and concatenation return <em>new</em> lists, so you must keep the result if you want it.</p>
@@ -1709,10 +1729,10 @@ print({}["name"])                # error: key not found: name</code></pre>
     <p>A counter dictionary is a classic; combine bracket assignment with <code>get</code> and the nil-only fallback <code>??</code>:</p>
 
     <pre><code>counts = {}
-words = ["snow", "snow", "flake"]
+words = ["blizzard", "blizzard", "flake"]
 for w in words:
     counts[w] = (get(counts, w) ?? 0) + 1
-print(counts)        # {snow: 2, flake: 1}</code></pre>
+print(counts)        # {blizzard: 2, flake: 1}</code></pre>
 
     <h3><span class="hnum">19.6</span>Reasoning across a collection</h3>
     <p><code>sum</code> totals numbers, <code>len</code> counts elements, <code>any</code>/<code>all</code> compress a list of booleans, and <code>map</code>/<code>filter</code>/<code>fold</code> transform, keep, and reduce. They compose fluently because each returns a value.</p>
@@ -1735,7 +1755,7 @@ print([1, 2] == [2, 1])          # false
 print({a: 1} == {a: 1})          # true
 print(2 in [1, 2, 3])            # true
 print([1, 2] in [[1, 2], [3]])   # true
-print("ow" in "snow")            # true
+print("ow" in "blizzard")            # true
 print("b" in {a: 1, b: 2})       # true
 print(3 not in [1, 2])           # true</code></pre>
   </section>
@@ -1834,10 +1854,10 @@ print(shouts)    # [ADA, LINUS, GRACE]</code></pre>
       <h2>Errors, Tests, and Defense in Depth</h2>
     </header>
 
-    <p class="lead">A small language stays honest by making failure visible. This chapter turns Chapter 9 into a toolkit: the failure contract, guaranteed cleanup, writing tests that <code>snowman test</code> will find, and the defensive combinators that keep dictionary-shaped data safe.</p>
+    <p class="lead">A small language stays honest by making failure visible. This chapter turns Chapter 9 into a toolkit: the failure contract, guaranteed cleanup, writing tests that <code>blizzard test</code> will find, and the defensive combinators that keep dictionary-shaped data safe.</p>
 
     <h3><span class="hnum">21.1</span>The failure contract</h3>
-    <p>Three kinds of errors exist: <b>parser errors</b> reject text that cannot become a program; <b>checker diagnostics</b> come from <code>snowman check</code> and the editor without running anything; <b>runtime errors</b> happen while the program runs and carry a stack trace. <code>fail(x)</code> throws its single argument &mdash; any value &mdash; and <code>try</code>/<code>catch</code> receives that exact value.</p>
+    <p>Three kinds of errors exist: <b>parser errors</b> reject text that cannot become a program; <b>checker diagnostics</b> come from <code>blizzard check</code> and the editor without running anything; <b>runtime errors</b> happen while the program runs and carry a stack trace. <code>fail(x)</code> throws its single argument &mdash; any value &mdash; and <code>try</code>/<code>catch</code> receives that exact value.</p>
 
     <pre><code>fn require_name(user):
     if user?.name == nil:
@@ -1871,7 +1891,7 @@ catch n:
 # closed</code></pre>
 
     <h3><span class="hnum">21.4</span>assert in tests</h3>
-    <p><code>assert</code> verifies a belief and fails loudly when it breaks. <code>snowman test</code> discovers every <code>*_test.snow</code> file under <code>src/</code>; a file full of small <code>assert</code> calls is a test. <code>--filter</code> narrows which tests run.</p>
+    <p><code>assert</code> verifies a belief and fails loudly when it breaks. <code>blizzard test</code> discovers every <code>*_test.blizz</code> file under <code>src/</code>; a file full of small <code>assert</code> calls is a test. <code>--filter</code> narrows which tests run.</p>
 
     <pre><code>assert(2 + 2 == 4, "addition")
 assert([1, 2], [1, 2])     # deep equality passes
@@ -1906,26 +1926,26 @@ print(respond({}))                 # no message</code></pre>
       <h2>Modules and Projects in Practice</h2>
     </header>
 
-    <p class="lead">Chapters 10 and 14 documented the machinery; this chapter shows the working shape of a real multi-file Snow project: relative imports, the visibility contract, project-module imports, and the project lifecycle with <code>snowman</code>.</p>
+    <p class="lead">Chapters 10 and 14 documented the machinery; this chapter shows the working shape of a real multi-file Blizzard project: relative imports, the visibility contract, project-module imports, and the project lifecycle with <code>blizzard</code>.</p>
 
     <h3><span class="hnum">22.1</span>A realistic layout</h3>
     <pre><code>my_app/
-  snow.toml
-  snow.lock
+  blizzard.toml
+  blizzard.lock
   src/
-    main.snow
-    helpers_test.snow
+    main.blizz
+    helpers_test.blizz
   lib/
-    values.snow
+    values.blizz
   packages/</code></pre>
 
-    <p><code>src/main.snow</code> is the entry point that <code>snowman run</code> executes; <code>*_test.snow</code> under <code>src/</code> are discovered by <code>snowman test</code>; shared code lives in its own files; dependencies land in <code>packages/</code>.</p>
+    <p><code>src/main.blizz</code> is the entry point that <code>blizzard run</code> executes; <code>*_test.blizz</code> under <code>src/</code> are discovered by <code>blizzard test</code>; shared code lives in its own files; dependencies land in <code>packages/</code>.</p>
 
     <h3><span class="hnum">22.2</span>Relative imports</h3>
     <p>Relative imports resolve by replacing dots with slashes and binding the last segment (or your alias). The <code>../</code> prefix crosses out of the current directory.</p>
 
     <pre><code>import ./formatters as fmt
-print(fmt.title("snow"))
+print(fmt.title("blizzard"))
 
 import ../lib.values as v
 print(v.max3(1, 5, 3))    # 5
@@ -1934,7 +1954,7 @@ print(v.top_value)        # 7</code></pre>
     <h3><span class="hnum">22.3</span>The visibility contract</h3>
     <p>Everything at the top level of a file exports by default. <code>priv</code> hides a name from the file&rsquo;s exports; <code>pub</code> makes public intent explicit (a <code>_</code> prefix does nothing). Imported modules are cached, so importing the same file twice shares one copy, and import cycles are detected and reported.</p>
 
-    <pre><code># lib/values.snow
+    <pre><code># lib/values.blizz
 pub fn max3(a, b, c):
     return max(a, b, c)
 
@@ -1943,21 +1963,21 @@ priv fn helper(x):
 
 pub top_value = 7</code></pre>
 
-    <pre><code># main.snow
+    <pre><code># main.blizz
 import ../lib.values as v
 print(v.max3(1, 5, 3))   # 5
 # v.helper(2)  ->  attribute not found: helper</code></pre>
 
     <h3><span class="hnum">22.4</span>Project-module imports</h3>
-    <p>Inside a project, reusable code is imported by package name and file path with dots, and <code>using</code> accepts the long <code>snow.</code> form with an alias:</p>
+    <p>Inside a project, reusable code is imported by package name and file path with dots, and <code>using</code> accepts the long <code>blizzard.</code> form with an alias:</p>
 
     <pre><code>import demo.math
 print(math.twice(21))        # 42
 
-using snow.http as web
+using blizzard.http as web
 print(web.get("https://example.com").status)</code></pre>
 
-    <p>The dependency <code>dep.demo = "packages/demo"</code> in <code>snow.toml</code> points to the package&rsquo;s location. <code>snow.lock</code> records the exact version, source, and SHA-256 checksum, so <code>snowman install</code> reproduces the same tree everywhere.</p>
+    <p>The dependency <code>dep.demo = "packages/demo"</code> in <code>blizzard.toml</code> points to the package&rsquo;s location. <code>blizzard.lock</code> records the exact version, source, and SHA-256 checksum, so <code>blizzard install</code> reproduces the same tree everywhere.</p>
 
     <h3><span class="hnum">22.5</span>The built-ins are always in scope</h3>
     <p>The 52 built-in functions need no <code>using</code> &mdash; they are part of every program. Only the standard library and your own files are loaded by name:</p>
@@ -1969,12 +1989,12 @@ using crypto  using task   using input</code></pre>
     <h3><span class="hnum">22.6</span>The daily workflow</h3>
     <p>Write, check, test, run &mdash; the loop is four commands:</p>
 
-    <pre><code>snowman fmt -w src/main.snow   # format
-snowman check src/main.snow   # static analysis
-snowman test                 # run *_test.snow
-snowman run --env .env       # run with configuration</code></pre>
+    <pre><code>blizzard fmt -w src/main.blizz   # format
+blizzard check src/main.blizz   # static analysis
+blizzard test                 # run *_test.blizz
+blizzard run --env .env       # run with configuration</code></pre>
 
-    <p><code>snowman get</code>, <code>add</code>, <code>remove</code>, <code>list</code>, <code>info</code>, <code>update</code>, <code>search</code>, and <code>index</code> manage dependencies (see Chapter 13), and the official registry currently offers these packages: <code>arrays</code>, <code>collections</code>, <code>csvutil</code>, <code>dict</code>, <code>guards</code>, <code>ids</code>, <code>math</code>, <code>numbers</code>, <code>pagination</code>, <code>query</code>, <code>result</code>, <code>stats</code>, <code>strings</code>, <code>template</code>, <code>text</code>, <code>validate</code>.</p>
+    <p><code>blizzard get</code>, <code>add</code>, <code>remove</code>, <code>list</code>, <code>info</code>, <code>update</code>, <code>search</code>, and <code>index</code> manage dependencies (see Chapter 13), and the official registry currently offers these packages: <code>arrays</code>, <code>collections</code>, <code>csvutil</code>, <code>dict</code>, <code>guards</code>, <code>ids</code>, <code>math</code>, <code>numbers</code>, <code>pagination</code>, <code>query</code>, <code>result</code>, <code>stats</code>, <code>strings</code>, <code>template</code>, <code>text</code>, <code>validate</code>.</p>
   </section>
 
   <!-- ============================ CHAPTER 23 ============================ -->
@@ -1991,8 +2011,8 @@ snowman run --env .env       # run with configuration</code></pre>
 
     <pre><code>using sys
 
-result = sys.sh("echo hello-snow")
-print(trim(result.stdout), result.ok)   # hello-snow true
+result = sys.sh("echo hello-blizzard")
+print(trim(result.stdout), result.ok)   # hello-blizzard true
 print(sys.pid &gt; 0)                      # true
 print(sys.platform)                     # linux (example)
 print(sys.arch)                         # amd64 (example)</code></pre>
@@ -2021,12 +2041,12 @@ print("a.txt" in fs.list("out"))   # true</code></pre>
 
     <pre><code>using env
 
-env.set("SNOW_DEMO", "42")
-print(env.get("SNOW_DEMO"))          # 42
-print(env.int("SNOW_DEMO"))          # 42
+env.set("BLIZZARD_DEMO", "42")
+print(env.get("BLIZZARD_DEMO"))          # 42
+print(env.int("BLIZZARD_DEMO"))          # 42
 print(env.float("MISSING", 1.5))     # 1.5
 print(env.bool("MISSING", true))     # true
-print(env.has("SNOW_DEMO"))          # true
+print(env.has("BLIZZARD_DEMO"))          # true
 env.load(".env")                     # KEY=VALUE lines</code></pre>
 
     <h3><span class="hnum">23.4</span>time &mdash; clocks and durations</h3>
@@ -2115,13 +2135,13 @@ print(cli.green("ok"))   # colored text (or plain when piped)</code></pre>
       <h2>The Shape of a Small Language</h2>
     </header>
 
-    <p class="lead">Snow keeps its gallery small &mdash; a handful of values, blocks after a colon, functions as values, failures you can catch, modules you load by name. Because the language is small, the programs stay readable; because the tools are honest, problems surface where they happen.</p>
+    <p class="lead">Blizzard keeps its gallery small &mdash; a handful of values, blocks after a colon, functions as values, failures you can catch, modules you load by name. Because the language is small, the programs stay readable; because the tools are honest, problems surface where they happen.</p>
 
     <p>The whole language fits in this book. That is the point.</p>
   </section>
 
   <div class="colophon">
-    <p>The Snow Programming Language &middot; Version 0.1 &middot; English Edition</p>
+    <p>The Blizzard Programming Language &middot; Version 0.1 &middot; English Edition</p>
     <p>Open source under the MIT license &middot; Written in Go by <code>JDVA0</code></p>
   </div>
 

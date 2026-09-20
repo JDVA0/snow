@@ -1,3 +1,0 @@
-name = "example"
-source = "src"
-dep.snow = "packages/snow"

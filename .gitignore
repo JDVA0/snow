@@ -1,10 +1,10 @@
 # Binarios compilados
-snowman
-snowman.exe
+blizzard
+blizzard.exe
 *.exe
 *.bin
 /packages/
-/snow.lock
+/blizzard.lock
 
 # Scripts y artefactos locales
 **/*.sh
@@ -32,7 +32,7 @@ node_modules/
 **/.cache/
 
 # Excepto en build/
-!build/snowman
+!build/blizzard
 
 # Temporales de Go y SO
 *.test

@@ -18240,27 +18240,27 @@ var path = __importStar(require("path"));
 var node_1 = require_node3();
 var lspClient;
 function activate(context) {
-  console.log("Snow extension is now active!");
+  console.log("Blizzard extension is now active!");
   startLSP(context);
 }
 function startLSP(context) {
-  const config = vscode.workspace.getConfiguration("snow");
+  const config = vscode.workspace.getConfiguration("blizzard");
   const lspEnabled = config.get("lsp.enabled", true);
   if (!lspEnabled) {
-    console.log("Snow LSP is disabled in settings");
+    console.log("Blizzard LSP is disabled in settings");
     return;
   }
   const configuredPath = config.get("lsp.path", "").trim();
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  const lspPath = configuredPath || (workspaceRoot ? path.join(workspaceRoot, "LSP", "snow-lsp") : "");
+  const lspPath = configuredPath || (workspaceRoot ? path.join(workspaceRoot, "LSP", "blizzard-lsp") : "");
   if (!lspPath || !fs.existsSync(lspPath)) {
-    console.error(`Snow LSP server not found at: ${lspPath}`);
-    vscode.window.showErrorMessage("Snow LSP server not found. Build LSP/snow-lsp or configure snow.lsp.path.");
+    console.error(`Blizzard LSP server not found at: ${lspPath}`);
+    vscode.window.showErrorMessage("Blizzard LSP server not found. Build LSP/blizzard-lsp or configure blizzard.lsp.path.");
     return;
   }
   const serverStat = fs.statSync(lspPath);
   if (!serverStat.isFile()) {
-    vscode.window.showErrorMessage("Snow LSP path must point to an executable file.");
+    vscode.window.showErrorMessage("Blizzard LSP path must point to an executable file.");
     return;
   }
   const serverOptions = {
@@ -18268,19 +18268,19 @@ function startLSP(context) {
     args: []
   };
   const clientOptions = {
-    documentSelector: [{ scheme: "file", language: "snow" }],
+    documentSelector: [{ scheme: "file", language: "blizzard" }],
     synchronize: {
-      configurationSection: "snow",
+      configurationSection: "blizzard",
       fileEvents: [
-        vscode.workspace.createFileSystemWatcher("**/*.snow")
+        vscode.workspace.createFileSystemWatcher("**/*.blizz")
       ]
     }
   };
-  const client = new node_1.LanguageClient("snow-lsp", "Snow LSP", serverOptions, clientOptions);
+  const client = new node_1.LanguageClient("blizzard-lsp", "Blizzard LSP", serverOptions, clientOptions);
   context.subscriptions.push(client);
   client.start();
   lspClient = client;
-  console.log("Snow LSP started");
+  console.log("Blizzard LSP started");
 }
 function deactivate() {
   if (lspClient) {

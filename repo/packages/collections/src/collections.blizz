@@ -1,0 +1,28 @@
+# Official Blizzard library: list helpers
+
+fn unique(values) {
+    let result = [];
+    for value in values {
+        if (not value in result) {
+            result = append(result, value);
+        }
+    }
+    return result;
+}
+
+fn first_or(values, fallback) {
+    if (len(values) == 0) {
+        return fallback;
+    }
+    return values[0];
+}
+
+fn compact(values) {
+    let result = [];
+    for value in values {
+        if (value != nil) {
+            result = append(result, value);
+        }
+    }
+    return result;
+}

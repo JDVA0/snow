@@ -1,0 +1,36 @@
+# Official Blizzard library: numeric aggregation and interpolation
+
+fn sum(values) {
+    let total = 0;
+    for value in values {
+        total += value;
+    }
+    return total;
+}
+
+fn median(values) {
+    if (len(values) == 0) {
+        return nil;
+    }
+    let ordered = sort(values);
+    let middle = len(ordered) // 2;
+    if (len(ordered) % 2 == 1) {
+        return ordered[middle];
+    }
+    return (ordered[middle - 1] + ordered[middle]) / 2;
+}
+
+fn lerp(start, end, amount) {
+    return start + (end - start) * amount;
+}
+
+fn percent(part, whole) {
+    if (whole == 0) {
+        return nil;
+    }
+    return part / whole * 100;
+}
+
+fn in_range(value, low, high) {
+    return value >= low and value <= high;
+}

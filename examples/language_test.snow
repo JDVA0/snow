@@ -1,7 +1,0 @@
-# Run with: snowman test examples
-
-assert(2 + 2 == 4, "arithmetic must work")
-assert(upper("snow") == "SNOW", "string helpers must work")
-
-value: int = 21
-assert(value * 2 == 42, "typed variables must preserve their value")

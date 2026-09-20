@@ -1,0 +1,46 @@
+import json;
+
+let numbers = [1, 2, 3, 4, 5, 6];
+
+fn even_values(values) {
+    let result = [];
+    for value in values {
+        if (value % 2 == 0) {
+            result = append(result, value * 10);
+        }
+    }
+    return result;
+}
+
+fn describe(value) {
+    match (value) {
+        case 0 {
+            return "zero";
+        }
+        case 1, 2, 3 {
+            return "small";
+        }
+        case _ {
+            return "large";
+        }
+    }
+}
+
+let profile = {name: "Blizzard", version: 2, values: even_values(numbers)};
+
+fn main() {
+    let missing = profile?.missing?.name ?? "fallback";
+    print(profile.name, profile.version, missing);
+    print(json.stringify(profile.values));
+    print(describe(profile.values.length()));
+
+    try {
+        fail("expected failure");
+    } catch err {
+        print(err);
+    } always {
+        print("cleanup");
+    }
+}
+
+main();

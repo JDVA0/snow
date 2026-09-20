@@ -1,0 +1,21 @@
+# Blizzard Input Module Demo — Interactive terminal prompts in Blizzard.
+#
+# Usage:
+#   blizzard examples/input_demo.blizz
+
+import input;
+import cli;
+
+cli.box("REGISTRO DE USUARIO", "Demostración interactiva del módulo 'input' en Blizzard");
+
+let nombre = input.str("Ingrese su nombre [Invitado]: ", "Invitado");
+let edad = input.int("Ingrese su edad [18]: ", 18);
+let salario = input.float("Salario esperado [1500.50]: ", 1500.5);
+let notificaciones = input.bool("Desea recibir notificaciones? (s/n) [s]: ", true);
+let clave = input.hidden("Ingrese una clave secreta [12345]: ", "12345");
+
+cli.success("Datos capturados correctamente:");
+
+let resumen = [["Nombre", nombre], ["Edad", str(edad)], ["Salario", str(salario)], ["Notificaciones", str(notificaciones)], ["Clave", "****** (" + str(len(clave)) + " caracteres)"]];
+
+cli.table(["CAMPO", "VALOR"], resumen);

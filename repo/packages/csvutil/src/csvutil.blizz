@@ -1,0 +1,32 @@
+# Official Blizzard library: lightweight CSV helpers for simple rows
+
+fn row(line, separator) {
+    return split(trim(line), separator);
+}
+
+fn records(content, separator) {
+    let result = [];
+    for line in split(trim(content), """
+""") {
+        if (len(trim(line)) > 0) {
+            result = append(result, row(line, separator));
+        }
+    }
+    return result;
+}
+
+fn header_map(headers, values) {
+    let result = {};
+    for index, key in headers {
+        if (index < len(values)) {
+            result[key] = values[index];
+        } else {
+            result[key] = nil;
+        }
+    }
+    return result;
+}
+
+fn line(values, separator) {
+    return join(values, separator);
+}

@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"fmt"
@@ -39,10 +39,10 @@ func inputStr(i *Interp, args []Val) ([]Val, error) {
 	prompt := ""
 	defaultVal := ""
 	if len(args) >= 1 {
-		prompt = SnowStr(args[0])
+		prompt = BlizzardStr(args[0])
 	}
 	if len(args) >= 2 {
-		defaultVal = SnowStr(args[1])
+		defaultVal = BlizzardStr(args[1])
 	}
 
 	line, err := readLineStdin(i, prompt)
@@ -63,7 +63,7 @@ func inputInt(i *Interp, args []Val) ([]Val, error) {
 	prompt := ""
 	var defaultVal *int64
 	if len(args) >= 1 {
-		prompt = SnowStr(args[0])
+		prompt = BlizzardStr(args[0])
 	}
 	if len(args) >= 2 {
 		switch d := args[1].(type) {
@@ -106,7 +106,7 @@ func inputFloat(i *Interp, args []Val) ([]Val, error) {
 	prompt := ""
 	var defaultVal *float64
 	if len(args) >= 1 {
-		prompt = SnowStr(args[0])
+		prompt = BlizzardStr(args[0])
 	}
 	if len(args) >= 2 {
 		switch d := args[1].(type) {
@@ -148,7 +148,7 @@ func inputBool(i *Interp, args []Val) ([]Val, error) {
 	prompt := ""
 	defaultVal := false
 	if len(args) >= 1 {
-		prompt = SnowStr(args[0])
+		prompt = BlizzardStr(args[0])
 	}
 	if len(args) >= 2 {
 		defaultVal = Truthy(args[1])
@@ -176,10 +176,10 @@ func inputHidden(i *Interp, args []Val) ([]Val, error) {
 	prompt := ""
 	defaultVal := ""
 	if len(args) >= 1 {
-		prompt = SnowStr(args[0])
+		prompt = BlizzardStr(args[0])
 	}
 	if len(args) >= 2 {
-		defaultVal = SnowStr(args[1])
+		defaultVal = BlizzardStr(args[1])
 	}
 
 	if prompt != "" {

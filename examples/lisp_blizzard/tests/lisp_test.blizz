@@ -1,0 +1,5 @@
+# Smoke test for the Lisp interpreter project.
+# Run from examples/lisp_blizzard with: blizzard test
+
+assert(1 + 1 == 2, "Blizzard test runner is active");
+print("Lisp project test passed");

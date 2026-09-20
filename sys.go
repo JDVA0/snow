@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"bytes"
@@ -65,11 +65,11 @@ func sysExec(i *Interp, args []Val) ([]Val, error) {
 	if len(args) >= 2 {
 		if l, ok := args[1].(List); ok {
 			for _, item := range l {
-				cmdArgs = append(cmdArgs, SnowStr(item))
+				cmdArgs = append(cmdArgs, BlizzardStr(item))
 			}
 		} else {
 			for _, item := range args[1:] {
-				cmdArgs = append(cmdArgs, SnowStr(item))
+				cmdArgs = append(cmdArgs, BlizzardStr(item))
 			}
 		}
 	}
@@ -229,7 +229,7 @@ func fsWrite(i *Interp, args []Val) ([]Val, error) {
 	if err != nil {
 		return nil, err
 	}
-	content := SnowStr(args[1])
+	content := BlizzardStr(args[1])
 	if err := os.WriteFile(string(path), []byte(content), 0644); err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func fsAppend(i *Interp, args []Val) ([]Val, error) {
 	if err != nil {
 		return nil, err
 	}
-	content := SnowStr(args[1])
+	content := BlizzardStr(args[1])
 	f, err := os.OpenFile(string(path), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, err

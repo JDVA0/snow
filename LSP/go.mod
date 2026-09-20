@@ -1,10 +1,10 @@
-module github.com/JDVA0/snow/lsp
+module github.com/JDVA0/blizzard/lsp
 
 go 1.26.8
 
-replace github.com/JDVA0/snow => ../
+replace github.com/JDVA0/blizzard => ../
 
-require github.com/JDVA0/snow v0.0.0-00010101000000-000000000000
+require github.com/JDVA0/blizzard v0.0.0-00010101000000-000000000000
 
 require (
 	golang.org/x/sys v0.48.0 // indirect

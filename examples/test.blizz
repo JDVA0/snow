@@ -1,0 +1,5 @@
+let frutas = [{julian: 19}];
+
+for k, v in frutas {
+    print(k, v);
+}

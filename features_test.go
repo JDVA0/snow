@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"bytes"
@@ -129,7 +129,7 @@ priv fn priv_f():
 fn normal_f():
     return 30
 `
-	prog, err := Parse(src, "test.snow")
+	prog, err := Parse(src, "test.blizz")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,13 +156,13 @@ fn normal_f():
 
 func TestImportPubPriv(t *testing.T) {
 	// Verificamos el flujo completo con archivos temporales
-	tmp, err := os.MkdirTemp("", "snow-import-test")
+	tmp, err := os.MkdirTemp("", "blizzard-import-test")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tmp)
 
-	// lib.snow: contiene pub y priv symbols
+	// lib.blizz: contiene pub y priv symbols
 	lib := `
 pub pub_version = "1.0.0"
 priv internal_secret = "abc123"
@@ -177,11 +177,11 @@ priv fn internal_helper(x):
 fn double(x):
     return internal_helper(x)
 `
-	if err := os.WriteFile(filepath.Join(tmp, "lib.snow"), []byte(lib), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmp, "lib.blizz"), []byte(lib), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	// main.snow: importa lib y accede a los symbols
+	// main.blizz: importa lib y accede a los symbols
 	mainGood := `
 import lib as lib
 
@@ -192,7 +192,7 @@ print(lib.add(2, 3))
 print(lib.double(5))
 print("ok")
 `
-	mainPath := filepath.Join(tmp, "main.snow")
+	mainPath := filepath.Join(tmp, "main.blizz")
 	if err := os.WriteFile(mainPath, []byte(mainGood), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -256,13 +256,13 @@ func TestProjectPackageImport(t *testing.T) {
 	if err := os.Mkdir(filepath.Join(tmp, "src"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmp, "snow.toml"), []byte("name = \"demo\"\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmp, "blizzard.toml"), []byte("name = \"demo\"\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmp, "src", "math.snow"), []byte("pub fn twice(n):\n    return n * 2\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmp, "src", "math.blizz"), []byte("pub fn twice(n):\n    return n * 2\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	main := filepath.Join(tmp, "app.snow")
+	main := filepath.Join(tmp, "app.blizz")
 	src := "import demo.math\nprint(math.twice(21))\n"
 	if err := os.WriteFile(main, []byte(src), 0644); err != nil {
 		t.Fatal(err)
@@ -283,10 +283,10 @@ func TestRelativeImportsAndCycles(t *testing.T) {
 	if err := os.Mkdir(filepath.Join(tmp, "lib"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmp, "lib", "value.snow"), []byte("pub VALUE = 42\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmp, "lib", "value.blizz"), []byte("pub VALUE = 42\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	main := filepath.Join(tmp, "app.snow")
+	main := filepath.Join(tmp, "app.blizz")
 	if err := os.WriteFile(main, []byte("import ./lib.value\nprint(value.VALUE)\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -299,13 +299,13 @@ func TestRelativeImportsAndCycles(t *testing.T) {
 	if got := strings.TrimSpace(buf.String()); got != "42" {
 		t.Fatalf("relative import output: got %q", got)
 	}
-	if err := os.WriteFile(filepath.Join(tmp, "a.snow"), []byte("import b\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmp, "a.blizz"), []byte("import b\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmp, "b.snow"), []byte("import a\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmp, "b.blizz"), []byte("import a\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if err := New().RunFile(filepath.Join(tmp, "a.snow")); err == nil || !strings.Contains(err.Error(), "import cycle detected") {
+	if err := New().RunFile(filepath.Join(tmp, "a.blizz")); err == nil || !strings.Contains(err.Error(), "import cycle detected") {
 		t.Fatalf("expected import cycle error, got %v", err)
 	}
 }
@@ -316,17 +316,17 @@ func TestLocalDependencyImport(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(dep, "src"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dep, "snow.toml"), []byte("name = \"strings\"\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dep, "blizzard.toml"), []byte("name = \"strings\"\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dep, "src", "format.snow"), []byte("pub fn title(s):\n    return upper(s)\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dep, "src", "format.blizz"), []byte("pub fn title(s):\n    return upper(s)\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "snow.toml"), []byte("name = \"app\"\ndep.strings = \"vendor/strings\"\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "blizzard.toml"), []byte("name = \"app\"\ndep.strings = \"vendor/strings\"\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	main := filepath.Join(root, "app.snow")
-	if err := os.WriteFile(main, []byte("import strings.format\nprint(format.title(\"snow\"))\n"), 0644); err != nil {
+	main := filepath.Join(root, "app.blizz")
+	if err := os.WriteFile(main, []byte("import strings.format\nprint(format.title(\"blizzard\"))\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	i := New()
@@ -335,7 +335,7 @@ func TestLocalDependencyImport(t *testing.T) {
 	if err := i.RunFile(main); err != nil {
 		t.Fatalf("dependency import failed: %v", err)
 	}
-	if got := strings.TrimSpace(buf.String()); got != "SNOW" {
+	if got := strings.TrimSpace(buf.String()); got != "BLIZZARD" {
 		t.Fatalf("dependency import output: got %q", got)
 	}
 }

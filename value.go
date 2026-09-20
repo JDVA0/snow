@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Val is any Snow value held on the stack.
+// Val is any Blizzard value held on the stack.
 type Val any
 
 // Language types.
@@ -129,8 +129,8 @@ func (d *Dict) Delete(k string) {
 // FltStr formats a float without noise.
 func FltStr(f float64) string { return strconv.FormatFloat(f, 'g', -1, 64) }
 
-// SnowStr renders a value for print.
-func SnowStr(v Val) string {
+// BlizzardStr renders a value for print.
+func BlizzardStr(v Val) string {
 	switch t := v.(type) {
 	case Int:
 		return strconv.FormatInt(int64(t), 10)
@@ -148,7 +148,7 @@ func SnowStr(v Val) string {
 	case List:
 		parts := make([]string, len(t))
 		for i, e := range t {
-			parts[i] = SnowStr(e)
+			parts[i] = BlizzardStr(e)
 		}
 		return "[" + strings.Join(parts, ", ") + "]"
 	case *Dict:
@@ -160,7 +160,7 @@ func SnowStr(v Val) string {
 			}
 			b.WriteString(k)
 			b.WriteString(": ")
-			b.WriteString(SnowStr(t.vals[i]))
+			b.WriteString(BlizzardStr(t.vals[i]))
 		}
 		b.WriteByte('}')
 		return b.String()
@@ -381,7 +381,7 @@ func writeJSON(b *strings.Builder, v Val) error {
 	return nil
 }
 
-// DecodeJSON turns JSON text into Snow values.
+// DecodeJSON turns JSON text into Blizzard values.
 func DecodeJSON(s string) (Val, error) {
 	dec := json.NewDecoder(strings.NewReader(s))
 	dec.UseNumber()

@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"fmt"
@@ -57,6 +57,7 @@ type Op struct {
 	Type       string // declared gradual type for typed assignments (e.g. "str", "str[]")
 	Const      bool
 	ParamTypes []string // per-param types for OpMakeFn, "" when untyped
+	Rest       bool     // final parameter collects remaining positional arguments
 	Ret        string   // declared return type for OpMakeFn, "" when untyped
 	Relative   int      // explicit relative import level for OpUse
 	Line       int
@@ -252,7 +253,7 @@ func (c *compiler) stmt(s Stmt, last bool) error {
 		if err := bc.stmts(t.Body, false); err != nil {
 			return err
 		}
-		op := Op{Kind: OpMakeFn, Name: t.Name, Args: t.Params, ParamTypes: t.ParamTypes, Ret: t.Ret, Body: bc.ops, Line: t.Line, Col: t.Col}
+		op := Op{Kind: OpMakeFn, Name: t.Name, Args: t.Params, ParamTypes: t.ParamTypes, Rest: t.Rest, Ret: t.Ret, Body: bc.ops, Line: t.Line, Col: t.Col}
 		c.emit(op)
 		// bind the function name in the current scope
 		c.emit(Op{Kind: OpAssign, Args: []string{t.Name}, Line: t.Line, Col: t.Col})
@@ -555,15 +556,38 @@ func (c *compiler) expr(e Expr) error {
 		}
 		c.emit(Op{Kind: OpUn, Num: int64(code), Line: t.Line, Col: t.Col})
 	case *CallE:
+		// String methods are syntax sugar for their builtin equivalents:
+		// s.upper() → upper(s). Keep ordinary attributes callable as before.
+		if method, ok := t.Fn.(*AttrE); ok && builtinMethod(method.Name) {
+			c.emit(Op{Kind: OpLoad, Name: builtinMethodName(method.Name), Line: t.Line, Col: t.Col})
+			if err := c.expr(method.X); err != nil {
+				return err
+			}
+			for _, a := range t.Args {
+				if _, spread := a.(*SpreadE); spread {
+					return c.perr(t.Pos, "spread is not supported by string methods")
+				}
+				if err := c.expr(a); err != nil {
+					return err
+				}
+			}
+			c.emit(Op{Kind: OpCall, Num: int64(len(t.Args) + 1), Line: t.Line, Col: t.Col})
+			return nil
+		}
 		if err := c.expr(t.Fn); err != nil {
 			return err
 		}
-		for _, a := range t.Args {
+		spread := make([]string, len(t.Args))
+		for n, a := range t.Args {
+			if s, ok := a.(*SpreadE); ok {
+				spread[n] = "spread"
+				a = s.X
+			}
 			if err := c.expr(a); err != nil {
 				return err
 			}
 		}
-		c.emit(Op{Kind: OpCall, Num: int64(len(t.Args)), Line: t.Line, Col: t.Col})
+		c.emit(Op{Kind: OpCall, Num: int64(len(t.Args)), Args: spread, Line: t.Line, Col: t.Col})
 	case *IndexE:
 		if err := c.expr(t.X); err != nil {
 			return err
@@ -642,14 +666,30 @@ func (c *compiler) expr(e Expr) error {
 			c.patch(j, len(c.ops))
 		}
 	case *ListLit:
-		for _, it := range t.Items {
+		spread := make([]string, len(t.Items))
+		for n, it := range t.Items {
+			if s, ok := it.(*SpreadE); ok {
+				spread[n] = "spread"
+				it = s.X
+			}
 			if err := c.expr(it); err != nil {
 				return err
 			}
 		}
-		c.emit(Op{Kind: OpMakeList, Num: int64(len(t.Items)), Line: t.Line, Col: t.Col})
+		c.emit(Op{Kind: OpMakeList, Num: int64(len(t.Items)), Args: spread, Line: t.Line, Col: t.Col})
 	case *DictLit:
-		for _, pr := range t.Pairs {
+		spread := make([]string, len(t.Pairs))
+		for n, pr := range t.Pairs {
+			if pr[0] == nil {
+				spread[n] = "spread"
+				if s, ok := pr[1].(*SpreadE); ok {
+					pr[1] = s.X
+				}
+				if err := c.expr(pr[1]); err != nil {
+					return err
+				}
+				continue
+			}
 			if err := c.expr(pr[0]); err != nil {
 				return err
 			}
@@ -657,13 +697,13 @@ func (c *compiler) expr(e Expr) error {
 				return err
 			}
 		}
-		c.emit(Op{Kind: OpMakeDict, Num: int64(len(t.Pairs)), Line: t.Line, Col: t.Col})
+		c.emit(Op{Kind: OpMakeDict, Num: int64(len(t.Pairs)), Args: spread, Line: t.Line, Col: t.Col})
 	case *FnExpr:
 		bc := &compiler{}
 		if err := bc.stmts(t.Body, false); err != nil {
 			return err
 		}
-		c.emit(Op{Kind: OpMakeFn, Name: "<anon>", Args: t.Params, ParamTypes: t.ParamTypes, Ret: t.Ret, Body: bc.ops, Line: t.Line, Col: t.Col})
+		c.emit(Op{Kind: OpMakeFn, Name: "<anon>", Args: t.Params, ParamTypes: t.ParamTypes, Rest: t.Rest, Ret: t.Ret, Body: bc.ops, Line: t.Line, Col: t.Col})
 	case *FStrLit:
 		// Compile f-string as a series of str() calls joined with '+'
 		if len(t.Parts) == 0 {
@@ -706,6 +746,21 @@ func (c *compiler) expr(e Expr) error {
 		return c.perr(Pos{}, "unsupported expression")
 	}
 	return nil
+}
+
+func builtinMethod(name string) bool {
+	switch name {
+	case "length", "upper", "lower", "trim", "trim_left", "trim_right", "split", "replace", "contains", "starts_with", "ends_with", "count", "index_of", "repeat", "join":
+		return true
+	}
+	return false
+}
+
+func builtinMethodName(name string) string {
+	if name == "length" {
+		return "len"
+	}
+	return name
 }
 
 func (c *compiler) emitSliceBody(lo, hi Expr, line, col int) error {

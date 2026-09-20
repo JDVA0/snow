@@ -10,13 +10,14 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"golang.org/x/term"
 )
 
-const officialAPIURL = "https://api.github.com/repos/JDVA0/snow/commits/main"
+const officialAPIURL = "https://api.github.com/repos/JDVA0/blizzard/commits/main"
 
 type Package struct {
 	ID, Name, Version, Description, License, Repository, Keywords, Entry, Path string
@@ -34,7 +35,7 @@ func Run(args []string) error {
 		return initProject(args[1])
 	case "get":
 		if len(args) != 2 {
-			return fmt.Errorf("get expects snow/name.snow[@version]")
+			return fmt.Errorf("get expects blizzard/name.blizz[@version]")
 		}
 		return get(args[1], false)
 	case "install":
@@ -44,7 +45,7 @@ func Run(args []string) error {
 		return install()
 	case "get-local":
 		if len(args) != 2 {
-			return fmt.Errorf("get-local expects snow/name.snow[@version]")
+			return fmt.Errorf("get-local expects blizzard/name.blizz[@version]")
 		}
 		return get(args[1], true)
 	case "search":
@@ -60,7 +61,7 @@ func Run(args []string) error {
 		return list()
 	case "info":
 		if len(args) != 2 {
-			return fmt.Errorf("info expects snow/name.snow")
+			return fmt.Errorf("info expects blizzard/name.blizz")
 		}
 		return info(args[1])
 	case "add":
@@ -83,8 +84,8 @@ func Run(args []string) error {
 }
 
 func initProject(name string) error {
-	if _, err := os.Stat("snow.toml"); err == nil {
-		return fmt.Errorf("snow.toml already exists")
+	if _, err := os.Stat("blizzard.toml"); err == nil {
+		return fmt.Errorf("blizzard.toml already exists")
 	}
 	if err := os.MkdirAll("src", 0o755); err != nil {
 		return err
@@ -92,13 +93,13 @@ func initProject(name string) error {
 	if err := os.MkdirAll("tests", 0o755); err != nil {
 		return err
 	}
-	return os.WriteFile("snow.toml", []byte("name = \""+name+"\"\nsource = \"src\"\n"), 0o644)
+	return os.WriteFile("blizzard.toml", []byte("name = \""+name+"\"\nsource = \"src\"\n"), 0o644)
 }
 
 func readManifest() ([]string, error) {
-	b, err := os.ReadFile("snow.toml")
+	b, err := os.ReadFile("blizzard.toml")
 	if err != nil {
-		return nil, fmt.Errorf("snow.toml not found; run snowman init first")
+		return nil, fmt.Errorf("blizzard.toml not found; run blizzard init first")
 	}
 	return strings.Split(strings.TrimSuffix(string(b), "\n"), "\n"), nil
 }
@@ -119,12 +120,12 @@ func writeDependency(name, path string) error {
 	if !found {
 		lines = append(lines, key+fmt.Sprintf("%q", path))
 	}
-	return os.WriteFile("snow.toml", []byte(strings.Join(lines, "\n")+"\n"), 0o644)
+	return os.WriteFile("blizzard.toml", []byte(strings.Join(lines, "\n")+"\n"), 0o644)
 }
 
 func add(name, path string) error {
-	if _, err := os.Stat(filepath.Join(path, "snow.toml")); err != nil {
-		return fmt.Errorf("%q is not a Snow package", path)
+	if _, err := os.Stat(filepath.Join(path, "blizzard.toml")); err != nil {
+		return fmt.Errorf("%q is not a Blizzard package", path)
 	}
 	if err := writeDependency(name, path); err != nil {
 		return err
@@ -151,15 +152,15 @@ func remove(name string) error {
 	if !removed {
 		return fmt.Errorf("dependency %q is not declared", name)
 	}
-	return os.WriteFile("snow.toml", []byte(strings.Join(out, "\n")+"\n"), 0o644)
+	return os.WriteFile("blizzard.toml", []byte(strings.Join(out, "\n")+"\n"), 0o644)
 }
 
 func parseSpec(spec string) (string, string, error) {
 	parts := strings.SplitN(filepath.ToSlash(spec), "@", 2)
 	id := parts[0]
 	bits := strings.Split(id, "/")
-	if len(bits) != 2 || bits[0] != "snow" || !strings.HasSuffix(bits[1], ".snow") || strings.Contains(id, "..") {
-		return "", "", fmt.Errorf("official packages use snow/name.snow[@version]")
+	if len(bits) != 2 || bits[0] != "blizzard" || !strings.HasSuffix(bits[1], ".blizz") || strings.Contains(id, "..") {
+		return "", "", fmt.Errorf("official packages use blizzard/name.blizz[@version]")
 	}
 	constraint := ""
 	if len(parts) == 2 {
@@ -173,7 +174,7 @@ func get(spec string, local bool) error {
 	if err != nil {
 		return err
 	}
-	useLocal := local || os.Getenv("SNOW_REPO") != ""
+	useLocal := local || os.Getenv("BLIZZARD_REPO") != ""
 	packages, err := registry(useLocal)
 	if err != nil {
 		return err
@@ -182,7 +183,7 @@ func get(spec string, local bool) error {
 	if !ok {
 		return fmt.Errorf("package %q was not found", id)
 	}
-	if constraint != "" && constraint != "latest" && constraint != pkg.Version {
+	if constraint != "" && constraint != "latest" && !satisfiesVersion(pkg.Version, constraint) {
 		return fmt.Errorf("%s is version %s, not %s", id, pkg.Version, constraint)
 	}
 	read := fetch
@@ -197,7 +198,7 @@ func get(spec string, local bool) error {
 	if err != nil {
 		return err
 	}
-	root := filepath.Join("packages", "snow")
+	root := filepath.Join("packages", "blizzard")
 	target := filepath.Join(root, "src", filepath.Base(pkg.Entry))
 	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
 		return err
@@ -211,16 +212,16 @@ func get(spec string, local bool) error {
 	if err := os.WriteFile(filepath.Join(root, "meta", filepath.Base(pkg.Path)+".toml"), meta, 0o644); err != nil {
 		return err
 	}
-	if _, err := os.Stat(filepath.Join(root, "snow.toml")); os.IsNotExist(err) {
-		manifest, readErr := read("packages/snow.toml")
+	if _, err := os.Stat(filepath.Join(root, "blizzard.toml")); os.IsNotExist(err) {
+		manifest, readErr := read("packages/blizzard.toml")
 		if readErr != nil {
 			return readErr
 		}
-		if err := os.WriteFile(filepath.Join(root, "snow.toml"), manifest, 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(root, "blizzard.toml"), manifest, 0o644); err != nil {
 			return err
 		}
 	}
-	if err := writeDependency("snow", root); err != nil {
+	if err := writeDependency("blizzard", root); err != nil {
 		return err
 	}
 	if err := lock(pkg, source, local); err != nil {
@@ -228,6 +229,89 @@ func get(spec string, local bool) error {
 	}
 	status("installed", pkg.ID+" "+pkg.Version, "32")
 	return nil
+}
+
+type version struct{ major, minor, patch int }
+
+func parseVersion(value string) (version, bool) {
+	value = strings.TrimPrefix(strings.TrimSpace(value), "v")
+	parts := strings.SplitN(value, ".", 3)
+	if len(parts) != 3 {
+		return version{}, false
+	}
+	var out version
+	var err error
+	if out.major, err = strconv.Atoi(parts[0]); err != nil {
+		return version{}, false
+	}
+	if out.minor, err = strconv.Atoi(parts[1]); err != nil {
+		return version{}, false
+	}
+	if out.patch, err = strconv.Atoi(parts[2]); err != nil {
+		return version{}, false
+	}
+	return out, true
+}
+
+func compareVersion(left, right version) int {
+	if left.major != right.major {
+		if left.major < right.major {
+			return -1
+		}
+		return 1
+	}
+	if left.minor != right.minor {
+		if left.minor < right.minor {
+			return -1
+		}
+		return 1
+	}
+	if left.patch < right.patch {
+		return -1
+	}
+	if left.patch > right.patch {
+		return 1
+	}
+	return 0
+}
+
+func satisfiesVersion(actual, constraint string) bool {
+	actualVersion, ok := parseVersion(actual)
+	if !ok {
+		return false
+	}
+	constraint = strings.TrimSpace(constraint)
+	operator := "="
+	for _, candidate := range []string{"^", "~", ">=", "<=", ">", "<", "="} {
+		if strings.HasPrefix(constraint, candidate) {
+			operator = candidate
+			constraint = strings.TrimSpace(strings.TrimPrefix(constraint, candidate))
+			break
+		}
+	}
+	wanted, ok := parseVersion(constraint)
+	if !ok {
+		return false
+	}
+	comparison := compareVersion(actualVersion, wanted)
+	switch operator {
+	case "=":
+		return comparison == 0
+	case ">=":
+		return comparison >= 0
+	case "<=":
+		return comparison <= 0
+	case ">":
+		return comparison > 0
+	case "<":
+		return comparison < 0
+	case "~":
+		return actualVersion.major == wanted.major && actualVersion.minor == wanted.minor && comparison >= 0
+	case "^":
+		return actualVersion.major == wanted.major && comparison >= 0
+	default:
+		return false
+	}
 }
 
 func status(label, message, color string) {
@@ -243,14 +327,14 @@ func fetch(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	url := "https://raw.githubusercontent.com/JDVA0/snow/" + revision + "/repo/" + strings.TrimPrefix(path, "/") + fmt.Sprintf("?v=%d", time.Now().UnixNano())
+	url := "https://raw.githubusercontent.com/JDVA0/blizzard/" + revision + "/repo/" + strings.TrimPrefix(path, "/") + fmt.Sprintf("?v=%d", time.Now().UnixNano())
 	client := &http.Client{Timeout: 20 * time.Second}
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("download %s: %w", url, err)
 	}
 	request.Header.Set("Cache-Control", "no-cache")
-	request.Header.Set("User-Agent", "snowman-package-manager")
+	request.Header.Set("User-Agent", "blizzard-package-manager")
 	resp, err := client.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("download %s: %w", url, err)
@@ -269,7 +353,7 @@ func currentRevision() (string, error) {
 		return "", err
 	}
 	request.Header.Set("Accept", "application/vnd.github+json")
-	request.Header.Set("User-Agent", "snowman-package-manager")
+	request.Header.Set("User-Agent", "blizzard-package-manager")
 	resp, err := client.Do(request)
 	if err != nil {
 		return "", fmt.Errorf("resolve official repository revision: %w", err)
@@ -291,7 +375,7 @@ func currentRevision() (string, error) {
 }
 
 func localRead(path string) ([]byte, error) {
-	root := os.Getenv("SNOW_REPO")
+	root := os.Getenv("BLIZZARD_REPO")
 	if root == "" {
 		root = "repo"
 	}
@@ -350,7 +434,7 @@ func registry(local bool) (map[string]Package, error) {
 }
 
 func search(query string) error {
-	packages, err := registry(os.Getenv("SNOW_REPO") != "")
+	packages, err := registry(os.Getenv("BLIZZARD_REPO") != "")
 	if err != nil {
 		return err
 	}
@@ -392,7 +476,7 @@ func info(spec string) error {
 	if err != nil {
 		return err
 	}
-	path := filepath.Join("packages", "snow", "meta", strings.TrimSuffix(filepath.Base(id), ".snow")+".toml")
+	path := filepath.Join("packages", "blizzard", "meta", strings.TrimSuffix(filepath.Base(id), ".blizz")+".toml")
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("%s is not installed", id)
@@ -408,7 +492,7 @@ func lock(pkg Package, source []byte, local bool) error {
 		origin = "local"
 	}
 	entry := "[[package]]\nid = \"" + pkg.ID + "\"\nversion = \"" + pkg.Version + "\"\nsource = \"" + origin + "\"\nchecksum = \"sha256:" + hex.EncodeToString(sum[:]) + "\"\n"
-	old, _ := os.ReadFile("snow.lock")
+	old, _ := os.ReadFile("blizzard.lock")
 	var kept []string
 	for _, section := range strings.Split(string(old), "[[package]]") {
 		if strings.Contains(section, "id = \""+pkg.ID+"\"") || strings.TrimSpace(section) == "" {
@@ -416,18 +500,18 @@ func lock(pkg Package, source []byte, local bool) error {
 		}
 		kept = append(kept, strings.TrimSpace(section))
 	}
-	content := "# Snow lockfile v1\n\n"
+	content := "# Blizzard lockfile v1\n\n"
 	for _, section := range kept {
 		content += "[[package]]\n" + section + "\n\n"
 	}
 	content += entry
-	return os.WriteFile("snow.lock", []byte(content), 0o644)
+	return os.WriteFile("blizzard.lock", []byte(content), 0o644)
 }
 
 func lockedIDs() (map[string]string, error) {
-	b, err := os.ReadFile("snow.lock")
+	b, err := os.ReadFile("blizzard.lock")
 	if err != nil {
-		return nil, fmt.Errorf("snow.lock not found; run snowman get first")
+		return nil, fmt.Errorf("blizzard.lock not found; run blizzard get first")
 	}
 	locked := map[string]string{}
 	for _, section := range strings.Split(string(b), "[[package]]") {
@@ -470,7 +554,7 @@ func install() error {
 }
 
 func index() error {
-	root := os.Getenv("SNOW_REPO")
+	root := os.Getenv("BLIZZARD_REPO")
 	if root == "" {
 		root = "repo"
 	}
@@ -495,14 +579,14 @@ func index() error {
 		meta := parseMetadata(b)
 		entry := meta["entry"]
 		if entry == "" {
-			entry = name + ".snow"
+			entry = name + ".blizz"
 		}
 		if _, err := os.Stat(filepath.Join(root, "packages", name, "src", entry)); err != nil {
 			return err
 		}
-		blocks = append(blocks, "[[package]]", "id = \"snow/"+entry+"\"", "name = \""+meta["name"]+"\"", "version = \""+meta["version"]+"\"", "description = \""+meta["description"]+"\"", "license = \""+meta["license"]+"\"", "repository = \""+meta["repository"]+"\"", "keywords = \""+meta["keywords"]+"\"", "entry = \"src/"+entry+"\"", "path = \"packages/"+name+"\"", "")
+		blocks = append(blocks, "[[package]]", "id = \"blizzard/"+entry+"\"", "name = \""+meta["name"]+"\"", "version = \""+meta["version"]+"\"", "description = \""+meta["description"]+"\"", "license = \""+meta["license"]+"\"", "repository = \""+meta["repository"]+"\"", "keywords = \""+meta["keywords"]+"\"", "entry = \"src/"+entry+"\"", "path = \"packages/"+name+"\"", "")
 	}
-	return os.WriteFile(filepath.Join(root, "index.toml"), []byte("# Generated by snowman index.\n\n"+strings.Join(blocks, "\n")), 0o644)
+	return os.WriteFile(filepath.Join(root, "index.toml"), []byte("# Generated by blizzard index.\n\n"+strings.Join(blocks, "\n")), 0o644)
 }
 
 func update() error {

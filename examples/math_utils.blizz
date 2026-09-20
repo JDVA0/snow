@@ -1,0 +1,59 @@
+# Módulo math_utils - Demuestra pub/priv visibilidad
+#
+# Uso desde otro archivo:
+#   import math_utils as m
+#   print(m.add(2, 3))      # ok, es pub
+#   print(m.multiply(3, 4)) # ok, sin modificador = pub por defecto
+#   print(m._secret_key)    # ERROR: attribute not found (es priv)
+
+# ================================
+#  SIMBOLOS PÚBLICOS (exportados)
+# ================================
+
+let VERSION = "1.2.0";
+let AUTHOR = "Blizzard Team";
+
+fn add(a, b) {
+    return a + b;
+}
+
+fn subtract(a, b) {
+    return a - b;
+}
+
+# Sin modificador → pub POR DEFECTO
+fn multiply(a, b) {
+    let result = _double(a);
+    let acc = 0;
+    for i in range(b) {
+        acc = add(acc, a);
+    }
+    return acc;
+}
+
+fn divide(a, b) {
+    if (b == 0) {
+        fail("division by zero");
+    }
+    return a / b;
+}
+
+# ================================
+#  SIMBOLOS PRIVADOS (solo aquí)
+# ================================
+
+let _secret_key = "abc-123-xyz-789";
+
+fn _double(x) {
+    # Helper interno, no accesible desde fuera del módulo
+    return x + x;
+}
+
+fn _log(msg) {
+    # Logger interno para debug
+    import cli;
+    cli.info("[math_utils] " + msg);
+}
+
+# Dentro del módulo sí podemos usar símbolos privados
+_log("Loaded v" + VERSION + ", secret=" + _secret_key);

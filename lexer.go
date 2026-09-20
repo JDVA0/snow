@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"fmt"
@@ -28,6 +28,7 @@ const (
 	tLBrace
 	tRBrace
 	tComma
+	tEllipsis // ...
 	tDot
 	tColon
 	tAssign
@@ -97,6 +98,7 @@ func Tokenize(src, name string) ([]Tok, error) {
 	var toks []Tok
 	indents := []int{0}
 	depth := 0
+	var delimiters []bool
 
 	emit := func(t Tok) { toks = append(toks, t) }
 
@@ -136,7 +138,7 @@ func Tokenize(src, name string) ([]Tok, error) {
 		}
 
 		startLine := i + 1
-		lineToks, err := tokenizeLine(lines, &i, content, lead, name, &depth)
+		lineToks, err := tokenizeLine(lines, &i, content, lead, name, &depth, &delimiters)
 		if err != nil {
 			return nil, err
 		}
@@ -146,7 +148,7 @@ func Tokenize(src, name string) ([]Tok, error) {
 			}
 		}
 		toks = append(toks, lineToks...)
-		if depth == 0 && len(lineToks) > 0 {
+		if (depth == 0 || blockLineBreak(delimiters)) && len(lineToks) > 0 {
 			emit(Tok{Kind: tNewline, Line: i + 1, Col: len(lines[i]) + 1})
 		}
 	}
@@ -159,7 +161,7 @@ func Tokenize(src, name string) ([]Tok, error) {
 	return toks, nil
 }
 
-func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string, depth *int) ([]Tok, error) {
+func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string, depth *int, delimiters *[]bool) ([]Tok, error) {
 	var toks []Tok
 	i := 0
 	for i < len(s) {
@@ -420,10 +422,15 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 			i++
 		case c == '{':
 			toks = append(toks, Tok{Kind: tLBrace, Line: ln, Col: i + 1})
+			*delimiters = append(*delimiters, isBlockBrace(s, i))
 			*depth++
 			i++
 		case c == '}':
 			toks = append(toks, Tok{Kind: tRBrace, Line: ln, Col: i + 1})
+			if len(*delimiters) == 0 {
+				return nil, &Errat{name, ln, i + 1, fmt.Errorf("unbalanced '}'")}
+			}
+			*delimiters = (*delimiters)[:len(*delimiters)-1]
 			*depth--
 			if *depth < 0 {
 				return nil, &Errat{name, ln, i + 1, fmt.Errorf("unbalanced '}'")}
@@ -432,6 +439,9 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 		case c == ',':
 			toks = append(toks, Tok{Kind: tComma, Line: ln, Col: i + 1})
 			i++
+		case strings.HasPrefix(s[i:], "..."):
+			toks = append(toks, Tok{Kind: tEllipsis, Text: "...", Line: ln, Col: i + 1})
+			i += 3
 		case c == '.':
 			toks = append(toks, Tok{Kind: tDot, Line: ln, Col: i + 1})
 			i++
@@ -528,6 +538,28 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 		}
 	}
 	return toks, nil
+}
+
+func blockLineBreak(delimiters []bool) bool {
+	return len(delimiters) > 0 && delimiters[len(delimiters)-1]
+}
+
+func isBlockBrace(s string, index int) bool {
+	before := strings.TrimSpace(s[:index])
+	if before == "" {
+		return false
+	}
+	if before[len(before)-1] == ')' {
+		return true
+	}
+	for _, word := range strings.Fields(before) {
+		word = strings.Trim(word, "{}()")
+		switch word {
+		case "fn", "if", "elif", "else", "for", "while", "try", "catch", "always", "match", "case", "with":
+			return true
+		}
+	}
+	return false
 }
 
 // splitFString splits an f-string body into alternating [literal, expr, literal, ...] parts.

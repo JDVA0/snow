@@ -1,30 +1,40 @@
 {
-  "name": "snow",
-  "displayName": "Snow Language",
-  "description": "Snow language support with LSP integration",
-  "version": "0.1.0",
+  "name": "blizzard-language",
+  "displayName": "Blizzard Language",
+  "description": "Blizzard language support with LSP integration, snippets and symbol outline.",
+  "version": "0.2.0",
   "publisher": "JDVA0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JDVA0/snow"
+    "url": "https://github.com/JDVA0/blizzard"
   },
   "license": "MIT",
-  "icon": "./icons/snow-icon.png",
+  "icon": "./icons/blizzard-icon.png",
   "engines": {
     "vscode": "^1.89.0"
   },
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "blizzard",
+    "blizzard-language",
+    "lsp",
+    "compiler",
+    "scripting"
   ],
   "activationEvents": [
-    "onLanguage:snow",
+    "onLanguage:blizzard",
     "onStartupFinished",
-    "workspaceContains:**/*.snow"
+    "workspaceContains:**/*.blizz"
   ],
   "main": "./out/extension.js",
   "scripts": {
     "compile": "tsc -p . && esbuild out/extension.js --bundle --platform=node --external:vscode --outfile=out/extension.bundle.js && mv out/extension.bundle.js out/extension.js",
-    "watch": "tsc -p . -w"
+    "watch": "tsc -p . -w",
+    "audit": "pnpm audit"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
@@ -36,45 +46,61 @@
   "contributes": {
     "languages": [
       {
-        "id": "snow",
+        "id": "blizzard",
         "aliases": [
-          "Snow",
-          "snow"
+          "Blizzard",
+          "blizzard"
         ],
         "extensions": [
-          ".snow"
+          ".blizz"
         ],
         "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
-        "language": "snow",
-        "scopeName": "source.snow",
-        "path": "./syntaxes/snow.tmLanguage.json"
+        "language": "blizzard",
+        "scopeName": "source.blizz",
+        "path": "./syntaxes/blizzard.tmLanguage.json"
       }
     ],
     "iconThemes": [
       {
-        "id": "snow-icons",
-        "label": "Snow Icons",
-        "path": "./icons/snow-icon-theme.json",
+        "id": "blizzard-icons",
+        "label": "Blizzard Icons",
+        "path": "./icons/blizzard-icon-theme.json",
         "default": true
+      }
+    ],
+    "snippets": [
+      {
+        "language": "blizzard",
+        "path": "./snippets/blizzard.json"
       }
     ]
   },
   "configuration": {
-    "title": "Snow",
+    "title": "Blizzard",
     "properties": {
-      "snow.lsp.path": {
+      "blizzard.lsp.path": {
         "type": "string",
         "default": "",
-        "description": "Optional path to the Snow LSP server. By default, the workspace LSP/snow-lsp is used."
+        "description": "Optional path to the Blizzard LSP server. By default, the workspace LSP/blizzard-lsp is used."
       },
-      "snow.lsp.enabled": {
+      "blizzard.lsp.enabled": {
         "type": "boolean",
         "default": true,
-        "description": "Enable Snow LSP"
+        "description": "Enable Blizzard LSP (completion, hover, definitions, outline symbols, diagnostics)."
+      },
+      "blizzard.editor.autocompleteOnDot": {
+        "type": "boolean",
+        "default": true,
+        "description": "Trigger method/attribute autocomplete when the user types a dot."
+      },
+      "blizzard.outline.showNestedSymbols": {
+        "type": "boolean",
+        "default": true,
+        "description": "Show nested symbols (for-block vars, function internals) in the outline."
       }
     }
   }

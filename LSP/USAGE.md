@@ -1,6 +1,6 @@
-# Using the Snow LSP
+# Using the Blizzard LSP
 
-The Snow LSP is a long-running editor service. An editor starts `snow-lsp` as
+The Blizzard LSP is a long-running editor service. An editor starts `blizzard-lsp` as
 a subprocess and exchanges JSON-RPC messages over stdin/stdout using standard
 `Content-Length` framing.
 
@@ -10,25 +10,25 @@ From the repository root:
 
 ```bash
 cd LSP
-go build -o snow-lsp ./server
+go build -o blizzard-lsp ./server
 
 cd vscode_extension
 pnpm install
 pnpm run compile
 npx @vscode/vsce package --no-dependencies
-code --install-extension snow-0.1.0.vsix --force
+code --install-extension blizzard-0.1.0.vsix --force
 ```
 
-Open a `.snow` file and reload VS Code if the extension was already installed.
-The extension starts `LSP/snow-lsp` relative to the workspace by default. For
-another location, set `snow.lsp.path` to an executable file. Set
-`snow.lsp.enabled` to `false` to disable the client.
+Open a `.blizz` file and reload VS Code if the extension was already installed.
+The extension starts `LSP/blizzard-lsp` relative to the workspace by default. For
+another location, set `blizzard.lsp.path` to an executable file. Set
+`blizzard.lsp.enabled` to `false` to disable the client.
 
 ## Completion
 
 Completion is requested automatically after `.`, `:`, or a space. For example:
 
-```snow
+```blizzard
 using http
 
 response = http.
@@ -49,7 +49,7 @@ unreachable code, and unknown modules.
 ```bash
 cd LSP
 go test ./analyzer ./protocol ./server ./test
-go build -o snow-lsp ./server
+go build -o blizzard-lsp ./server
 ```
 
 The root project can be tested with:
@@ -58,12 +58,12 @@ The root project can be tested with:
 go test ./...
 ```
 
-Do not run `./snow-lsp file.snow`: LSP servers receive document text from the
+Do not run `./blizzard-lsp file.blizz`: LSP servers receive document text from the
 editor, not source filenames as positional arguments.
 
 ## Other editors
 
 Editors that support custom LSP commands can launch the binary with no
-arguments, use language/file type `snow`, and send full document synchronization
+arguments, use language/file type `blizzard`, and send full document synchronization
 (`openClose: true`, `change: 1`). The server currently supports completion and
 diagnostics; hover, navigation, formatting, and rename are not implemented.

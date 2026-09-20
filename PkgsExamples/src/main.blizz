@@ -1,0 +1,9 @@
+import blizzard.text;
+import blizzard.math;
+import blizzard.collections;
+import blizzard.validate;
+
+print(text.slug(" Hello, Blizzard Packages! "));
+print(math.average([2, 4, 6]));
+print(collections.unique([1, 1, 2, 2, 3]));
+print(validate.email("hello@blizzard.dev"));

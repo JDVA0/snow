@@ -1,7 +1,0 @@
-name = "snow.math"
-version = "0.1.0"
-description = "Numeric ranges, clamping, and averages"
-license = "MIT"
-repository = "https://github.com/JDVA0/snow"
-keywords = "math,numbers,statistics"
-entry = "math.snow"

@@ -20,7 +20,7 @@
 
   var parts = [];
   parts.push(
-    '<div class="brand"><img src="' + home + 'snowflake.svg" alt="Snow">' +
+    '<div class="brand"><img src="' + home + 'blizzard.svg" alt="Blizzard">' +
       "<span>" + brand + "</span></div>"
   );
   parts.push('<div class="spacer"></div>');

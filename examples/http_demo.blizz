@@ -1,0 +1,36 @@
+# http_demo.blizz — HTTP client example
+# Demonstrates: import http, resp.json(), f-strings, ?? operator
+
+import http;
+
+# Simple GET request
+print("--- GET httpbin.org ---");
+let resp = http.get("https://httpbin.org/get");
+if (resp.ok) {
+    let data = resp.json();
+    print(f"Status: {resp.status}");
+    print(f"URL: {data['url']}");
+} else {
+    print(f"Request failed with status {resp.status}");
+}
+
+# POST with a JSON body (dict is auto-encoded)
+print("""
+--- POST httpbin.org/post ---""");
+let resp2 = http.post("https://httpbin.org/post", {name: "Blizzard", version: "0.2", cool: true});
+if (resp2.ok) {
+    let body = resp2.json();
+    print(f"Sent JSON: {body['json']}");
+}
+
+# ?? operator — use a default when a key is missing
+print("""
+--- Nullish coalescing ?? ---""");
+let user = nil;
+let greeting = f"Hello, {user ?? 'stranger'}!";
+print(greeting);
+
+# F-string with expressions
+let x = 40;
+let y = 2;
+print(f"The answer is {x + y}");

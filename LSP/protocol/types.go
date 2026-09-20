@@ -96,6 +96,7 @@ type ServerCapabilities struct {
 	ReferencesProvider         bool                     `json:"referencesProvider,omitempty"`
 	DocumentFormattingProvider bool                     `json:"documentFormattingProvider,omitempty"`
 	RenameProvider             bool                     `json:"renameProvider,omitempty"`
+	DocumentSymbolProvider     bool                     `json:"documentSymbolProvider,omitempty"`
 }
 
 // TextDocumentSyncOptions represents text document sync options
@@ -156,4 +157,21 @@ type TextEdit struct {
 
 type WorkspaceEdit struct {
 	Changes map[string][]TextEdit `json:"changes,omitempty"`
+}
+
+// DocumentSymbolParams contains parameters for document/symbol request.
+type DocumentSymbolParams struct {
+	TextDocument TextDocumentIdentifier `json:"textDocument"`
+}
+
+// DocumentSymbol represents a symbol found in a document (hierarchical).
+type DocumentSymbol struct {
+	Name           string           `json:"name"`
+	Detail         string           `json:"detail,omitempty"`
+	Kind           int              `json:"kind"`
+	Tags           []int            `json:"tags,omitempty"`
+	Deprecated     bool             `json:"deprecated,omitempty"`
+	Range          Range            `json:"range"`
+	SelectionRange Range            `json:"selectionRange"`
+	Children       []DocumentSymbol `json:"children,omitempty"`
 }

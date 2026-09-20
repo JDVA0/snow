@@ -1,6 +1,0 @@
-name = "snow"
-version = "0.1.0"
-description = "Official Snow standard library collection"
-license = "MIT"
-repository = "https://github.com/JDVA0/snow"
-source = "src"

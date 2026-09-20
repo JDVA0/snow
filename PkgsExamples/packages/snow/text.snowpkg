@@ -1,7 +1,0 @@
-name = "snow.text"
-version = "0.1.0"
-description = "Text normalization, prefix and suffix helpers"
-license = "MIT"
-repository = "https://github.com/JDVA0/snow"
-keywords = "text,strings,slug"
-entry = "text.snow"

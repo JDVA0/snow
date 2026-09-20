@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/JDVA0/snow/lsp/analyzer"
-	"github.com/JDVA0/snow/lsp/protocol"
+	"github.com/JDVA0/blizzard/lsp/analyzer"
+	"github.com/JDVA0/blizzard/lsp/protocol"
 )
 
 // Server represents the LSP server
@@ -35,6 +35,7 @@ type Document struct {
 	Version     int
 	Text        string
 	Diagnostics []protocol.Diagnostic
+	Analysis    *analyzer.ParseResult
 }
 
 // NewServer creates a new LSP server
@@ -76,7 +77,7 @@ func main() {
 // Run starts the LSP server
 func (s *Server) Run() {
 	log.SetOutput(os.Stderr)
-	log.Println("Snow LSP Server starting...")
+	log.Println("Blizzard LSP Server starting...")
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -183,6 +184,8 @@ func (s *Server) handleRequest(req *Request) *Response {
 		return s.handleDefinition(req)
 	case "textDocument/rename":
 		return s.handleRename(req)
+	case "textDocument/documentSymbol":
+		return s.handleDocumentSymbol(req)
 	default:
 		return &Response{
 			Jsonrpc: "2.0",
@@ -224,6 +227,7 @@ func (s *Server) handleInitialize(req *Request) *Response {
 			ReferencesProvider:         false,
 			DocumentFormattingProvider: false,
 			RenameProvider:             true,
+			DocumentSymbolProvider:     true,
 		},
 	}
 
@@ -281,6 +285,7 @@ func (s *Server) handleDidOpen(req *Request) *Response {
 
 func (s *Server) analyzeDocument(doc *Document) []protocol.Diagnostic {
 	result, err := s.analyzer.Parse(doc.Text, doc.URI)
+	doc.Analysis = result
 	if err != nil {
 		log.Printf("Error parsing document: %v", err)
 		return nil
@@ -554,13 +559,18 @@ func (s *Server) handleHover(req *Request) *Response {
 		"zip":       "zip(left, right) combines two lists.",
 		"print":     "print(...) writes values to standard output.",
 		"len":       "len(value) returns the length of a list, string, or dictionary.",
+		"upper":     "upper(text) returns an uppercase string; also available as text.upper().",
+		"lower":     "lower(text) returns a lowercase string; also available as text.lower().",
+		"trim":      "trim(text) removes surrounding whitespace; also available as text.trim().",
+		"split":     "split(text, separator) splits text; also available as text.split(separator).",
+		"join":      "join(items, separator) joins strings; also available as items.join(separator).",
 	}
 	text := description[name]
 	if text == "" {
 		if kind := inferredDocumentType(doc.Text, name); kind != "" {
 			text = fmt.Sprintf("%s: %s", name, kind)
 		} else {
-			text = "Snow symbol: " + name
+			text = "Blizzard symbol: " + name
 		}
 	}
 	return &Response{Jsonrpc: "2.0", ID: req.ID, Result: protocol.Hover{Contents: text, Range: span}}
@@ -602,6 +612,13 @@ func (s *Server) handleDefinition(req *Request) *Response {
 	if name == "" {
 		return &Response{Jsonrpc: "2.0", ID: req.ID, Result: nil}
 	}
+	// First, try AST-based lookup (more accurate).
+	if doc.Analysis != nil {
+		if loc := findSymbolLocation(doc.Analysis.Symbols, name, uri); loc != nil {
+			return &Response{Jsonrpc: "2.0", ID: req.ID, Result: *loc}
+		}
+	}
+	// Fallback: regex-based search.
 	definition := regexp.MustCompile(`^\s*(?:(?:pub|priv)\s+)?(?:fn\s+)?` + regexp.QuoteMeta(name) + `\b`)
 	for index, sourceLine := range strings.Split(doc.Text, "\n") {
 		if definition.MatchString(sourceLine) {
@@ -610,6 +627,26 @@ func (s *Server) handleDefinition(req *Request) *Response {
 		}
 	}
 	return &Response{Jsonrpc: "2.0", ID: req.ID, Result: nil}
+}
+
+func findSymbolLocation(symbols []analyzer.Symbol, name, uri string) *protocol.Location {
+	for _, sym := range symbols {
+		if sym.Name == name {
+			return &protocol.Location{
+				URI: uri,
+				Range: protocol.Range{
+					Start: protocol.Position{Line: sym.Line, Character: sym.Col},
+					End:   protocol.Position{Line: sym.Line, Character: sym.EndCol},
+				},
+			}
+		}
+		if len(sym.Children) > 0 {
+			if loc := findSymbolLocation(sym.Children, name, uri); loc != nil {
+				return loc
+			}
+		}
+	}
+	return nil
 }
 
 func (s *Server) handleRename(req *Request) *Response {
@@ -659,6 +696,190 @@ func detectModulePrefix(doc *Document, line, character int) string {
 	return matches[2]
 }
 
+func detectDotAccessContext(doc *Document, line, character int) (baseVar string, typ string) {
+	lines := strings.Split(doc.Text, "\n")
+	if line < 0 || line >= len(lines) {
+		return "", ""
+	}
+	prefix := lines[line]
+	if character > len(prefix) {
+		character = len(prefix)
+	}
+	match := regexp.MustCompile(`(?:^|[^A-Za-z0-9_])([A-Za-z_][A-Za-z0-9_]*)\.[A-Za-z_0-9]*$`).FindStringSubmatch(prefix[:character])
+	if len(match) < 2 {
+		return "", ""
+	}
+	baseVar = match[1]
+
+	// AST-based inference is best; fall back to regex heuristic.
+	if doc.Analysis != nil {
+		if t := inferSymbolTypeFromAST(doc.Analysis.Symbols, baseVar); t != "" {
+			return baseVar, t
+		}
+	}
+	return baseVar, inferredDocumentType(doc.Text, baseVar)
+}
+
+func inferSymbolTypeFromAST(symbols []analyzer.Symbol, name string) string {
+	for _, sym := range symbols {
+		if sym.Name == name {
+			switch sym.Kind {
+			case analyzer.SymFunction:
+				return "fn"
+			case analyzer.SymModule:
+				return "module"
+			case analyzer.SymConstant, analyzer.SymVariable:
+				if strings.Contains(sym.Detail, "str") {
+					return "str"
+				}
+			}
+		}
+		if len(sym.Children) > 0 {
+			if t := inferSymbolTypeFromAST(sym.Children, name); t != "" {
+				return t
+			}
+		}
+	}
+	return ""
+}
+
+func stringMethodItems() []protocol.CompletionItem {
+	methods := []struct {
+		name   string
+		detail string
+		doc    string
+	}{
+		{"length", "str.length", "Returns the number of characters (string length)."},
+		{"upper", "str.upper()", "Returns the string converted to uppercase."},
+		{"lower", "str.lower()", "Returns the string converted to lowercase."},
+		{"trim", "str.trim()", "Removes surrounding whitespace."},
+		{"trim_left", "str.trim_left()", "Removes leading whitespace."},
+		{"trim_right", "str.trim_right()", "Removes trailing whitespace."},
+		{"split", "str.split(sep)", "Splits the string by a separator into a list."},
+		{"replace", "str.replace(old, new)", "Replaces all occurrences of old with new."},
+		{"contains", "str.contains(sub)", "Reports whether the substring is present."},
+		{"starts_with", "str.starts_with(prefix)", "Reports whether the string starts with prefix."},
+		{"ends_with", "str.ends_with(suffix)", "Reports whether the string ends with suffix."},
+		{"count", "str.count(sub)", "Counts occurrences of a substring."},
+		{"index_of", "str.index_of(sub)", "Returns the first index of the substring, or -1."},
+		{"repeat", "str.repeat(n)", "Repeats the string n times."},
+		{"join", "str.join(list)", "Joins list elements using the string as separator."},
+	}
+	items := make([]protocol.CompletionItem, 0, len(methods))
+	for _, m := range methods {
+		items = append(items, protocol.CompletionItem{
+			Label:         m.name,
+			Kind:          2, // Method
+			Detail:        m.detail,
+			Documentation: m.doc,
+			InsertText:    m.name + "()",
+			SortText:      "1_" + m.name,
+		})
+	}
+	return items
+}
+
+func listMethodItems() []protocol.CompletionItem {
+	methods := []struct {
+		name   string
+		detail string
+		doc    string
+	}{
+		{"length", "list.length", "Returns the number of elements in the list."},
+		{"append", "list.append(value)", "Adds an element to the end of the list."},
+		{"first", "list.first", "Returns the first element or nil."},
+		{"last", "list.last", "Returns the last element or nil."},
+		{"take", "list.take(n)", "Returns the first n elements."},
+		{"drop", "list.drop(n)", "Skips the first n elements."},
+		{"reverse", "list.reverse()", "Returns a reversed copy."},
+		{"sort", "list.sort()", "Returns a sorted copy."},
+		{"map", "list.map(fn)", "Applies fn to every element."},
+		{"filter", "list.filter(fn)", "Keeps elements where fn returns true."},
+		{"fold", "list.fold(init, fn)", "Reduces the list using fn."},
+		{"enumerate", "list.enumerate()", "Returns index/value pairs."},
+		{"zip", "list.zip(other)", "Zips two lists into pairs."},
+		{"join", "list.join(sep)", "Joins list elements into a string."},
+		{"contains", "list.contains(value)", "Reports whether value is in the list."},
+		{"has", "list.has(value)", "Alias for contains."},
+	}
+	items := make([]protocol.CompletionItem, 0, len(methods))
+	for _, m := range methods {
+		items = append(items, protocol.CompletionItem{
+			Label:         m.name,
+			Kind:          2, // Method
+			Detail:        m.detail,
+			Documentation: m.doc,
+			InsertText:    m.name + "()",
+			SortText:      "2_" + m.name,
+		})
+	}
+	return items
+}
+
+func dictMethodItems() []protocol.CompletionItem {
+	methods := []struct {
+		name   string
+		detail string
+		doc    string
+	}{
+		{"length", "dict.length", "Returns the number of entries in the dictionary."},
+		{"has", "dict.has(key)", "Reports whether the key exists."},
+		{"keys", "dict.keys()", "Returns a list of keys."},
+		{"values", "dict.values()", "Returns a list of values."},
+	}
+	items := make([]protocol.CompletionItem, 0, len(methods))
+	for _, m := range methods {
+		items = append(items, protocol.CompletionItem{
+			Label:         m.name,
+			Kind:          2, // Method
+			Detail:        m.detail,
+			Documentation: m.doc,
+			InsertText:    m.name + "()",
+			SortText:      "3_" + m.name,
+		})
+	}
+	return items
+}
+
+func stringLiteralMethodAccess(doc *Document, line, character int) bool {
+	lines := strings.Split(doc.Text, "\n")
+	if line < 0 || line >= len(lines) {
+		return false
+	}
+	prefix := lines[line]
+	if character > len(prefix) {
+		character = len(prefix)
+	}
+	match := regexp.MustCompile(`(?:"[^"\\]*"|'[^'\\]*')\.[A-Za-z_0-9]*$`).MatchString(prefix[:character])
+	return match
+}
+
+func listLiteralMethodAccess(doc *Document, line, character int) bool {
+	lines := strings.Split(doc.Text, "\n")
+	if line < 0 || line >= len(lines) {
+		return false
+	}
+	prefix := lines[line]
+	if character > len(prefix) {
+		character = len(prefix)
+	}
+	match := regexp.MustCompile(`\]\.[A-Za-z_0-9]*$`).MatchString(prefix[:character])
+	return match
+}
+
+func dictLiteralMethodAccess(doc *Document, line, character int) bool {
+	lines := strings.Split(doc.Text, "\n")
+	if line < 0 || line >= len(lines) {
+		return false
+	}
+	prefix := lines[line]
+	if character > len(prefix) {
+		character = len(prefix)
+	}
+	match := regexp.MustCompile(`\}\.[A-Za-z_0-9]*$`).MatchString(prefix[:character])
+	return match
+}
+
 func completionWordPrefix(doc *Document, line, character int) string {
 	lines := strings.Split(doc.Text, "\n")
 	if line < 0 || line >= len(lines) {
@@ -673,24 +894,72 @@ func completionWordPrefix(doc *Document, line, character int) string {
 }
 
 func documentNameItems(doc *Document) []protocol.CompletionItem {
-	seen := map[string]bool{}
-	pattern := regexp.MustCompile(`(?m)\b(?:fn|const)?\s*([A-Za-z_][A-Za-z0-9_]*)\s*=`)
-	for _, match := range pattern.FindAllStringSubmatch(doc.Text, -1) {
-		if len(match) > 1 {
-			seen[match[1]] = true
-		}
-	}
-	for _, match := range regexp.MustCompile(`(?m)^\s*(?:pub\s+|priv\s+)?fn\s+([A-Za-z_][A-Za-z0-9_]*)`).FindAllStringSubmatch(doc.Text, -1) {
-		if len(match) > 1 {
-			seen[match[1]] = true
-		}
-	}
+	seen := map[string]protocol.CompletionItem{}
+	collectFromAST(doc.Analysis, seen)
+	// Fallback: regex scan for symbols AST might have missed.
+	fallbackRegex(doc.Text, seen)
 	items := make([]protocol.CompletionItem, 0, len(seen))
-	for name := range seen {
-		items = append(items, protocol.CompletionItem{Label: name, Kind: 6, Detail: "document symbol", InsertText: name})
+	for _, it := range seen {
+		items = append(items, it)
 	}
 	sort.Slice(items, func(a, b int) bool { return items[a].Label < items[b].Label })
 	return items
+}
+
+func collectFromAST(result *analyzer.ParseResult, out map[string]protocol.CompletionItem) {
+	if result == nil {
+		return
+	}
+	walk(result.Symbols, out)
+}
+
+func walk(symbols []analyzer.Symbol, out map[string]protocol.CompletionItem) {
+	for _, sym := range symbols {
+		if _, exists := out[sym.Name]; !exists {
+			kind := 6 // Variable (default fallback)
+			switch sym.Kind {
+			case analyzer.SymFunction:
+				kind = 3 // Function
+			case analyzer.SymConstant:
+				kind = 21 // Constant
+			case analyzer.SymModule:
+				kind = 9 // Module
+			case analyzer.SymVariable:
+				kind = 6
+			case analyzer.SymClass, analyzer.SymStruct:
+				kind = 5 // Class/Struct
+			}
+			insert := sym.Name
+			if sym.Kind == analyzer.SymFunction {
+				insert += "()"
+			}
+			out[sym.Name] = protocol.CompletionItem{
+				Label:      sym.Name,
+				Kind:       kind,
+				Detail:     sym.Detail,
+				InsertText: insert,
+			}
+		}
+		if len(sym.Children) > 0 {
+			walk(sym.Children, out)
+		}
+	}
+}
+
+func fallbackRegex(text string, out map[string]protocol.CompletionItem) {
+	pattern := regexp.MustCompile(`(?m)\b(?:fn|const)?\s*([A-Za-z_][A-Za-z0-9_]*)\s*=`)
+	for _, match := range pattern.FindAllStringSubmatch(text, -1) {
+		name := match[1]
+		if _, exists := out[name]; !exists {
+			out[name] = protocol.CompletionItem{Label: name, Kind: 6, Detail: "document symbol", InsertText: name}
+		}
+	}
+	for _, match := range regexp.MustCompile(`(?m)^\s*(?:pub\s+|priv\s+)?fn\s+([A-Za-z_][A-Za-z0-9_]*)`).FindAllStringSubmatch(text, -1) {
+		name := match[1]
+		if _, exists := out[name]; !exists {
+			out[name] = protocol.CompletionItem{Label: name, Kind: 3, Detail: "document function", InsertText: name + "()"}
+		}
+	}
 }
 
 func filterCompletionItems(items []protocol.CompletionItem, prefix string) []protocol.CompletionItem {
@@ -706,6 +975,50 @@ func filterCompletionItems(items []protocol.CompletionItem, prefix string) []pro
 	return filtered
 }
 
+// handleDocumentSymbol returns hierarchical document symbols using the AST.
+func (s *Server) handleDocumentSymbol(req *Request) *Response {
+	var params struct {
+		TextDocument struct {
+			URI string `json:"uri"`
+		} `json:"textDocument"`
+	}
+	if err := json.Unmarshal(req.Params, &params); err != nil {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Error: &Error{Code: -32602, Message: err.Error()}}
+	}
+	doc := s.documents[params.TextDocument.URI]
+	if doc == nil || doc.Analysis == nil {
+		return &Response{Jsonrpc: "2.0", ID: req.ID, Result: []protocol.DocumentSymbol{}}
+	}
+	out := make([]protocol.DocumentSymbol, 0, len(doc.Analysis.Symbols))
+	for _, sym := range doc.Analysis.Symbols {
+		out = append(out, toDocumentSymbol(sym))
+	}
+	return &Response{Jsonrpc: "2.0", ID: req.ID, Result: out}
+}
+
+func toDocumentSymbol(sym analyzer.Symbol) protocol.DocumentSymbol {
+	children := make([]protocol.DocumentSymbol, 0, len(sym.Children))
+	for _, c := range sym.Children {
+		children = append(children, toDocumentSymbol(c))
+	}
+	sel := protocol.Range{
+		Start: protocol.Position{Line: sym.Line, Character: sym.Col},
+		End:   protocol.Position{Line: sym.Line, Character: sym.EndCol},
+	}
+	rng := protocol.Range{
+		Start: protocol.Position{Line: sym.Line, Character: sym.Col},
+		End:   protocol.Position{Line: sym.EndLine, Character: max(sym.EndCol, sym.Col+1)},
+	}
+	return protocol.DocumentSymbol{
+		Name:           sym.Name,
+		Detail:         sym.Detail,
+		Kind:           sym.Kind,
+		Range:          rng,
+		SelectionRange: sel,
+		Children:       children,
+	}
+}
+
 // getCompletionItems returns completion items based on the document context
 func (s *Server) getCompletionItems(doc *Document, line, character int) []protocol.CompletionItem {
 	prefix := completionWordPrefix(doc, line, character)
@@ -715,11 +1028,34 @@ func (s *Server) getCompletionItems(doc *Document, line, character int) []protoc
 		}
 	}
 
+	// 1) Literal dot access detection: "abc". | [1,2]. | {k:v}.
+	if stringLiteralMethodAccess(doc, line, character) {
+		return filterCompletionItems(stringMethodItems(), prefix)
+	}
+	if listLiteralMethodAccess(doc, line, character) {
+		return filterCompletionItems(listMethodItems(), prefix)
+	}
+	if dictLiteralMethodAccess(doc, line, character) {
+		return filterCompletionItems(dictMethodItems(), prefix)
+	}
+
+	// 2) Variable dot access detection by inferred type.
+	if _, typ := detectDotAccessContext(doc, line, character); typ != "" {
+		switch typ {
+		case "str":
+			return filterCompletionItems(stringMethodItems(), prefix)
+		case "list":
+			return filterCompletionItems(listMethodItems(), prefix)
+		case "dict":
+			return filterCompletionItems(dictMethodItems(), prefix)
+		}
+	}
+
 	items := []protocol.CompletionItem{}
 
-	// Add Snow keywords
+	// Add Blizzard keywords (sorted first)
 	keywords := []string{
-		"using", "import", "pub", "priv", "const", "fn", "return",
+		"import", "let", "pub", "priv", "const", "fn", "return",
 		"if", "elif", "else", "for", "while", "break", "continue",
 		"try", "catch", "always", "match", "case", "where", "with",
 		"not", "in", "and", "or", "as",
@@ -731,6 +1067,7 @@ func (s *Server) getCompletionItems(doc *Document, line, character int) []protoc
 			Kind:       14, // Keyword
 			Detail:     "keyword",
 			InsertText: keyword,
+			SortText:   "0_k_" + keyword,
 		})
 	}
 
@@ -746,24 +1083,54 @@ func (s *Server) getCompletionItems(doc *Document, line, character int) []protoc
 			Kind:       9, // Module
 			Detail:     "standard module",
 			InsertText: module,
+			SortText:   "0_m_" + module,
 		})
 	}
 
-	// Add built-in functions
-	builtins := []string{
-		"print", "len", "str", "int", "flt", "float", "bool", "list", "dict",
-		"upper", "lower", "trim", "split", "join", "replace", "contains", "has",
-		"keys", "values", "append", "first", "last", "take", "drop", "sum", "any", "all", "clamp",
-		"enumerate", "zip", "reverse", "sort", "map", "filter", "fold", "range",
-		"type", "min", "max", "abs", "floor", "ceil", "round", "fail", "exit", "assert",
+	// Add built-in functions (category: string)
+	strBuiltins := []string{
+		"upper", "lower", "trim", "trim_left", "trim_right", "split", "join", "replace", "contains", "starts_with", "ends_with", "count", "index_of", "repeat",
+	}
+	for _, builtin := range strBuiltins {
+		items = append(items, protocol.CompletionItem{
+			Label:         builtin,
+			Kind:          3, // Function
+			Detail:        "str built-in",
+			Documentation: fmt.Sprintf("%s(value, ...) — string helper; also available as value.%s()", builtin, builtin),
+			InsertText:    builtin + "()",
+			SortText:      "4_s_" + builtin,
+		})
 	}
 
-	for _, builtin := range builtins {
+	// Add built-in functions (category: collections/list)
+	listBuiltins := []string{
+		"len", "has", "keys", "values", "append", "first", "last", "take", "drop",
+		"enumerate", "zip", "reverse", "sort", "map", "filter", "fold",
+	}
+	for _, builtin := range listBuiltins {
+		items = append(items, protocol.CompletionItem{
+			Label:         builtin,
+			Kind:          3, // Function
+			Detail:        "collection built-in",
+			Documentation: fmt.Sprintf("%s(collection, ...) — list/dict helper", builtin),
+			InsertText:    builtin + "()",
+			SortText:      "5_c_" + builtin,
+		})
+	}
+
+	// Add built-in functions (category: math / general)
+	genBuiltins := []string{
+		"print", "str", "int", "flt", "float", "bool", "list", "dict",
+		"sum", "any", "all", "clamp", "range", "type", "min", "max",
+		"abs", "floor", "ceil", "round", "fail", "exit", "assert",
+	}
+	for _, builtin := range genBuiltins {
 		items = append(items, protocol.CompletionItem{
 			Label:      builtin,
 			Kind:       3, // Function
 			Detail:     "built-in function",
 			InsertText: builtin + "()",
+			SortText:   "6_g_" + builtin,
 		})
 	}
 
@@ -775,6 +1142,7 @@ func (s *Server) getCompletionItems(doc *Document, line, character int) []protoc
 			Kind:       12, // Constant
 			Detail:     "constant",
 			InsertText: constant,
+			SortText:   "7_v_" + constant,
 		})
 	}
 	items = append(items, documentNameItems(doc)...)

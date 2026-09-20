@@ -1,7 +1,0 @@
-name = "snow.collections"
-version = "0.1.0"
-description = "Small immutable-style list helpers"
-license = "MIT"
-repository = "https://github.com/JDVA0/snow"
-keywords = "lists,collections,unique"
-entry = "collections.snow"

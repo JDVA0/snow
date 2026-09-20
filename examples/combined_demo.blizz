@@ -1,0 +1,97 @@
+# Demo combinada: with + where + import
+#
+# Ejecutar: blizzard examples/combined_demo.blizz
+#
+# Escenario: abrimos una "base de datos" con `with`,
+# iteramos los usuarios con `for ... where` para filtrar,
+# y usamos un módulo importado con pub/priv.
+
+import cli;
+import math_utils as math;
+
+cli.box("DEMO COMBINADA: with + where + import", "Todos los nuevos features juntos");
+
+# ======================================================
+# Construir una "base de datos" simulada con método close
+# ======================================================
+fn open_users_db(path) {
+    let state = {path: path, opened: true, closed: false, queries: 0};
+
+    let all_fn = fn() {
+        state.queries = state.queries + 1;
+        return [{id: 1, name: "Ana", age: 25, active: true, role: "admin"}, {id: 2, name: "Bruno", age: 31, active: false, role: "user"}, {id: 3, name: "Carla", age: 19, active: true, role: "user"}, {id: 4, name: "Diego", age: 42, active: true, role: "editor"}, {id: 5, name: "Elena", age: 27, active: false, role: "user"}, {id: 6, name: "Fernando", age: 36, active: true, role: "admin"}];
+    };
+
+    let close_fn = fn() {
+        if (not state.closed) {
+            state.closed = true;
+            state.opened = false;
+            cli.ok("   ✅ DB '" + path + "' cerrada. " + str(state.queries) + " consultas ejecutadas.");
+        }
+    };
+
+    return {state: state, all: all_fn, close: close_fn};
+}
+
+# ======================================================
+# Uso combinado: with abre DB, where filtra activos
+# ======================================================
+cli.info("1. with db.open(...) + for user in db.all() where user.active:");
+cli.info("   Ejemplo del spec de Blizzard 0.1:");
+print("   ┌──────────────────────────────────────────────────┐");
+print("   │ with db.open('users.db') as db:                  │");
+print("   │     for user in db.all() where user.active:      │");
+print("   │         print(user.name)                         │");
+print("   └──────────────────────────────────────────────────┘");
+print();
+
+with open_users_db("users.db") as db {
+    cli.info("2. Usuarios activos filtrados con 'where':");
+    for user in db.all() {
+        print("     ✔ " + user.name + " | Edad: " + str(user.age) + " | Rol: " + user.role);
+    }
+    print();
+
+    # ======================================================
+    # Uso del módulo math_utils importado
+    # ======================================================
+    cli.info("3. Usando math_utils (import pub/priv) para cálculos:");
+    let edades_activas = [];
+    for user in db.all() {
+        edades_activas = append(edades_activas, user.age);
+    }
+
+    let suma = 0;
+    for e in edades_activas {
+        suma = math.add(suma, e);
+    }
+    print("     Suma de edades (users activos) = " + str(suma));
+
+    let activos = 0;
+    for user in db.all() {
+        activos = activos + 1;
+    }
+    let inactivos = 0;
+    for user in db.all() {
+        inactivos = inactivos + 1;
+    }
+
+    print("     Usuarios activos   : " + str(activos));
+    print("     Usuarios inactivos : " + str(inactivos));
+    print("     (diff)             : " + str(math.subtract(activos, inactivos)));
+}
+
+print();
+
+# ======================================================
+# Intentar acceder a símbolo privado (debe fallar)
+# ======================================================
+cli.warn("4. Intentando acceder a math._secret_key (priv) ...");
+try {
+    print("   valor: " + math._secret_key);
+} catch e {
+    cli.error("   ✅ Esperado: " + str(e));
+}
+
+print();
+cli.success("Demo combinada OK: with + where + import/pub/priv trabajando juntos.");

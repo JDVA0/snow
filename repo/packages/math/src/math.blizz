@@ -1,0 +1,26 @@
+# Official Blizzard library: small numeric helpers
+
+fn clamp(value, low, high) {
+    if (value < low) {
+        return low;
+    }
+    if (value > high) {
+        return high;
+    }
+    return value;
+}
+
+fn between(value, low, high) {
+    return value >= low and value <= high;
+}
+
+fn average(values) {
+    if (len(values) == 0) {
+        return nil;
+    }
+    let total = 0;
+    for value in values {
+        total += value;
+    }
+    return total / len(values);
+}

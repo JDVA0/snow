@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// Start the LSP server
-	cmd := exec.Command("./snow-lsp")
+	cmd := exec.Command("./blizzard-lsp")
 	
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -58,14 +58,14 @@ func main() {
 	// Simulate opening a document
 	didOpenParams := map[string]interface{}{
 		"textDocument": map[string]interface{}{
-			"uri":        "file:///home/julian/Escritorio/Snow/examples/api.snow",
-			"languageId": "snow",
+			"uri":        "file:///home/julian/Escritorio/Blizzard/examples/api.blizz",
+			"languageId": "blizzard",
 			"version":    1,
 			"text":       `using api
 
 api.cors()
 
-api.get("/", fn(req): api.text("Servidor Snow activo"))
+api.get("/", fn(req): api.text("Servidor Blizzard activo"))
 
 fn ver_usuario(req):
     return api.json({id: req.params.id, activo: true})
@@ -93,7 +93,7 @@ api.serve(8080)`,
 	// Simulate document change with invalid code
 	didChangeParams := map[string]interface{}{
 		"textDocument": map[string]interface{}{
-			"uri":     "file:///home/julian/Escritorio/Snow/examples/api.snow",
+			"uri":     "file:///home/julian/Escritorio/Blizzard/examples/api.blizz",
 			"version": 2,
 		},
 		"contentChanges": []map[string]interface{}{
@@ -102,7 +102,7 @@ api.serve(8080)`,
 
 api.cors()
 
-api.get("/", fn(req): api.text("Servidor Snow activo"))
+api.get("/", fn(req): api.text("Servidor Blizzard activo"))
 
 fn ver_usuario(req):
     return api.json({id: req.params.id, activo: true})
@@ -134,7 +134,7 @@ api.serve(8080)`,
 	// Test completion request
 	completionParams := map[string]interface{}{
 		"textDocument": map[string]interface{}{
-			"uri": "file:///home/julian/Escritorio/Snow/examples/api.snow",
+			"uri": "file:///home/julian/Escritorio/Blizzard/examples/api.blizz",
 		},
 		"position": map[string]interface{}{
 			"line":      2,

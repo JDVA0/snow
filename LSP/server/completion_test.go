@@ -5,14 +5,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/JDVA0/snow/lsp/protocol"
+	"github.com/JDVA0/blizzard/lsp/protocol"
 )
 
 func TestModuleCompletionForHTTP(t *testing.T) {
 	s := NewServer()
 	doc := &Document{
-		URI:  "file:///tmp/test.snow",
-		Text: "using http\nhttp.",
+		URI:  "file:///tmp/test.blizz",
+		Text: "import http\nhttp.",
 	}
 
 	items := s.getCompletionItems(doc, 1, 5)
@@ -34,7 +34,7 @@ func TestModuleCompletionForHTTP(t *testing.T) {
 
 func TestCompletionIncludesBuiltinsAndDocumentNames(t *testing.T) {
 	s := NewServer()
-	doc := &Document{URI: "file:///tmp/test.snow", Text: "frutas = [1, 2]\nfru"}
+	doc := &Document{URI: "file:///tmp/test.blizz", Text: "frutas = [1, 2]\nfru"}
 	items := s.getCompletionItems(doc, 1, 3)
 	if len(items) != 1 || items[0].Label != "frutas" {
 		t.Fatalf("expected filtered document symbol completion, got %#v", items)
@@ -50,9 +50,37 @@ func TestCompletionIncludesBuiltinsAndDocumentNames(t *testing.T) {
 	t.Fatalf("expected sum builtin completion, got %#v", items)
 }
 
+func TestStringMethodCompletion(t *testing.T) {
+	s := NewServer()
+	for _, text := range []string{"\"blizzard\".up", "name = \"blizzard\"\nname.tr"} {
+		lines := strings.Split(text, "\n")
+		line := len(lines) - 1
+		items := s.getCompletionItems(&Document{URI: "file:///tmp/string.blizz", Text: text}, line, len(lines[line]))
+		labels := map[string]bool{}
+		for _, item := range items {
+			labels[item.Label] = true
+		}
+		if strings.HasSuffix(text, ".up") && !labels["upper"] {
+			t.Fatalf("expected upper method completion, got %#v", labels)
+		}
+		if strings.HasSuffix(text, ".tr") && !labels["trim"] {
+			t.Fatalf("expected trim method completion, got %#v", labels)
+		}
+	}
+}
+
+func TestCollectionLengthMethodCompletion(t *testing.T) {
+	s := NewServer()
+	doc := &Document{URI: "file:///tmp/list.blizz", Text: "frutas = [\"manzana\"]\nfrutas.le"}
+	items := s.getCompletionItems(doc, 1, len("frutas.le"))
+	if len(items) != 1 || items[0].Label != "length" {
+		t.Fatalf("expected length method completion, got %#v", items)
+	}
+}
+
 func TestHoverDefinitionAndRename(t *testing.T) {
 	s := NewServer()
-	doc := &Document{URI: "file:///tmp/test.snow", Text: "fn greet(name):\n    return name\ngreet(\"Snow\")\n"}
+	doc := &Document{URI: "file:///tmp/test.blizz", Text: "fn greet(name):\n    return name\ngreet(\"Blizzard\")\n"}
 	s.documents[doc.URI] = doc
 	params, _ := json.Marshal(map[string]interface{}{"textDocument": map[string]string{"uri": doc.URI}, "position": map[string]int{"line": 2, "character": 2}})
 	hover := s.handleHover(&Request{ID: 1, Params: params})
@@ -75,7 +103,7 @@ func TestHoverDefinitionAndRename(t *testing.T) {
 
 func TestHoverInfersListType(t *testing.T) {
 	s := NewServer()
-	doc := &Document{URI: "file:///tmp/list.snow", Text: "frutas = [\"manzana\"]\nprint(frutas)\n"}
+	doc := &Document{URI: "file:///tmp/list.blizz", Text: "frutas = [\"manzana\"]\nprint(frutas)\n"}
 	s.documents[doc.URI] = doc
 	params, _ := json.Marshal(map[string]interface{}{"textDocument": map[string]string{"uri": doc.URI}, "position": map[string]int{"line": 1, "character": 8}})
 	result := s.handleHover(&Request{ID: 1, Params: params})
@@ -87,7 +115,7 @@ func TestHoverInfersListType(t *testing.T) {
 
 func TestEmptyHoverStillReturnsJSONRPCResult(t *testing.T) {
 	s := NewServer()
-	doc := &Document{URI: "file:///tmp/empty.snow", Text: "\n"}
+	doc := &Document{URI: "file:///tmp/empty.blizz", Text: "\n"}
 	s.documents[doc.URI] = doc
 	params, _ := json.Marshal(map[string]interface{}{"textDocument": map[string]string{"uri": doc.URI}, "position": map[string]int{"line": 0, "character": 0}})
 	response := s.handleHover(&Request{ID: 1, Params: params})

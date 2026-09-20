@@ -9,6 +9,6 @@ tsconfig.json
 *.sh
 README.md
 readme.md
-snow.vsix
+blizzard.vsix
 extension.js
 package-lock.json

@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"fmt"
@@ -91,7 +91,7 @@ func httpDoFull(i *Interp, method string, args []Val, hasBody bool) ([]Val, erro
 			// no body
 		default:
 			// Attempt str conversion
-			bodyStr = SnowStr(args[argIdx])
+			bodyStr = BlizzardStr(args[argIdx])
 			bodyReader = strings.NewReader(bodyStr)
 		}
 		argIdx++
@@ -115,7 +115,7 @@ func httpDoFull(i *Interp, method string, args []Val, hasBody bool) ([]Val, erro
 	if len(args) > argIdx {
 		if hd, ok := args[argIdx].(*Dict); ok {
 			hd.ForEach(func(k string, v Val) {
-				req.Header.Set(k, SnowStr(v))
+				req.Header.Set(k, BlizzardStr(v))
 			})
 		}
 	}

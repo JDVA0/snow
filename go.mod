@@ -1,4 +1,4 @@
-module github.com/JDVA0/snow
+module github.com/JDVA0/blizzard
 
 go 1.26.0
 

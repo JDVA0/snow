@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"bufio"
@@ -38,7 +38,8 @@ func (c crnlWriter) Write(p []byte) (int, error) {
 	return len(p), err
 }
 
-const Version = "0.1"
+const LanguageName = "Blizzard"
+const Version = "0.2"
 
 // ANSI color codes for REPL output.
 const (
@@ -55,26 +56,26 @@ const (
 func replColorize(v Val) string {
 	switch v.(type) {
 	case Str:
-		return ansiCyan + SnowRepr(v) + ansiReset
+		return ansiCyan + BlizzardRepr(v) + ansiReset
 	case Int, Float:
-		return ansiYellow + SnowStr(v) + ansiReset
+		return ansiYellow + BlizzardStr(v) + ansiReset
 	case Bool:
-		return ansiMagenta + SnowStr(v) + ansiReset
+		return ansiMagenta + BlizzardStr(v) + ansiReset
 	case NilT:
 		return ansiGray + "nil" + ansiReset
 	case List, *Dict:
-		return ansiBlue + SnowStr(v) + ansiReset
+		return ansiBlue + BlizzardStr(v) + ansiReset
 	default:
-		return ansiGray + SnowStr(v) + ansiReset
+		return ansiGray + BlizzardStr(v) + ansiReset
 	}
 }
 
-// SnowRepr returns a quoted representation of a string, or falls back to SnowStr.
-func SnowRepr(v Val) string {
+// BlizzardRepr returns a quoted representation of a string, or falls back to BlizzardStr.
+func BlizzardRepr(v Val) string {
 	if s, ok := v.(Str); ok {
 		return "\"" + strings.ReplaceAll(string(s), "\"", "\\\"") + "\""
 	}
-	return SnowStr(v)
+	return BlizzardStr(v)
 }
 
 // historyFile returns the path to the REPL history file.
@@ -83,7 +84,7 @@ func historyFile() string {
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(home, ".snow_history")
+	return filepath.Join(home, ".blizz_history")
 }
 
 // loadHistory reads up to maxLines entries from the history file.
@@ -127,7 +128,7 @@ func saveHistory(newEntries []string, maxLines int) {
 // If stdin is a terminal, it uses raw mode with line editing (arrow keys, history).
 // Otherwise, it falls back to basic bufio.Reader.
 func Repl(i *Interp) {
-	fmt.Fprintf(i.out, "snow %s  type help for commands, .exit to quit\n", Version)
+	fmt.Fprintf(i.out, "%s %s  type help for commands, .exit to quit\n", LanguageName, Version)
 
 	fd := int(os.Stdin.Fd())
 	if term.IsTerminal(fd) {
@@ -181,7 +182,7 @@ func replTerminal(i *Interp, fd int) {
 	defer endReplTerm()
 
 	// In raw mode the OS ONLCR flag is disabled, so we must translate \n→\r\n
-	// ourselves for any output that Snow scripts produce (print, cli.info, etc.).
+	// ourselves for any output that Blizzard scripts produce (print, cli.info, etc.).
 	rawOut := crnlWriter{os.Stdout}
 	rawErr := crnlWriter{os.Stderr}
 
@@ -194,7 +195,7 @@ func replTerminal(i *Interp, fd int) {
 	t := term.NewTerminal(struct {
 		io.Reader
 		io.Writer
-	}{os.Stdin, os.Stdout}, "snow> ")
+	}{os.Stdin, os.Stdout}, "blizzard> ")
 
 	// Load and seed history
 	const maxHistory = 500
@@ -206,7 +207,7 @@ func replTerminal(i *Interp, fd int) {
 	// golang.org/x/term Terminal has no exported SetHistory, so we replay
 	// by calling ReadLine on a fake source isn't feasible. We instead track
 	// new entries ourselves and persist on exit.
-	// Handle Tab keypresses: insert 4 spaces (standard Snow block indentation)
+	// Handle Tab keypresses: insert 4 spaces (standard Blizzard block indentation)
 	// or complete common built-ins if completing a word.
 	t.AutoCompleteCallback = func(line string, pos int, key rune) (string, int, bool) {
 		if key == '\t' {
@@ -259,7 +260,7 @@ func replTerminal(i *Interp, fd int) {
 	var buf string
 	for {
 		if buf == "" {
-			t.SetPrompt("snow> ")
+			t.SetPrompt("blizzard> ")
 		} else {
 			t.SetPrompt("...> ")
 		}
@@ -283,7 +284,7 @@ func replTerminal(i *Interp, fd int) {
 				continue
 			}
 			if trimmed == ".help" || trimmed == "help" {
-				fmt.Fprintln(i.out, "Snow REPL commands:")
+				fmt.Fprintln(i.out, "Blizzard REPL commands:")
 				fmt.Fprintln(i.out, "  help / .help    show this help")
 				fmt.Fprintln(i.out, "  .exit / exit    quit the REPL")
 				fmt.Fprintln(i.out, "  .clear / clear  clear the terminal")
@@ -353,7 +354,7 @@ func replFallback(i *Interp) {
 	var buf string
 	for {
 		if buf == "" {
-			fmt.Fprint(i.out, "snow> ")
+			fmt.Fprint(i.out, "blizzard> ")
 		} else {
 			fmt.Fprint(i.out, "...> ")
 		}
@@ -371,7 +372,7 @@ func replFallback(i *Interp) {
 				continue
 			}
 			if trimmed == ".help" || trimmed == "help" {
-				fmt.Fprintln(i.out, "Snow REPL commands:")
+				fmt.Fprintln(i.out, "Blizzard REPL commands:")
 				fmt.Fprintln(i.out, "  help / .help    show this help")
 				fmt.Fprintln(i.out, "  .exit / exit    quit the REPL")
 				fmt.Fprintln(i.out, "  .clear / clear  clear the terminal")
@@ -413,7 +414,7 @@ func replFallback(i *Interp) {
 				v := i.stack[len(i.stack)-1]
 				i.stack = i.stack[:0]
 				if v != Nil {
-					fmt.Fprintln(i.out, SnowStr(v))
+					fmt.Fprintln(i.out, BlizzardStr(v))
 				}
 			}
 		}

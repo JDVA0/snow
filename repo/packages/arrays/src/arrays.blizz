@@ -1,0 +1,43 @@
+# Official Blizzard library: practical list transformations
+
+fn last(values, fallback) {
+    if (len(values) == 0) {
+        return fallback;
+    }
+    return values[-1];
+}
+
+fn take(values, count) {
+    if (count <= 0) {
+        return [];
+    }
+    return values[:count];
+}
+
+fn drop(values, count) {
+    if (count <= 0) {
+        return values;
+    }
+    return values[count:];
+}
+
+fn chunk(values, size) {
+    let result = [];
+    if (size <= 0) {
+        return result;
+    }
+    for start in range(0, len(values), size) {
+        result = append(result, values[start:start + size]);
+    }
+    return result;
+}
+
+fn count(values, expected) {
+    let total = 0;
+    for value in values {
+        if (value == expected) {
+            total += 1;
+        }
+    }
+    return total;
+}

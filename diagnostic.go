@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"errors"
@@ -7,15 +7,54 @@ import (
 	"unicode/utf8"
 )
 
+// DiagnosticCode identifies a stable class of Blizzard diagnostic.
+type DiagnosticCode string
+
+const (
+	CodeSyntax    DiagnosticCode = "B001"
+	CodeUndefined DiagnosticCode = "B002"
+	CodeModule    DiagnosticCode = "B003"
+	CodeType      DiagnosticCode = "B004"
+	CodeRuntime   DiagnosticCode = "B005"
+	CodeWarning   DiagnosticCode = "B000"
+	CodeInternal  DiagnosticCode = "B999"
+)
+
+// CodeFor returns the public code for an error without changing the compact
+// error strings used by embedders and existing scripts.
+func CodeFor(err error) DiagnosticCode {
+	if err == nil {
+		return ""
+	}
+	var at *Errat
+	if errors.As(err, &at) {
+		err = at.Err
+	}
+	message := err.Error()
+	switch {
+	case errors.Is(err, ErrIncomplete), strings.Contains(message, "expected "), strings.Contains(message, "unexpected "), strings.Contains(message, "unterminated"), strings.Contains(message, "unbalanced"):
+		return CodeSyntax
+	case strings.Contains(message, "undefined name"):
+		return CodeUndefined
+	case strings.Contains(message, "module '") && strings.Contains(message, "not found"):
+		return CodeModule
+	case strings.Contains(message, "type mismatch") || strings.Contains(message, "expected ") && strings.Contains(message, "received"):
+		return CodeType
+	default:
+		return CodeRuntime
+	}
+}
+
 // FormatDiagnostic renders an error with a source line and a caret when a
-// positioned Snow error is available. It is intended for command-line tools;
+// positioned Blizzard error is available. It is intended for command-line tools;
 // Error() remains compact for embedders.
 func FormatDiagnostic(err error, source string) string {
 	var at *Errat
 	if !errors.As(err, &at) {
 		return fmt.Sprintf("error: %v", err)
 	}
-	msg := fmt.Sprintf("%s:%d:%d: error: %v", at.File, at.Line, at.Col, at.Err)
+	code := CodeFor(err)
+	msg := fmt.Sprintf("%s:%d:%d: %s: %v", at.File, at.Line, at.Col, code, at.Err)
 	lines := strings.Split(strings.ReplaceAll(source, "\r\n", "\n"), "\n")
 	// A trailing newline produces an empty last element; drop it so line
 	// numbers line up with at.Line.

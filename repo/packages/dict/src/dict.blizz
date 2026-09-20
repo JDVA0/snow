@@ -1,0 +1,45 @@
+# Official Blizzard library: dictionary transformations
+
+fn pick(source, wanted) {
+    let result = {};
+    for key in wanted {
+        if (has(source, key)) {
+            result[key] = source[key];
+        }
+    }
+    return result;
+}
+
+fn omit(source, blocked) {
+    let result = {};
+    for key in keys(source) {
+        if (not key in blocked) {
+            result[key] = source[key];
+        }
+    }
+    return result;
+}
+
+fn merge(left, right) {
+    let result = {};
+    for key in keys(left) {
+        result[key] = left[key];
+    }
+    for key in keys(right) {
+        result[key] = right[key];
+    }
+    return result;
+}
+
+fn defaults(source, fallback) {
+    let result = merge(fallback, source);
+    return result;
+}
+
+fn rename(source, old_key, new_key) {
+    let result = merge(source, {});
+    if (has(result, old_key)) {
+        result[new_key] = result[old_key];
+    }
+    return result;
+}

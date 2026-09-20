@@ -1,0 +1,97 @@
+{
+  "Blizzard Function (pub)": {
+    "prefix": ["fn", "pub fn"],
+    "body": ["pub fn ${1:name}(${2:params}) {", "\t$0", "}"],
+    "description": "Declare a public function."
+  },
+  "Blizzard Function (priv)": {
+    "prefix": ["priv fn"],
+    "body": ["priv fn ${1:name}(${2:params}) {", "\t$0", "}"],
+    "description": "Declare a private (file-local) function."
+  },
+  "Blizzard Function with return type": {
+    "prefix": ["fnt", "fn ->"],
+    "body": ["pub fn ${1:name}(${2:params}) {", "\t$0", "}"],
+    "description": "Declare a function with inferred return type."
+  },
+  "Blizzard const": {
+    "prefix": ["const"],
+    "body": ["const ${1:NAME} = ${2:value}"],
+    "description": "Declare a named constant."
+  },
+  "Blizzard if / elif / else": {
+    "prefix": ["if"],
+    "body": ["if ${1:cond} {", "\t$2", "} elif ${3:cond} {", "\t", "} else {", "\t", "}"],
+    "description": "If / elif / else block."
+  },
+  "Blizzard for loop": {
+    "prefix": ["for"],
+    "body": ["for ${1:i}, ${2:value} in ${3:items} {", "\t$0", "}"],
+    "description": "For (index, value) over an iterable."
+  },
+  "Blizzard for loop with where": {
+    "prefix": ["forw", "for where"],
+    "body": ["for ${1:i}, ${2:value} in ${3:items} where ${4:value > 0} {", "\t$0", "}"],
+    "description": "For loop with a where clause to filter entries."
+  },
+  "Blizzard while loop": {
+    "prefix": ["while"],
+    "body": ["while ${1:cond} {", "\t$0", "}"],
+    "description": "While loop."
+  },
+  "Blizzard with block": {
+    "prefix": ["with"],
+    "body": ["with ${1:resource} as ${2:r} {", "\t$0", "}"],
+    "description": "With block: auto-calls resource.close() at the end."
+  },
+  "Blizzard try / catch / always": {
+    "prefix": ["try"],
+    "body": ["try {", "\t$2", "} catch ${1:e} {", "\tprint(\"error:\", e)", "} always {", "\t", "}"],
+    "description": "Try / catch / always block for error handling."
+  },
+  "Blizzard match": {
+    "prefix": ["match"],
+    "body": ["match ${1:expr} {", "\tcase ${2:0} { $0 }", "\tcase _ { }", "}"],
+    "description": "Match / case statement."
+  },
+  "Blizzard import module": {
+    "prefix": ["import"],
+    "body": ["import ${1:sys} as ${2:m};"],
+    "description": "Import a Blizzard module."
+  },
+  "Blizzard let": {
+    "prefix": ["let"],
+    "body": ["let ${1:name} = ${2:value};"],
+    "description": "Declare a variable with inferred type."
+  },
+  "Blizzard dict literal": {
+    "prefix": ["dict"],
+    "body": ["{", "\t\"${1:key}\": ${2:value},", "\t$0", "}"],
+    "description": "Dictionary literal."
+  },
+  "Blizzard list literal": {
+    "prefix": ["list"],
+    "body": ["[${1:1}, ${2:2}, $0]"],
+    "description": "List literal."
+  },
+  "Blizzard lambda / fn expression": {
+    "prefix": ["=>", "lambda"],
+    "body": ["fn (${1:x}) { ${2:return x * 2} }"],
+    "description": "Anonymous function (lambda)."
+  },
+  "Blizzard print": {
+    "prefix": ["pr", "print"],
+    "body": ["print(${1:\"hello\"})"],
+    "description": "Print a value to stdout."
+  },
+  "Blizzard return": {
+    "prefix": ["ret", "return"],
+    "body": ["return ${1:value}"],
+    "description": "Return from a function."
+  },
+  "Blizzard for-each (value only)": {
+    "prefix": ["forv", "foreach"],
+    "body": ["for ${1:value} in ${2:items} {", "\t$0", "}"],
+    "description": "For-each value only (no index)."
+  }
+}

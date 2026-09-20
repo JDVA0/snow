@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>El Lenguaje de Programación Snow &middot; Edición en español</title>
-<meta name="description" content="El libro completo del lenguaje de programación Snow. Edición en español, con un lector con zoom de página.">
-<link rel="icon" type="image/svg+xml" href="../snowflake.svg">
+<title>El Lenguaje de Programación Blizzard &middot; Edición en español</title>
+<meta name="description" content="El libro completo del lenguaje de programación Blizzard. Edición en español, con un lector con zoom de página.">
+<link rel="icon" type="image/svg+xml" href="../blizzard.svg">
 <link rel="stylesheet" href="../style.css">
 </head>
 <body data-lang="es"
-      data-book="El Lenguaje de Programación Snow"
-      data-short="Snow"
+    data-book="El Lenguaje de Programación Blizzard"
+    data-short="Blizzard"
       data-home="../"
       data-other-label="Read in English"
       data-other-url="../en/">
@@ -20,12 +20,12 @@
   <!-- ============================ PORTADA ============================ -->
   <div class="cover">
     <div class="title-block">
-      <img class="mark" src="../snowflake.svg" width="104" height="104" alt="Copo de nieve">
-      <div class="engine">El Lenguaje de Programación Snow &middot; Edición en español</div>
-      <h1>Snow: la referencia <em>completa</em></h1>
+      <img class="mark" src="../blizzard.svg" width="104" height="104" alt="Copo de nieve">
+    <div class="engine">El Lenguaje de Programación Blizzard &middot; Edición en español</div>
+    <h1>Blizzard: la referencia <em>completa</em></h1>
       <hr class="title-rule">
       <p class="title-sub">Un pequeño lenguaje interpretado para scripts, herramientas de línea de comandos, APIs web y automatización &mdash; cada valor, operador, función incorporada, módulo y herramienta, explicado en detalle.</p>
-      <div class="title-version">Versión 0.1</div>
+    <div class="title-version">Versión 0.2</div>
     </div>
     <div class="title-press">Código abierto bajo la licencia MIT &middot; Escrito en Go por <code>JDVA0</code></div>
   </div>
@@ -69,11 +69,11 @@
       <h2>Por qué un lenguaje pequeño</h2>
     </header>
 
-    <p class="lead">Snow existe para construir programas útiles con menos ceremonias. Es un lenguaje pequeño e interpretado: booleanos, números, cadenas, listas, diccionarios, funciones y módulos son casi todo lo que tiene, y casi todo el mundo exterior se alcanza a través de un módulo que cargas con <code>using</code>.</p>
+    <p class="lead">Blizzard existe para construir programas útiles con menos ceremonias. Es un lenguaje pequeño e interpretado: booleanos, números, cadenas, listas, diccionarios, funciones y módulos son casi todo lo que tiene, y casi todo el mundo exterior se alcanza a través de un módulo que cargas con <code>using</code>.</p>
 
     <p>Este libro explica todo el lenguaje, de forma completa y explícita. Cada valor, cada operador, cada función incorporada, cada módulo y cada herramienta se describe con su comportamiento exacto y al menos un ejemplo verificable. Cuando una regla es sutil &mdash; la división que siempre devuelve un flotante, un respaldo que solo actúa sobre <code>nil</code>, condiciones que deben ser booleanos reales &mdash; se dice en voz alta en lugar de dejarlo a la intuición.</p>
 
-    <p>La mejor manera de leerlo es con el intérprete abierto. Todos los listados de este libro están pensados para ejecutarse. Escríbelos, ejecútalos, cámbialos, rómpelos y lee lo que dice el error: los errores de Snow señalan la línea, la columna y la construcción exacta.</p>
+    <p>La mejor manera de leerlo es con el intérprete abierto. Todos los listados de este libro están pensados para ejecutarse. Escríbelos, ejecútalos, cámbialos, rómpelos y lee lo que dice el error: los errores de Blizzard señalan la línea, la columna y la construcción exacta.</p>
   </section>
 
   <!-- ============================ CAPÍTULO 1 ============================ -->
@@ -83,32 +83,54 @@
       <h2>Empieza aquí</h2>
     </header>
 
-    <p class="lead">Un programa de Snow es un archivo de texto que se lee de arriba a abajo. Las sentencias asignan valores, llaman funciones, importan módulos, definen funciones o controlan la ejecución. Los bloques empiezan después de dos puntos y usan cuatro espacios de sangría; no hay llaves ni palabras clave de cierre, así que la forma del archivo es la forma del programa.</p>
+    <p class="lead">Un programa de Blizzard es un archivo de texto que se lee de arriba a abajo. Las sentencias asignan valores, llaman funciones, importan módulos, definen funciones o controlan la ejecución. Los bloques modernos usan llaves; la forma indentada anterior sigue aceptándose durante la migración.</p>
+
+    <div class="note"><b>Aviso experimental.</b> Blizzard es un proyecto de investigación asistido por IA. La sintaxis, las API, los formatos de paquetes y la estructura interna pueden cambiar bruscamente entre versiones. Fija las versiones y no trates 0.2 como un contrato de estabilidad para producción.</div>
+        <p><b>Migración de Snow a Blizzard:</b> Snow 0.1 usaba archivos
+            <code>.snow</code>, <code>snowman</code> y <code>snow.toml</code>. Blizzard
+            0.2 usa <code>.blizz</code>, <code>blizzard</code> y
+            <code>blizzard.toml</code>. El código nuevo usa bloques con llaves,
+            <code>let</code> e <code>import</code>.</p>
+
+    <div class="note">
+      <b>Sintaxis Blizzard 0.2.</b> Los programas nuevos usan <code>let</code>,
+      <code>import</code> y bloques delimitados por llaves. Los saltos de línea
+      separan sentencias dentro de un bloque; los puntos y coma siguen disponibles
+      para varias sentencias en una línea.
+      <pre><code>import json
+let name = "Ada"
+fn greet(value) {
+    if value != "" {
+        print(json.stringify(value))
+    }
+}
+greet(name)</code></pre>
+    </div>
 
     <h3><span class="hnum">1.1</span>Tu primer programa</h3>
-    <p>Guarda este archivo como <code>hello.snow</code>:</p>
+    <p>Guarda este archivo como <code>hello.blizz</code>:</p>
 
     <figure class="listing">
-      <figcaption>Listado 1 &middot; Hola, Snow</figcaption>
-      <pre><code>print("Hello from Snow")
-name = "snow"
+      <figcaption>Listado 1 &middot; Hola, Blizzard</figcaption>
+      <pre><code>print("Hello from Blizzard")
+name = "blizzard"
 print("Running: " + name)</code></pre>
     </figure>
 
-    <p>Ejecútalo con el comando <code>snowman</code>:</p>
+    <p>Ejecútalo con el comando <code>blizzard</code>:</p>
 
-    <pre><code>snowman hello.snow</code></pre>
+    <pre><code>blizzard hello.blizz</code></pre>
 
-    <p><code>print</code> escribe sus argumentos en la terminal, separados por un espacio y seguidos de un salto de línea. La segunda línea asigna la cadena <code>"snow"</code> al nombre <code>name</code>. La tercera línea concatena dos cadenas con <code>+</code> e imprime <code>Running: snow</code>.</p>
+    <p><code>print</code> escribe sus argumentos en la terminal, separados por un espacio y seguidos de un salto de línea. La segunda línea asigna la cadena <code>"blizzard"</code> al nombre <code>name</code>. La tercera línea concatena dos cadenas con <code>+</code> e imprime <code>Running: blizzard</code>.</p>
 
     <h3><span class="hnum">1.2</span>Experimentar en el REPL</h3>
     <p>El REPL lee una sentencia cada vez, la evalúa e imprime el resultado.</p>
 
-    <pre><code>snowman repl</code></pre>
+    <pre><code>blizzard repl</code></pre>
 
-    <p>Dentro verás el prompt <code>snow&gt;</code>. Escribe <code>2 + 2</code>, pulsa Enter y responderá <code>4</code> con un tinte amarillo. Un encabezado de bloque, como el de abajo, mantiene el prompt abierto hasta que termines el bloque con una línea en blanco; la sangría se añade por ti.</p>
+    <p>Dentro verás el prompt <code>blizzard&gt;</code>. Escribe <code>2 + 2</code>, pulsa Enter y responderá <code>4</code> con un tinte amarillo. Un encabezado de bloque, como el de abajo, mantiene el prompt abierto hasta que termines el bloque con una línea en blanco; la sangría se añade por ti.</p>
 
-    <pre><code>snow&gt; pub fn cal(a, b):
+    <pre><code>blizzard&gt; pub fn cal(a, b):
 ...&gt;     for i in range(a, b):
 ...&gt;         print(i * 2)
 ...&gt;
@@ -117,24 +139,24 @@ print("Running: " + name)</code></pre>
 
     <p>La línea en blanco cierra el bloque y el cuerpo de la función se ejecuta. Para un experimento rápido sin guardar un archivo, también puedes evaluar una cadena directamente:</p>
 
-    <pre><code>snowman eval 'print("hi")'
-snowman -e 'print(6 * 7)'</code></pre>
+    <pre><code>blizzard eval 'print("hi")'
+blizzard -e 'print(6 * 7)'</code></pre>
 
     <h3><span class="hnum">1.3</span>Leer los errores</h3>
     <p>Los errores son precisos. Un error de análisis muestra el archivo, la línea, la columna y un caret bajo el carácter que lo provoca:</p>
 
-    <pre><code>examples/test.snow:2:1: error: expected an indented block after the 'fn' statement
+    <pre><code>examples/test.blizz:2:1: error: expected an indented block after the 'fn' statement
     fn add(a, b):
     ^</code></pre>
 
     <p>El mensaje nombra el archivo, la línea y la columna después del número de línea, te dice exactamente lo que el analizador esperaba e imprime la línea culpable con un caret en la posición del error. Los errores en tiempo de ejecución llevan el archivo, la línea, la columna y &mdash; si no se capturan &mdash; un rastro de pila.</p>
 
     <h3><span class="hnum">1.4</span>La estructura de un proyecto, de un vistazo</h3>
-    <p>Para algo más grande que un archivo suelto, sigue la convención: el código fuente en <code>src/</code>, las pruebas en archivos cuyo nombre termine en <code>_test.snow</code> y la configuración en <code>snow.toml</code>. Ejecuta un proyecto completo con <code>snowman run</code>, que elige <code>src/main.snow</code> automáticamente.</p>
+    <p>Para algo más grande que un archivo suelto, sigue la convención: el código fuente en <code>src/</code>, las pruebas en archivos cuyo nombre termine en <code>_test.blizz</code> y la configuración en <code>blizzard.toml</code>. Ejecuta un proyecto completo con <code>blizzard run</code>, que elige <code>src/main.blizz</code> automáticamente.</p>
 
-    <pre><code>snowman init my_app
+    <pre><code>blizzard init my_app
 cd my_app
-snowman run</code></pre>
+blizzard run</code></pre>
 
     <p>Cada pieza se explica en profundidad en el capítulo 14.</p>
   </section>
@@ -146,18 +168,18 @@ snowman run</code></pre>
       <h2>El modelo del lenguaje</h2>
     </header>
 
-    <p class="lead">Snow sigue un breve pipeline de ejecución: tokenizar, analizar, comprobar, compilar, interpretar. Cada etapa tiene exactamente un trabajo y cada fallo lleva una ubicación precisa. Entender este pipeline te ayudará a interpretar los errores que veas.</p>
+    <p class="lead">Blizzard sigue un breve pipeline de ejecución: tokenizar, analizar, comprobar, compilar, interpretar. Cada etapa tiene exactamente un trabajo y cada fallo lleva una ubicación precisa. Entender este pipeline te ayudará a interpretar los errores que veas.</p>
 
     <ul>
       <li><b>Tokenizador.</b> Convierte el texto fuente en tokens. La sangría, los números, las cadenas, las f-strings y los operadores son su responsabilidad.</li>
       <li><b>Analizador.</b> Construye el árbol del programa. Sus errores significan que el texto no pudo convertirse en un programa en absoluto &mdash; estos son los errores más comunes para principiantes.</li>
-      <li><b>Comprobador.</b> Inspecciona nombres, tipos, módulos y código inalcanzable sin ejecutar el programa. Es el análisis estático que hay detrás de <code>snowman check</code> y de los diagnósticos del editor.</li>
+      <li><b>Comprobador.</b> Inspecciona nombres, tipos, módulos y código inalcanzable sin ejecutar el programa. Es el análisis estático que hay detrás de <code>blizzard check</code> y de los diagnósticos del editor.</li>
       <li><b>Compilador.</b> Emite operaciones para una máquina virtual.</li>
       <li><b>Intérprete.</b> Ejecuta las operaciones. Los fallos en tiempo de ejecución se informan con la ubicación en el código y, si no se capturan, llevan un rastro de pila.</li>
     </ul>
 
     <h3><span class="hnum">2.1</span>Dinámico por defecto</h3>
-    <p>Los nombres no necesitan anotaciones. La misma variable puede contener un entero y luego una cadena. Los tipos no son decoraciones opcionales de un contrato fijo: son <em>graduales</em>. Puedes añadir anotaciones en las fronteras donde un contrato tiene valor, y Snow las comprueba en tiempo de ejecución.</p>
+    <p>Los nombres no necesitan anotaciones. La misma variable puede contener un entero y luego una cadena. Los tipos no son decoraciones opcionales de un contrato fijo: son <em>graduales</em>. Puedes añadir anotaciones en las fronteras donde un contrato tiene valor, y Blizzard las comprueba en tiempo de ejecución.</p>
 
     <pre><code>value = 10
 value = "now a string"</code></pre>
@@ -169,7 +191,7 @@ value = "now a string"</code></pre>
     <p>El acceso a la red, los archivos, los procesos y el entorno viven en módulos (<code>http</code>, <code>fs</code>, <code>sys</code>). Un programa que toca el mundo exterior tiene que decirlo. Esto mantiene los efectos secundarios visibles y hace los scripts predecibles.</p>
 
     <h3><span class="hnum">2.4</span>Análisis estático sin ejecutar</h3>
-    <p>Como el comprobador nunca ejecuta el código, <code>snowman check file.snow</code> informa de nombres indefinidos, variables sin usar, código inalcanzable, módulos desconocidos y desajustes de tipo de forma instantánea y segura &mdash; sin llamadas de red ni cambios de archivos.</p>
+    <p>Como el comprobador nunca ejecuta el código, <code>blizzard check file.blizz</code> informa de nombres indefinidos, variables sin usar, código inalcanzable, módulos desconocidos y desajustes de tipo de forma instantánea y segura &mdash; sin llamadas de red ni cambios de archivos.</p>
   </section>
 
   <!-- ============================ CAPÍTULO 3 ============================ -->
@@ -179,7 +201,7 @@ value = "now a string"</code></pre>
       <h2>El texto fuente</h2>
     </header>
 
-    <p class="lead">Este capítulo cubre la materia prima de un programa de Snow: comentarios, nombres, palabras clave, sangría, números y las tres maneras de escribir una cadena.</p>
+    <p class="lead">Este capítulo cubre la materia prima de un programa de Blizzard: comentarios, nombres, palabras clave, sangría, números y las tres maneras de escribir una cadena.</p>
 
     <h3><span class="hnum">3.1</span>Comentarios</h3>
     <p>Un comentario empieza con <code>#</code> y llega hasta el final de la línea. Los comentarios se ignoran y pueden aparecer después del código.</p>
@@ -234,7 +256,7 @@ c = "line one\ntab\there"</code></pre>
     <p>Las cadenas entre triples comillas pueden ocupar varias líneas y conservan sus saltos de línea.</p>
 
     <pre><code>poem = """
-On the snow
+On the blizzard
 a single line
 of code.
 """</code></pre>
@@ -258,7 +280,7 @@ print(f"Curly: {{ {user} }}")</code></pre>
       <h2>Valores</h2>
     </header>
 
-    <p class="lead">Todo en Snow es un valor. Hay diez clases: <code>nil</code>, booleanos, enteros, flotantes, cadenas, listas, diccionarios, funciones, módulos y valores nativos. Este capítulo define cada uno con precisión.</p>
+    <p class="lead">Todo en Blizzard es un valor. Hay diez clases: <code>nil</code>, booleanos, enteros, flotantes, cadenas, listas, diccionarios, funciones, módulos y valores nativos. Este capítulo define cada uno con precisión.</p>
 
     <h3><span class="hnum">4.1</span>nil</h3>
     <p><code>nil</code> representa la ausencia. No es un error por sí mismo: las funciones pueden devolverlo, y los operadores nullish lo tratan de forma especial. Una variable de entorno sin definir, una clave de diccionario ausente bajo acceso seguro y un <code>first</code> con resultado vacío producen <code>nil</code>.</p>
@@ -280,7 +302,7 @@ print(s[-1])     # o
 print(s[1:4])    # ell
 print(len(s))    # 5</code></pre>
 
-    <p>Los métodos de cadena que conoces de otros lenguajes son aquí funciones normales: usa <code>upper(s)</code>, <code>lower(s)</code> y <code>trim(s)</code>, no <code>s.upper()</code>.</p>
+    <p>Los ayudantes de cadena se pueden llamar como funciones o métodos: <code>upper(s)</code> y <code>s.upper()</code> son equivalentes. La forma de método también funciona con <code>lower</code>, <code>trim</code>, <code>split</code>, <code>join</code>, <code>replace</code>, <code>contains</code> y los demás ayudantes de cadena.</p>
 
     <h3><span class="hnum">4.4</span>Listas</h3>
     <p>Las listas guardan cualquier valor en orden. Son mutables: puedes asignar a través de un índice. La indexación admite negativos y cortes, igual que las cadenas.</p>
@@ -324,7 +346,7 @@ print(type(nil))      # nil</code></pre>
 
     <pre><code>print(["a", "b"])              # [a, b]
 print(keys({a: 1}))            # [a]
-print({"name": "snow", "n": 2})# {name: snow, n: 2}</code></pre>
+print({"name": "blizzard", "n": 2})# {name: blizzard, n: 2}</code></pre>
 
     <p>Los flotantes se imprimen en la forma más corta que conserva el valor: <code>3.5</code>, <code>0.2</code>, <code>2.5</code>.</p>
   </section>
@@ -336,7 +358,7 @@ print({"name": "snow", "n": 2})# {name: snow, n: 2}</code></pre>
       <h2>Operadores</h2>
     </header>
 
-    <p class="lead">Los operadores combinan valores en expresiones. Snow usa palabras para la lógica (<code>and</code>, <code>or</code>, <code>not</code>, <code>in</code>) y símbolos para la aritmética, las comparaciones y el manejo de nullish. Este capítulo es la especificación precisa.</p>
+    <p class="lead">Los operadores combinan valores en expresiones. Blizzard usa palabras para la lógica (<code>and</code>, <code>or</code>, <code>not</code>, <code>in</code>) y símbolos para la aritmética, las comparaciones y el manejo de nullish. Este capítulo es la especificación precisa.</p>
 
     <h3><span class="hnum">5.1</span>Precedencia, del más laxo al más estricto</h3>
     <table>
@@ -372,7 +394,7 @@ print(2 ** 0.5)   # 1.4142135623730951</code></pre>
 
     <p><code>+</code> concatena cadenas, pega listas y fusiona diccionarios; <code>*</code> repite cadenas un número no negativo de veces.</p>
 
-    <pre><code>print("snow" + "fall")   # snowfall
+    <pre><code>print("blizzard" + "fall")   # blizzardfall
 print("ab" * 3)          # ababab
 print([1, 2] + [3])      # [1, 2, 3]</code></pre>
 
@@ -388,7 +410,7 @@ print("abc" &lt; "abd")      # true</code></pre>
     <h3><span class="hnum">5.4</span>Lógica y pertenencia</h3>
     <pre><code>print(true and false)     # false
 print(not false)          # true
-print("ow" in "snow")     # true  (subcadena)
+print("ow" in "blizzard")     # true  (subcadena)
 print(3 in [1, 2, 3])     # true  (pertenencia en lista)
 print("x" not in {a: 1})  # true  (prueba de clave en diccionario)
 print(false or 2 == 2)    # true</code></pre>
@@ -442,11 +464,11 @@ print(n)    # 34</code></pre>
       <h2>Asignaciones y desestructuración</h2>
     </header>
 
-    <p class="lead">La asignación vincula un valor con un nombre. Snow ofrece asignación simple, asignación múltiple, asignación con tipo, constantes, desestructuración y asignación a través de atributos o índices. Cada una tiene una forma específica.</p>
+    <p class="lead">La asignación vincula un valor con un nombre. Blizzard ofrece asignación simple, asignación múltiple, asignación con tipo, constantes, desestructuración y asignación a través de atributos o índices. Cada una tiene una forma específica.</p>
 
     <h3><span class="hnum">6.1</span>Asignar un valor</h3>
     <pre><code>count = 1
-name = "snow"
+name = "blizzard"
 </code></pre>
 
     <h3><span class="hnum">6.2</span>Asignar varios nombres a la vez</h3>
@@ -458,7 +480,7 @@ print(a, b)      # 1 2
 apple, banana = banana, apple   # intercambia en un solo paso</code></pre>
 
     <h3><span class="hnum">6.3</span>Asignación con tipo</h3>
-    <p>Un nombre puede llevar un tipo que Snow comprueba en tiempo de ejecución: <code>name: type = value</code>. Los tipos admitidos son <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>, <code>dict</code>, <code>list</code>, <code>nil</code>, <code>any</code>, uniones como <code>int|float</code> y listas con tipo como <code>str[]</code>.</p>
+    <p>Un nombre puede llevar un tipo que Blizzard comprueba en tiempo de ejecución: <code>name: type = value</code>. Los tipos admitidos son <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>, <code>dict</code>, <code>list</code>, <code>nil</code>, <code>any</code>, uniones como <code>int|float</code> y listas con tipo como <code>str[]</code>.</p>
 
     <pre><code>age: int = 30
 names: str[] = ["Ada", "Linus"]
@@ -618,7 +640,7 @@ print(call(add3, 1, 2, 3))   # 6</code></pre>
       <h2>Control de flujo</h2>
     </header>
 
-    <p class="lead">El control de flujo dobla el orden de ejecución. Snow elige entre ramas con <code>if</code> y <code>match</code>, repite con <code>for</code> y <code>while</code>, y deja que <code>break</code> y <code>continue</code> dirijan los bucles con precisión. Hay una regla que merece decirse dos veces: <b>las condiciones deben ser booleanos reales</b> &mdash; varios operadores exigen <code>true</code> o <code>false</code>, no valores que "sean como verdaderos".</p>
+    <p class="lead">El control de flujo dobla el orden de ejecución. Blizzard elige entre ramas con <code>if</code> y <code>match</code>, repite con <code>for</code> y <code>while</code>, y deja que <code>break</code> y <code>continue</code> dirijan los bucles con precisión. Hay una regla que merece decirse dos veces: <b>las condiciones deben ser booleanos reales</b> &mdash; varios operadores exigen <code>true</code> o <code>false</code>, no valores que "sean como verdaderos".</p>
 
     <h3><span class="hnum">8.1</span>if, elif y else</h3>
     <pre><code>score = 85
@@ -658,7 +680,7 @@ match command:
 for key in {"a": 1}:
     print(key)        # a
 
-for ch in "snow":
+for ch in "blizzard":
     print(ch)         # s n o w (cada uno en su línea)
 
 for i in range(3):
@@ -712,12 +734,12 @@ while n &lt; 6:
       <h2>Errores y limpieza</h2>
     </header>
 
-    <p class="lead">Snow trata el fallo como un valor que puede capturarse. Pides un fallo con <code>fail</code>, acotas el riesgo con <code>try</code>, recibes el fallo con <code>catch</code> y garantizas la limpieza con <code>always</code>. Como los fallos son valores, la recuperación es código normal y no necesita ninguna jerarquía de clases.</p>
+    <p class="lead">Blizzard trata el fallo como un valor que puede capturarse. Pides un fallo con <code>fail</code>, acotas el riesgo con <code>try</code>, recibes el fallo con <code>catch</code> y garantizas la limpieza con <code>always</code>. Como los fallos son valores, la recuperación es código normal y no necesita ninguna jerarquía de clases.</p>
 
     <h3><span class="hnum">9.1</span>Tres tipos de errores</h3>
     <ul>
       <li><b>Errores del analizador</b> significan que el texto no pudo convertirse en un programa. Llevan archivo, línea, columna y un caret.</li>
-      <li><b>Diagnósticos del comprobador</b> llegan de <code>snowman check</code> y del editor: nombres indefinidos, variables sin usar, código inalcanzable, módulos desconocidos, desajustes de tipo. No se ejecuta nada.</li>
+      <li><b>Diagnósticos del comprobador</b> llegan de <code>blizzard check</code> y del editor: nombres indefinidos, variables sin usar, código inalcanzable, módulos desconocidos, desajustes de tipo. No se ejecuta nada.</li>
       <li><b>Errores en tiempo de ejecución</b> ocurren mientras el programa corre y llevan el archivo, la línea, la columna y &mdash; si no se capturan &mdash; un rastro de pila.</li>
     </ul>
 
@@ -782,7 +804,7 @@ assert([1, 2], [1, 2])     # la igualdad profunda pasa
       <h2>Módulos e importaciones</h2>
     </header>
 
-    <p class="lead">El código se organiza en módulos: espacios de nombres cuyos miembros son valores normales a los que se llega con un punto. Este capítulo explica las dos puertas a un módulo &mdash; <code>using</code> para la biblioteca estándar e <code>import</code> para archivos de Snow &mdash; y las reglas de visibilidad que controlan <code>pub</code> y <code>priv</code>.</p>
+    <p class="lead">El código se organiza en módulos: espacios de nombres cuyos miembros son valores normales a los que se llega con un punto. Este capítulo explica las dos puertas a un módulo &mdash; <code>using</code> para la biblioteca estándar e <code>import</code> para archivos de Blizzard &mdash; y las reglas de visibilidad que controlan <code>pub</code> y <code>priv</code>.</p>
 
     <h3><span class="hnum">10.1</span>using: la biblioteca estándar</h3>
     <pre><code>using http
@@ -792,16 +814,16 @@ using json
 response = http.get("https://example.com")
 print(response.status)</code></pre>
 
-    <p>Cada <code>using</code> carga un módulo estándar en un nombre con el nombre del módulo. La forma larga <code>using snow.http</code> se acepta, y se permite un alias:</p>
+    <p>Cada <code>using</code> carga un módulo estándar en un nombre con el nombre del módulo. La forma larga <code>using blizzard.http</code> se acepta, y se permite un alias:</p>
 
-    <pre><code>using snow.http as web
+    <pre><code>using blizzard.http as web
 print(web.get("https://example.com").status)</code></pre>
 
     <h3><span class="hnum">10.2</span>import: tus propios archivos</h3>
     <p>Las importaciones relativas se resuelven sustituyendo los puntos por barras y vinculando el último segmento (o tu alias):</p>
 
     <pre><code>import ./formatters as fmt
-print(fmt.title("snow"))
+print(fmt.title("blizzard"))
 
 import ./math_utils
 print(math_utils.max3(1, 5, 3))</code></pre>
@@ -809,17 +831,17 @@ print(math_utils.max3(1, 5, 3))</code></pre>
     <p>Los directorios superiores también están disponibles: <code>import ../shared.validators</code>. Los ciclos de importación se detectan y se informan con <code>import cycle detected</code> en lugar de quedarse dando vueltas para siempre.</p>
 
     <h3><span class="hnum">10.3</span>Importaciones de módulos de proyecto</h3>
-    <p>Dentro de un proyecto con un <code>snow.toml</code>, los módulos se importan por el nombre del paquete y el archivo:</p>
+    <p>Dentro de un proyecto con un <code>blizzard.toml</code>, los módulos se importan por el nombre del paquete y el archivo:</p>
 
     <pre><code>import demo.math
 print(math.twice(21))</code></pre>
 
-    <p>La dependencia <code>dep.demo = "packages/demo"</code> en <code>snow.toml</code> apunta a la ubicación del paquete (ver el capítulo 14).</p>
+    <p>La dependencia <code>dep.demo = "packages/demo"</code> en <code>blizzard.toml</code> apunta a la ubicación del paquete (ver el capítulo 14).</p>
 
     <h3><span class="hnum">10.4</span>pub y priv</h3>
     <p>Todo lo que está en el nivel superior de un archivo es público por defecto. <code>priv</code> oculta un nombre de las exportaciones del archivo; <code>pub</code> hace explícita la intención. Un prefijo <code>_</code> no oculta nada &mdash; solo <code>priv</code> lo hace.</p>
 
-    <pre><code># lib/values.snow
+    <pre><code># lib/values.blizz
 pub fn max3(a, b, c):
     return max(a, b, c)
 
@@ -828,7 +850,7 @@ priv fn helper(x):
 
 pub top_value = 7</code></pre>
 
-    <pre><code># main.snow
+    <pre><code># main.blizz
 import ./lib/values as v
 print(v.max3(1, 5, 3))   # 5
 # v.helper(2)  ->  attribute not found: helper</code></pre>
@@ -844,7 +866,7 @@ print(v.max3(1, 5, 3))   # 5
       <h2>Funciones incorporadas</h2>
     </header>
 
-    <p class="lead">Snow trae 52 funciones incorporadas, siempre disponibles, sin necesitar <code>using</code>. Se agrupan en unas pocas familias: salida y entrada, conversiones, matemáticas, cadenas, colecciones, razonamiento sobre colecciones, seguridad y control de procesos. Cada una se especifica abajo con un ejemplo verificable.</p>
+    <p class="lead">Blizzard trae 52 funciones incorporadas, siempre disponibles, sin necesitar <code>using</code>. Se agrupan en unas pocas familias: salida y entrada, conversiones, matemáticas, cadenas, colecciones, razonamiento sobre colecciones, seguridad y control de procesos. Cada una se especifica abajo con un ejemplo verificable.</p>
 
     <h3><span class="hnum">11.1</span>Salida y entrada</h3>
     <pre><code>print("a", "b", 1)   # a b 1     (espacios sencillos, un salto de línea)
@@ -897,17 +919,17 @@ print(range(5))       # [0, 1, 2, 3, 4]</code></pre>
     </ul>
 
     <h3><span class="hnum">11.4</span>Cadenas</h3>
-    <pre><code>s = "  Snow  "
+    <pre><code>s = "  Blizzard  "
 print(len("héllo"))       # 5      (caracteres, no bytes)
-print(upper("snow"))      # SNOW
-print(lower("SNOW"))      # snow
-print(trim(s))            # Snow
+print(upper("blizzard"))      # BLIZZARD
+print(lower("BLIZZARD"))      # blizzard
+print(trim(s))            # Blizzard
 print(split("a,b,c", ","))# [a, b, c]
 print(join(["a", "b"], "-"))   # a-b
 print(replace("aaa", "a", "b"))# bbb    (todas las apariciones)
-print(contains("snow", "ow"))   # true
-print(first("snow"))      # s
-print(last("snow"))       # w</code></pre>
+print(contains("blizzard", "ow"))   # true
+print(first("blizzard"))      # s
+print(last("blizzard"))       # w</code></pre>
 
     <ul>
       <li><code>upper</code>, <code>lower</code>, <code>trim</code> &mdash; mayúsculas, minúsculas y espacios.</li>
@@ -927,7 +949,7 @@ print(get(d, "zz"))   # nil        la ausencia es nil, no un error</code></pre>
     <h3><span class="hnum">11.6</span>Listas</h3>
     <pre><code>items = [10, 20, 30]
 print(append(items, 40)) # [10, 20, 30, 40]   (items no cambia)
-print(reverse("snow"))   # wons
+print(reverse("blizzard"))   # wons
 print(sort([3, 1, 2]))   # [1, 2, 3]
 print(first([10, 20]))   # 10
 print(last([10, 20]))    # 20
@@ -939,7 +961,7 @@ print(zip([1, 2], ["a", "b"])) # [[1, a], [2, b]]</code></pre>
     <ul>
       <li><code>append(lista, v)</code> &mdash; devuelve una lista <em>nueva</em>; la original no se toca. (Las listas son mutables, pero append no muta.)</li>
       <li><code>reverse(x)</code> &mdash; lista o cadena, respeta caracteres.</li>
-      <li><code>sort(lista)</code> &mdash; ordenación estable según la comparación de Snow.</li>
+      <li><code>sort(lista)</code> &mdash; ordenación estable según la comparación de Blizzard.</li>
       <li><code>first</code> / <code>last</code> &mdash; funcionan sobre listas y cadenas; devuelven <code>nil</code> cuando están vacías.</li>
       <li><code>take</code> / <code>drop</code> &mdash; los límites se ajustan (los negativos se vuelven cero).</li>
       <li><code>enumerate(lista)</code> &mdash; pares de <code>[índice, valor]</code>.</li>
@@ -966,7 +988,7 @@ print(exit(0))       # detiene el proceso</code></pre>
 
     <ul>
       <li><code>json_encode(v)</code> &mdash; texto JSON compacto.</li>
-      <li><code>json_decode(s)</code> &mdash; texto JSON convertido en valores de Snow.</li>
+      <li><code>json_decode(s)</code> &mdash; texto JSON convertido en valores de Blizzard.</li>
       <li><code>env(name)</code> &mdash; cadena de entorno o <code>nil</code>.</li>
       <li><code>args()</code> &mdash; argumentos de línea de comandos.</li>
       <li><code>now()</code> &mdash; tiempo Unix actual como flotante.</li>
@@ -998,15 +1020,15 @@ catch e:
     <h3><span class="hnum">12.1</span>json &mdash; intercambio de datos</h3>
     <pre><code>using json
 
-json.parse('{"name": "snow", "count": 10, "active": true}')
-obj = json.parse('{"name": "snow"}')
-print(obj.name)             # snow
+json.parse('{"name": "blizzard", "count": 10, "active": true}')
+obj = json.parse('{"name": "blizzard"}')
+print(obj.name)             # blizzard
 print(json.valid("[1,2]"))  # true
 print(json.valid("nope"))   # false
 print(json.stringify({a: 1, b: [2]})) # {"a":1,"b":[2]}</code></pre>
 
     <ul>
-      <li><code>parse(str)</code> &mdash; decodifica JSON en valores de Snow.</li>
+      <li><code>parse(str)</code> &mdash; decodifica JSON en valores de Blizzard.</li>
       <li><code>stringify(valor, indent?)</code> &mdash; codifica de vuelta a texto.</li>
       <li><code>valid(str)</code> &mdash; comprobación JSON booleana.</li>
     </ul>
@@ -1015,7 +1037,7 @@ print(json.stringify({a: 1, b: [2]})) # {"a":1,"b":[2]}</code></pre>
     <pre><code>using http
 
 r = http.post("https://api.example.com/items",
-              {name: "snow"},
+              {name: "blizzard"},
               {Authorization: "Bearer xyz"})
 print(r.status)          # código de estado entero
 print(r.ok)              # true para 2xx
@@ -1043,7 +1065,7 @@ api.post("/echo", fn(req):
     return api.json({got: req.json}, 201)
 )
 
-api.serve(8080)   # bloquea; imprime "snow listening on http://0.0.0.0:8080"</code></pre>
+api.serve(8080)   # bloquea; imprime "blizzard listening on http://0.0.0.0:8080"</code></pre>
 
     <ul>
       <li><code>route(method, path, handler)</code>, más <code>get</code>/<code>post</code>/<code>put</code>/<code>delete</code>/<code>patch</code>/<code>all</code>.</li>
@@ -1074,11 +1096,11 @@ fs.remove(f)</code></pre>
     <h3><span class="hnum">12.5</span>sys &mdash; procesos y entorno</h3>
     <pre><code>using sys
 
-res = sys.sh("echo hello-snow")
-print(trim(res.stdout), res.ok)   # hello-snow true
+res = sys.sh("echo hello-blizzard")
+print(trim(res.stdout), res.ok)   # hello-blizzard true
 
-sys.set_env("SNOW_VAR", "snow_val_123")
-print(sys.env("SNOW_VAR"))   # snow_val_123
+sys.set_env("BLIZZARD_VAR", "blizzard_val_123")
+print(sys.env("BLIZZARD_VAR"))   # blizzard_val_123
 print(sys.platform)          # linux (ejemplo)
 print(sys.pid)               # identificador del proceso
 </code></pre>
@@ -1095,15 +1117,15 @@ print(sys.pid)               # identificador del proceso
     <h3><span class="hnum">12.6</span>env &mdash; configuración</h3>
     <pre><code>using env
 
-env.set("SNOW_TEST_NUM", "42")
-print(env.get("SNOW_TEST_NUM"))        # 42
-print(env.int("SNOW_TEST_NUM"))        # 42       (coerción a int)
+env.set("BLIZZARD_TEST_NUM", "42")
+print(env.get("BLIZZARD_TEST_NUM"))        # 42
+print(env.int("BLIZZARD_TEST_NUM"))        # 42       (coerción a int)
 print(env.float("MISSING", 1.5))       # 1.5      (por defecto)
 print(env.bool("MISSING", false))      # false
-print(env.has("SNOW_TEST_NUM"))        # true
+print(env.has("BLIZZARD_TEST_NUM"))        # true
 print(env.load(".env"))                # carga líneas KEY=VALUE</code></pre>
 
-    <p><code>env.get(name, default?)</code>, <code>set</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>has</code>, <code>all()</code>, <code>load(path?)</code>. La función <code>load</code> analiza archivos <code>KEY=VALUE</code> (y tolera <code>export&nbsp;KEY=VALUE</code> y valores entre comillas). Es lo que usa <code>snowman run --env .env</code>.</p>
+    <p><code>env.get(name, default?)</code>, <code>set</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>has</code>, <code>all()</code>, <code>load(path?)</code>. La función <code>load</code> analiza archivos <code>KEY=VALUE</code> (y tolera <code>export&nbsp;KEY=VALUE</code> y valores entre comillas). Es lo que usa <code>blizzard run --env .env</code>.</p>
 
     <h3><span class="hnum">12.7</span>csv &mdash; tablas de texto</h3>
     <pre><code>using csv
@@ -1124,7 +1146,7 @@ print(trim(csv.stringify([["col1", "col2"], ["a", "b"]])))# col1,col2\na,b</code
     <pre><code>using db
 using fs
 
-store = db.open("/tmp/snow_db.json")
+store = db.open("/tmp/blizzard_db.json")
 store.set("greeting", "hello")
 store.set("count", 42)
 store.save()                          # escritura atómica
@@ -1163,7 +1185,7 @@ print(crypto.sha256("hello"))        # 2cf24dba5fb0a30e26e83b2ac5b9e29e…
 print(crypto.md5("hello"))
 print(crypto.random_token())         # 32 caracteres hex por defecto
 
-token = crypto.jwt_sign({user: "snow", role: "admin"}, "secret123")
+token = crypto.jwt_sign({user: "blizzard", role: "admin"}, "secret123")
 print(crypto.jwt_verify(token, "secret123").role)   # admin
 print(crypto.jwt_verify(token, "wrong") == nil)     # true</code></pre>
 
@@ -1209,7 +1231,7 @@ pw   = input.hidden("Password: ")           # sin eco</code></pre>
     <h3><span class="hnum">12.13</span>cli &mdash; interfaces de terminal y argumentos</h3>
     <pre><code>using cli
 
-parsed = cli.parse(["--port", "8080", "--verbose", "serve", "app.snow"])
+parsed = cli.parse(["--port", "8080", "--verbose", "serve", "app.blizz"])
 print(parsed.flags.port)      # 8080     (convertido a int automáticamente)
 print(parsed.flags.verbose)   # true     (bandera pelada)
 print(parsed.args[0])         # serve
@@ -1238,55 +1260,55 @@ print(cli.table([["a", "1"], ["b", "2"]]))</code></pre>
       <h2>Herramientas de línea de comandos</h2>
     </header>
 
-    <p class="lead">Un único binario, <code>snowman</code>, lleva toda la cadena de herramientas: ejecutar, evaluar, formatear, comprobar, probar y gestionar paquetes. Este capítulo es su manual.</p>
+    <p class="lead">Un único binario, <code>blizzard</code>, lleva toda la cadena de herramientas: ejecutar, evaluar, formatear, comprobar, probar y gestionar paquetes. Este capítulo es su manual.</p>
 
     <h3><span class="hnum">13.1</span>Ejecutar programas</h3>
-    <pre><code>snowman hello.snow          # ejecuta un archivo con argumentos
-snowman run                 # ejecuta src/main.snow del proyecto actual
-snowman run --env .env      # carga .env antes de ejecutar
-snowman eval 'print("hi")'  # ejecuta código en línea
-snowman -e 'print(6 * 7)'   # igual, con la bandera corta</code></pre>
+    <pre><code>blizzard hello.blizz          # ejecuta un archivo con argumentos
+blizzard run                 # ejecuta src/main.blizz del proyecto actual
+blizzard run --env .env      # carga .env antes de ejecutar
+blizzard eval 'print("hi")'  # ejecuta código en línea
+blizzard -e 'print(6 * 7)'   # igual, con la bandera corta</code></pre>
 
     <h3><span class="hnum">13.2</span>Formateo</h3>
-    <pre><code>snowman fmt file.snow       # comprueba el formato; sin cambios
-snowman fmt -w file.snow    # reescribe el archivo en su lugar (sangría de 4 espacios)</code></pre>
+    <pre><code>blizzard fmt file.blizz       # comprueba el formato; sin cambios
+blizzard fmt -w file.blizz    # reescribe el archivo en su lugar (sangría de 4 espacios)</code></pre>
 
     <h3><span class="hnum">13.3</span>Comprobación</h3>
-    <pre><code>snowman check file.snow     # análisis estático, salida 1 con problemas</code></pre>
+    <pre><code>blizzard check file.blizz     # análisis estático, salida 1 con problemas</code></pre>
 
     <p>Informa de nombres indefinidos, variables sin usar, código inalcanzable, desajustes de tipo y módulos desconocidos, con la línea y la columna de cada problema &mdash; sin ejecutar nada.</p>
 
     <h3><span class="hnum">13.4</span>Pruebas</h3>
-    <pre><code>snowman test                # ejecuta cada *_test.snow dentro de src/
-snowman test path/to/dir     # o desde un directorio elegido
-snowman test --filter ads    # solo las pruebas cuyo nombre contiene "ads"</code></pre>
+    <pre><code>blizzard test                # ejecuta cada *_test.blizz dentro de src/
+blizzard test path/to/dir     # o desde un directorio elegido
+blizzard test --filter ads    # solo las pruebas cuyo nombre contiene "ads"</code></pre>
 
-    <p>Los archivos de prueba son scripts de Snow normales cuyo nombre termina en <code>_test.snow</code>. Usa <code>assert</code> con un mensaje para que los fallos digan qué importaba:</p>
+    <p>Los archivos de prueba son scripts de Blizzard normales cuyo nombre termina en <code>_test.blizz</code>. Usa <code>assert</code> con un mensaje para que los fallos digan qué importaba:</p>
 
-    <pre><code># math_test.snow
+    <pre><code># math_test.blizz
 assert(2 + 2 == 4, "addition")
-assert(upper("snow") == "SNOW", "text")
+assert(upper("blizzard") == "BLIZZARD", "text")
 print("ok")</code></pre>
 
     <h3><span class="hnum">13.5</span>Gestión de paquetes</h3>
-    <pre><code>snowman init my_app          # monta un proyecto
-snowman search http          # busca en el registro
-snowman get snow/text.snow@0.1.0   # instala un paquete oficial
-snowman get-local ./lib      # instala un paquete local
-snowman install              # (re)instala desde snow.toml / snow.lock
-snowman add strings vendor/strings  # registra una dependencia en snow.toml
-snowman remove strings       # quita una dependencia
-snowman list                 # lista los paquetes instalados
-snowman info snow/text.snow  # metadatos del paquete
-snowman update text          # mueve una dependencia a la última versión
-snowman index                # refresca el índice local de paquetes</code></pre>
+    <pre><code>blizzard init my_app          # monta un proyecto
+blizzard search http          # busca en el registro
+blizzard get blizzard/text.blizz@0.1.0   # instala un paquete oficial
+blizzard get-local ./lib      # instala un paquete local
+blizzard install              # (re)instala desde blizzard.toml / blizzard.lock
+blizzard add strings vendor/strings  # registra una dependencia en blizzard.toml
+blizzard remove strings       # quita una dependencia
+blizzard list                 # lista los paquetes instalados
+blizzard info blizzard/text.blizz  # metadatos del paquete
+blizzard update text          # mueve una dependencia a la última versión
+blizzard index                # refresca el índice local de paquetes</code></pre>
 
     <h3><span class="hnum">13.6</span>El REPL en detalle</h3>
-    <p>El banner es <code>snow 0.1 &nbsp;type help for commands, .exit to quit</code>. Comandos meta: <code>help</code>/<code>.help</code>, <code>.exit</code>/<code>exit</code>/<code>quit</code>, <code>.clear</code>/<code>clear</code>, <code>.history</code>.</p>
+    <p>El banner es <code>blizzard 0.1 &nbsp;type help for commands, .exit to quit</code>. Comandos meta: <code>help</code>/<code>.help</code>, <code>.exit</code>/<code>exit</code>/<code>quit</code>, <code>.clear</code>/<code>clear</code>, <code>.history</code>.</p>
 
     <ul>
       <li>Los resultados se imprimen con colores por tipo: cadenas en cian, números en amarillo, booleanos en magenta, <code>nil</code> en gris, listas y diccionarios en azul.</li>
-      <li>El historial persiste en <code>~/.snow_history</code> (permisos 0600, últimas 500 entradas).</li>
+      <li>El historial persiste en <code>~/.blizz_history</code> (permisos 0600, últimas 500 entradas).</li>
       <li>El autocompletado con Tab ofrece funciones incorporadas, palabras clave y miembros de módulos; Tab también sangra.</li>
       <li>Los encabezados de bloque mantienen abierto el prompt y sangran cada línea nueva con cuatro espacios hasta que una línea en blanco cierra el bloque.</li>
     </ul>
@@ -1301,42 +1323,42 @@ snowman index                # refresca el índice local de paquetes</code></pre
 
     <p class="lead">Un proyecto da un hogar a un programa: un manifiesto, un árbol de código fuente, pruebas junto al código y un archivo de bloqueo que hace las instalaciones reproducibles.</p>
 
-    <h3><span class="hnum">14.1</span>snow.toml</h3>
+    <h3><span class="hnum">14.1</span>blizzard.toml</h3>
     <p>El manifiesto vive en la raíz del proyecto. <code>name</code> es obligatorio; <code>source</code> por defecto es <code>src</code>, y <code>dep.&lt;name&gt;</code> registra dependencias locales.</p>
 
     <pre><code>name = "weather_tool"
 source = "src"
 
-# dep.snow = "packages/snow"
+# dep.blizz = "packages/blizzard"
 # dep.strings = "vendor/strings"</code></pre>
 
     <h3><span class="hnum">14.2</span>El árbol de código fuente</h3>
     <pre><code>my_app/
-  snow.toml
-  snow.lock
+  blizzard.toml
+  blizzard.lock
   src/
-    main.snow
-    weather_test.snow
+    main.blizz
+    weather_test.blizz
   packages/
-    snow/
+    blizzard/
       src/
-        weather.snow</code></pre>
+        weather.blizz</code></pre>
 
     <ul>
-      <li><code>src/main.snow</code> es el punto de entrada que ejecuta <code>snowman run</code>.</li>
-      <li>Los archivos que terminan en <code>_test.snow</code> los descubre <code>snowman test</code>.</li>
+      <li><code>src/main.blizz</code> es el punto de entrada que ejecuta <code>blizzard run</code>.</li>
+      <li>Los archivos que terminan en <code>_test.blizz</code> los descubre <code>blizzard test</code>.</li>
       <li>El código reutilizable vive en sus propios archivos, importados con nombres de proyecto punteados: <code>import my_app.utils</code>.</li>
       <li>Las dependencias instaladas aterrizan en <code>packages/</code>.</li>
     </ul>
 
     <h3><span class="hnum">14.3</span>El archivo de bloqueo</h3>
-    <p><code>snow.lock</code> registra la versión exacta, la fuente y el checksum SHA-256 de cada dependencia. Hazle commit en el repositorio, y <code>snowman install</code> reproducira el mismo árbol en todas las máquinas.</p>
+    <p><code>blizzard.lock</code> registra la versión exacta, la fuente y el checksum SHA-256 de cada dependencia. Hazle commit en el repositorio, y <code>blizzard install</code> reproducira el mismo árbol en todas las máquinas.</p>
 
     <h3><span class="hnum">14.4</span>El registro oficial</h3>
-    <p>Los paquetes se traen del índice oficial y se nombran como <code>snow/nombre.snow</code>. El catálogo actual de paquetes oficiales: <code>arrays</code>, <code>collections</code>, <code>csvutil</code>, <code>dict</code>, <code>guards</code>, <code>ids</code>, <code>math</code>, <code>numbers</code>, <code>pagination</code>, <code>query</code>, <code>result</code>, <code>stats</code>, <code>strings</code>, <code>template</code>, <code>text</code>, <code>validate</code>.</p>
+    <p>Los paquetes se traen del índice oficial y se nombran como <code>blizzard/nombre.blizz</code>. El catálogo actual de paquetes oficiales: <code>arrays</code>, <code>collections</code>, <code>csvutil</code>, <code>dict</code>, <code>guards</code>, <code>ids</code>, <code>math</code>, <code>numbers</code>, <code>pagination</code>, <code>query</code>, <code>result</code>, <code>stats</code>, <code>strings</code>, <code>template</code>, <code>text</code>, <code>validate</code>.</p>
 
-    <pre><code>snowman get snow/text.snow@0.1.0
-snowman search text</code></pre>
+    <pre><code>blizzard get blizzard/text.blizz@0.1.0
+blizzard search text</code></pre>
   </section>
 
   <!-- ============================ CAPÍTULO 15 ============================ -->
@@ -1346,11 +1368,11 @@ snowman search text</code></pre>
       <h2>Editor y servidor de lenguaje</h2>
     </header>
 
-    <p class="lead">El servidor de lenguaje de Snow convierte cualquier editor en un taller. Habla JSON-RPC sobre stdin/stdout con el framing estándar <code>Content-Length</code>, y entiende la semántica real de Snow porque reutiliza el compilador y el comprobador de verdad.</p>
+    <p class="lead">El servidor de lenguaje de Blizzard convierte cualquier editor en un taller. Habla JSON-RPC sobre stdin/stdout con el framing estándar <code>Content-Length</code>, y entiende la semántica real de Blizzard porque reutiliza el compilador y el comprobador de verdad.</p>
 
     <h3><span class="hnum">15.1</span>Compilar el servidor</h3>
     <pre><code>cd LSP
-go build -o snow-lsp ./server</code></pre>
+go build -o blizzard-lsp ./server</code></pre>
 
     <h3><span class="hnum">15.2</span>Capacidades</h3>
     <ul>
@@ -1367,9 +1389,9 @@ go build -o snow-lsp ./server</code></pre>
 pnpm install
 pnpm run compile
 npx @vscode/vsce package --no-dependencies
-code --install-extension snow-0.1.0.vsix --force</code></pre>
+code --install-extension blizzard-0.1.0.vsix --force</code></pre>
 
-    <p>La extensión registra <code>.snow</code>, añade el icono del copo de nieve, arranca el servidor, publica diagnósticos y conduce el autocompletado con los caracteres disparadores <code>.</code>, <code>:</code> y el espacio. Respeta dos ajustes: <code>snow.lsp.enabled</code> y <code>snow.lsp.path</code>.</p>
+    <p>La extensión registra <code>.blizz</code>, añade el icono del copo de nieve, arranca el servidor, publica diagnósticos y conduce el autocompletado con los caracteres disparadores <code>.</code>, <code>:</code> y el espacio. Respeta dos ajustes: <code>blizzard.lsp.enabled</code> y <code>blizzard.lsp.path</code>.</p>
   </section>
 
   <!-- ============================ CAPÍTULO 16 ============================ -->
@@ -1384,7 +1406,7 @@ code --install-extension snow-0.1.0.vsix --force</code></pre>
     <h3><span class="hnum">16.1</span>El programa completo</h3>
 
     <figure class="listing">
-      <figcaption>Listado 2 &middot; src/main.snow de una API de notas</figcaption>
+      <figcaption>Listado 2 &middot; src/main.blizz de una API de notas</figcaption>
       <pre><code>using api
 using db
 using cli
@@ -1424,7 +1446,7 @@ else:
     <h3><span class="hnum">16.2</span>Una prueba de acompañamiento</h3>
 
     <figure class="listing">
-      <figcaption>Listado 3 &middot; src/notes_test.snow</figcaption>
+      <figcaption>Listado 3 &middot; src/notes_test.blizz</figcaption>
       <pre><code># ejercita los ayudantes puros sin un servidor
 fn add_ids(notes):
     result = []
@@ -1439,7 +1461,7 @@ assert(with_id[0].id == "1", "first id")
 print("ok")</code></pre>
     </figure>
 
-    <p>La prueba sigue el patrón de <code>snowman test</code>: funciones puras, aserciones pequeñas con mensajes y un <code>ok</code> final. Ejecútala con <code>snowman test</code> y comprueba después con <code>snowman check src/main.snow</code>.</p>
+    <p>La prueba sigue el patrón de <code>blizzard test</code>: funciones puras, aserciones pequeñas con mensajes y un <code>ok</code> final. Ejecútala con <code>blizzard test</code> y comprueba después con <code>blizzard check src/main.blizz</code>.</p>
   </section>
 
   <!-- ============================ CAPÍTULO 17 ============================ -->
@@ -1492,7 +1514,7 @@ input   str, line, int, float, bool, hidden</code></pre>
     <pre><code>nil bool int float str list dict fn module native response</code></pre>
 
     <h3><span class="hnum">17.6</span>Últimas palabras</h3>
-    <p>Empieza con los ejemplos de <code>examples/</code> y trata después <code>snow_test.go</code> como documentación de comportamiento ejecutable. El lenguaje es pequeño a propósito: aprende primero los valores y los bloques del núcleo, y recurre a los módulos solo cuando el programa los necesite.</p>
+    <p>Empieza con los ejemplos de <code>examples/</code> y trata después <code>blizzard_test.go</code> como documentación de comportamiento ejecutable. El lenguaje es pequeño a propósito: aprende primero los valores y los bloques del núcleo, y recurre a los módulos solo cuando el programa los necesite.</p>
   </section>
 
   <!-- ============================ CAPÍTULO 18 ============================ -->
@@ -1532,7 +1554,7 @@ print(str(100))      # 100
 print(str(true))     # true</code></pre>
 
     <h3><span class="hnum">18.3</span>La división siempre es flotante</h3>
-    <p>El matiz más repetido en Snow: <code>/</code> siempre produce un flotante, tanto para enteros como para flotantes. <code>//</code> redondea hacia el infinito negativo, <code>%</code> toma el signo del dividendo y <code>**</code> es asociativo por la derecha.</p>
+    <p>El matiz más repetido en Blizzard: <code>/</code> siempre produce un flotante, tanto para enteros como para flotantes. <code>//</code> redondea hacia el infinito negativo, <code>%</code> toma el signo del dividendo y <code>**</code> es asociativo por la derecha.</p>
 
     <pre><code>print(1 / 2)         # 0.5
 print(7 / 2)         # 3.5
@@ -1546,7 +1568,7 @@ print(2 ** 3 ** 2)   # 512  (de derecha a izquierda: 2 ** 9)</code></pre>
     <h3><span class="hnum">18.4</span>Indexación por caracteres</h3>
     <p>Las cadenas son secuencias de caracteres Unicode. La indexación y <code>len()</code> cuentan caracteres, no bytes, por lo que el texto multibyte se comporta correctamente. Los índices negativos cuentan desde el final y los fuera de rango son un error en tiempo de ejecución.</p>
 
-    <pre><code>word = "snow"
+    <pre><code>word = "blizzard"
 print(word[0])     # s
 print(word[-1])    # w
 print(len("héllo"))# 5    (cinco caracteres, no seis bytes)
@@ -1556,8 +1578,8 @@ print("abc"[5])    # error: index 5 out of range for a string of length 3</code>
     <h3><span class="hnum">18.5</span>Rebanadas</h3>
     <p>Las rebanadas son semiabiertas, <code>s[inicio:fin]</code>: el inicio se incluye y el final no. Cada rebanada devuelve una cadena nueva (las cadenas son inmutables). Las formas abiertas <code>[:n]</code> y <code>[n:]</code> son la forma habitual de tomar un prefijo o un sufijo; los límites negativos cuentan desde el final.</p>
 
-    <pre><code>s = "snowflake"
-print(s[:4])    # snow
+    <pre><code>s = "blizzard"
+print(s[:4])    # blizzard
 print(s[4:])    # flake
 print(s[4:6])   # fl
 print(s[-3:])   # ake</code></pre>
@@ -1565,13 +1587,13 @@ print(s[-3:])   # ake</code></pre>
     <h3><span class="hnum">18.6</span>La caja de herramientas de cadenas</h3>
     <p>Seis funciones del núcleo cubren la mayor parte del trabajo con texto. <code>upper</code>, <code>lower</code> y <code>trim</code> cambian la caja y recortan el espacio circundante; <code>split(cadena, sep)</code> devuelve una lista de trozos; <code>join(lista, sep)</code> fusiona una lista de cadenas; <code>replace(s, viejo, nuevo)</code> reemplaza todas las apariciones; y <code>contains(sujeto, aguja)</code> es exactamente <code>aguja in sujeto</code>. Todas devuelven un valor nuevo.</p>
 
-    <pre><code>print(upper("Snow"))      # SNOW
-print(lower("Snow"))      # snow
+    <pre><code>print(upper("Blizzard"))      # BLIZZARD
+print(lower("Blizzard"))      # blizzard
 print(trim("  hi  "))     # hi
 print(split("a,b,c", ","))# [a, b, c]
 print(join(["sno", "man"], ""))  # snoman
 print(replace("aaa", "a", "b"))  # bbb
-print(contains("snowman", "now"))# true</code></pre>
+print(contains("blizzard", "now"))# true</code></pre>
 
     <p>Combinadas, convierten texto bruto en datos útiles:</p>
 
@@ -1621,7 +1643,7 @@ line {1 + 1}""")                        # triple / line 2</code></pre>
       <h2>Colecciones en profundidad</h2>
     </header>
 
-    <p class="lead">Las listas y los diccionarios son los caballos de batalla de los programas Snow. Este capítulo es la referencia completa de comportamiento: qué operaciones mutan, cuáles devuelven valores nuevos, cómo construir y seleccionar de las listas, cómo se comportan de verdad los diccionarios y cómo razonar sobre toda una colección con <code>map</code>, <code>filter</code> y <code>fold</code>.</p>
+    <p class="lead">Las listas y los diccionarios son los caballos de batalla de los programas Blizzard. Este capítulo es la referencia completa de comportamiento: qué operaciones mutan, cuáles devuelven valores nuevos, cómo construir y seleccionar de las listas, cómo se comportan de verdad los diccionarios y cómo razonar sobre toda una colección con <code>map</code>, <code>filter</code> y <code>fold</code>.</p>
 
     <h3><span class="hnum">19.1</span>Las listas son contenedores mutables</h3>
     <p>Una lista puede contener cualquier mezcla de valores, y la asignación a un índice muta la lista en el sitio. En cambio, <code>append</code> y la concatenación devuelven listas <em>nuevas</em>, por lo que debes conservar el resultado si lo quieres.</p>
@@ -1709,10 +1731,10 @@ print({}["name"])                # error: key not found: name</code></pre>
     <p>Un diccionario de conteo es un clásico; combina la asignación por corchetes con <code>get</code> y el fallback solo-para-nil <code>??</code>:</p>
 
     <pre><code>counts = {}
-words = ["snow", "snow", "flake"]
+words = ["blizzard", "blizzard", "flake"]
 for w in words:
     counts[w] = (get(counts, w) ?? 0) + 1
-print(counts)        # {snow: 2, flake: 1}</code></pre>
+print(counts)        # {blizzard: 2, flake: 1}</code></pre>
 
     <h3><span class="hnum">19.6</span>Razonar sobre toda la colección</h3>
     <p><code>sum</code> totaliza números, <code>len</code> cuenta elementos, <code>any</code>/<code>all</code> comprimen una lista de booleanos y <code>map</code>/<code>filter</code>/<code>fold</code> transforman, conservan y reducen. Componen con fluidez porque cada uno devuelve un valor.</p>
@@ -1735,7 +1757,7 @@ print([1, 2] == [2, 1])          # false
 print({a: 1} == {a: 1})          # true
 print(2 in [1, 2, 3])            # true
 print([1, 2] in [[1, 2], [3]])   # true
-print("ow" in "snow")            # true
+print("ow" in "blizzard")            # true
 print("b" in {a: 1, b: 2})       # true
 print(3 not in [1, 2])           # true</code></pre>
   </section>
@@ -1834,10 +1856,10 @@ print(shouts)    # [ADA, LINUS, GRACE]</code></pre>
       <h2>Errores, pruebas y defensa en profundidad</h2>
     </header>
 
-    <p class="lead">Un lenguaje pequeño sigue siendo honesto haciendo visible el fallo. Este capítulo convierte el capítulo 9 en una caja de herramientas: el contrato de fallos, la limpieza garantizada, escribir pruebas que <code>snowman test</code> encuentre y los combinadores defensivos que mantienen a salvo los datos con forma de diccionario.</p>
+    <p class="lead">Un lenguaje pequeño sigue siendo honesto haciendo visible el fallo. Este capítulo convierte el capítulo 9 en una caja de herramientas: el contrato de fallos, la limpieza garantizada, escribir pruebas que <code>blizzard test</code> encuentre y los combinadores defensivos que mantienen a salvo los datos con forma de diccionario.</p>
 
     <h3><span class="hnum">21.1</span>El contrato de fallos</h3>
-    <p>Existen tres clases de errores: los <b>errores del analizador</b> rechazan el texto que no puede convertirse en programa; los <b>diagnósticos del comprobador</b> vienen de <code>snowman check</code> y del editor sin ejecutar nada; los <b>errores de ejecución</b> ocurren mientras el programa corre y llevan traza de pila. <code>fail(x)</code> lanza su único argumento &mdash; cualquier valor &mdash; y <code>try</code>/<code>catch</code> recibe exactamente ese valor.</p>
+    <p>Existen tres clases de errores: los <b>errores del analizador</b> rechazan el texto que no puede convertirse en programa; los <b>diagnósticos del comprobador</b> vienen de <code>blizzard check</code> y del editor sin ejecutar nada; los <b>errores de ejecución</b> ocurren mientras el programa corre y llevan traza de pila. <code>fail(x)</code> lanza su único argumento &mdash; cualquier valor &mdash; y <code>try</code>/<code>catch</code> recibe exactamente ese valor.</p>
 
     <pre><code>fn require_name(user):
     if user?.name == nil:
@@ -1871,7 +1893,7 @@ catch n:
 # closed</code></pre>
 
     <h3><span class="hnum">21.4</span>assert en las pruebas</h3>
-    <p><code>assert</code> verifica una creencia y falla con estrépito cuando se rompe. <code>snowman test</code> descubre todos los archivos <code>*_test.snow</code> bajo <code>src/</code>; un archivo lleno de pequeñas llamadas a <code>assert</code> es una prueba. <code>--filter</code> restringe qué pruebas corren.</p>
+    <p><code>assert</code> verifica una creencia y falla con estrépito cuando se rompe. <code>blizzard test</code> descubre todos los archivos <code>*_test.blizz</code> bajo <code>src/</code>; un archivo lleno de pequeñas llamadas a <code>assert</code> es una prueba. <code>--filter</code> restringe qué pruebas corren.</p>
 
     <pre><code>assert(2 + 2 == 4, "addition")
 assert([1, 2], [1, 2])     # la igualdad profunda pasa
@@ -1906,26 +1928,26 @@ print(respond({}))                 # no message</code></pre>
       <h2>Módulos y proyectos en la práctica</h2>
     </header>
 
-    <p class="lead">Los capítulos 10 y 14 documentaron la maquinaria; este capítulo muestra la forma de trabajo de un proyecto real de varios archivos Snow: importaciones relativas, el contrato de visibilidad, las importaciones de módulos de proyecto y el ciclo de vida del proyecto con <code>snowman</code>.</p>
+    <p class="lead">Los capítulos 10 y 14 documentaron la maquinaria; este capítulo muestra la forma de trabajo de un proyecto real de varios archivos Blizzard: importaciones relativas, el contrato de visibilidad, las importaciones de módulos de proyecto y el ciclo de vida del proyecto con <code>blizzard</code>.</p>
 
     <h3><span class="hnum">22.1</span>Una estructura realista</h3>
     <pre><code>my_app/
-  snow.toml
-  snow.lock
+  blizzard.toml
+  blizzard.lock
   src/
-    main.snow
-    helpers_test.snow
+    main.blizz
+    helpers_test.blizz
   lib/
-    values.snow
+    values.blizz
   packages/</code></pre>
 
-    <p><code>src/main.snow</code> es el punto de entrada que ejecuta <code>snowman run</code>; <code>*_test.snow</code> bajo <code>src/</code> los descubre <code>snowman test</code>; el código compartido vive en sus propios archivos; las dependencias aterrizan en <code>packages/</code>.</p>
+    <p><code>src/main.blizz</code> es el punto de entrada que ejecuta <code>blizzard run</code>; <code>*_test.blizz</code> bajo <code>src/</code> los descubre <code>blizzard test</code>; el código compartido vive en sus propios archivos; las dependencias aterrizan en <code>packages/</code>.</p>
 
     <h3><span class="hnum">22.2</span>Importaciones relativas</h3>
     <p>Las importaciones relativas se resuelven sustituyendo los puntos por barras y vinculando el último segmento (o tu alias). El prefijo <code>../</code> sale del directorio actual.</p>
 
     <pre><code>import ./formatters as fmt
-print(fmt.title("snow"))
+print(fmt.title("blizzard"))
 
 import ../lib.values as v
 print(v.max3(1, 5, 3))    # 5
@@ -1934,7 +1956,7 @@ print(v.top_value)        # 7</code></pre>
     <h3><span class="hnum">22.3</span>El contrato de visibilidad</h3>
     <p>Todo lo que está en el nivel superior de un archivo se exporta por defecto. <code>priv</code> oculta un nombre de las exportaciones del archivo; <code>pub</code> hace explícita la intención pública (un prefijo <code>_</code> no hace nada). Los módulos importados se guardan en caché, por lo que importar el mismo archivo dos veces comparte una copia, y los ciclos de importación se detectan y se notifican.</p>
 
-    <pre><code># lib/values.snow
+    <pre><code># lib/values.blizz
 pub fn max3(a, b, c):
     return max(a, b, c)
 
@@ -1943,21 +1965,21 @@ priv fn helper(x):
 
 pub top_value = 7</code></pre>
 
-    <pre><code># main.snow
+    <pre><code># main.blizz
 import ../lib.values as v
 print(v.max3(1, 5, 3))   # 5
 # v.helper(2)  ->  attribute not found: helper</code></pre>
 
     <h3><span class="hnum">22.4</span>Importaciones de módulos de proyecto</h3>
-    <p>Dentro de un proyecto, el código reutilizable se importa por nombre de paquete y ruta de archivo con puntos, y <code>using</code> acepta la forma larga <code>snow.</code> con un alias:</p>
+    <p>Dentro de un proyecto, el código reutilizable se importa por nombre de paquete y ruta de archivo con puntos, y <code>using</code> acepta la forma larga <code>blizzard.</code> con un alias:</p>
 
     <pre><code>import demo.math
 print(math.twice(21))        # 42
 
-using snow.http as web
+using blizzard.http as web
 print(web.get("https://example.com").status)</code></pre>
 
-    <p>La dependencia <code>dep.demo = "packages/demo"</code> en <code>snow.toml</code> apunta a la ubicación del paquete. <code>snow.lock</code> registra la versión exacta, la fuente y el checksum SHA-256, por lo que <code>snowman install</code> reproduce el mismo árbol en cualquier máquina.</p>
+    <p>La dependencia <code>dep.demo = "packages/demo"</code> en <code>blizzard.toml</code> apunta a la ubicación del paquete. <code>blizzard.lock</code> registra la versión exacta, la fuente y el checksum SHA-256, por lo que <code>blizzard install</code> reproduce el mismo árbol en cualquier máquina.</p>
 
     <h3><span class="hnum">22.5</span>Las funciones incorporadas siempre están a la vista</h3>
     <p>Las 52 funciones incorporadas no necesitan <code>using</code> &mdash; forman parte de todo programa. Solo la biblioteca estándar y tus propios archivos se cargan por nombre:</p>
@@ -1969,12 +1991,12 @@ using crypto  using task   using input</code></pre>
     <h3><span class="hnum">22.6</span>El flujo diario</h3>
     <p>Escribe, comprueba, prueba, ejecuta &mdash; el bucle son cuatro comandos:</p>
 
-    <pre><code>snowman fmt -w src/main.snow   # formatear
-snowman check src/main.snow   # análisis estático
-snowman test                 # ejecutar *_test.snow
-snowman run --env .env       # ejecutar con configuración</code></pre>
+    <pre><code>blizzard fmt -w src/main.blizz   # formatear
+blizzard check src/main.blizz   # análisis estático
+blizzard test                 # ejecutar *_test.blizz
+blizzard run --env .env       # ejecutar con configuración</code></pre>
 
-    <p><code>snowman get</code>, <code>add</code>, <code>remove</code>, <code>list</code>, <code>info</code>, <code>update</code>, <code>search</code> e <code>index</code> gestionan las dependencias (ver capítulo 13), y el registro oficial ofrece por ahora estos paquetes: <code>arrays</code>, <code>collections</code>, <code>csvutil</code>, <code>dict</code>, <code>guards</code>, <code>ids</code>, <code>math</code>, <code>numbers</code>, <code>pagination</code>, <code>query</code>, <code>result</code>, <code>stats</code>, <code>strings</code>, <code>template</code>, <code>text</code>, <code>validate</code>.</p>
+    <p><code>blizzard get</code>, <code>add</code>, <code>remove</code>, <code>list</code>, <code>info</code>, <code>update</code>, <code>search</code> e <code>index</code> gestionan las dependencias (ver capítulo 13), y el registro oficial ofrece por ahora estos paquetes: <code>arrays</code>, <code>collections</code>, <code>csvutil</code>, <code>dict</code>, <code>guards</code>, <code>ids</code>, <code>math</code>, <code>numbers</code>, <code>pagination</code>, <code>query</code>, <code>result</code>, <code>stats</code>, <code>strings</code>, <code>template</code>, <code>text</code>, <code>validate</code>.</p>
   </section>
 
   <!-- ============================ CAPÍTULO 23 ============================ -->
@@ -1991,8 +2013,8 @@ snowman run --env .env       # ejecutar con configuración</code></pre>
 
     <pre><code>using sys
 
-result = sys.sh("echo hello-snow")
-print(trim(result.stdout), result.ok)   # hello-snow true
+result = sys.sh("echo hello-blizzard")
+print(trim(result.stdout), result.ok)   # hello-blizzard true
 print(sys.pid &gt; 0)                      # true
 print(sys.platform)                     # linux (ejemplo)
 print(sys.arch)                         # amd64 (ejemplo)</code></pre>
@@ -2021,12 +2043,12 @@ print("a.txt" in fs.list("out"))   # true</code></pre>
 
     <pre><code>using env
 
-env.set("SNOW_DEMO", "42")
-print(env.get("SNOW_DEMO"))          # 42
-print(env.int("SNOW_DEMO"))          # 42
+env.set("BLIZZARD_DEMO", "42")
+print(env.get("BLIZZARD_DEMO"))          # 42
+print(env.int("BLIZZARD_DEMO"))          # 42
 print(env.float("MISSING", 1.5))     # 1.5
 print(env.bool("MISSING", true))     # true
-print(env.has("SNOW_DEMO"))          # true
+print(env.has("BLIZZARD_DEMO"))          # true
 env.load(".env")                     # líneas CLAVE=VALOR</code></pre>
 
     <h3><span class="hnum">23.4</span>time &mdash; relojes y duraciones</h3>
@@ -2115,13 +2137,13 @@ print(cli.green("ok"))   # texto en color (o plano con tubería)</code></pre>
       <h2>La forma de un lenguaje pequeño</h2>
     </header>
 
-    <p class="lead">Snow mantiene su galería pequeña &mdash; un puñado de valores, bloques después de dos puntos, funciones como valores, fallos que puedes capturar, módulos que cargas por nombre. Como el lenguaje es pequeño, los programas siguen siendo legibles; como las herramientas son honestas, los problemas afloran donde ocurren.</p>
+    <p class="lead">Blizzard mantiene su galería pequeña &mdash; un puñado de valores, bloques después de dos puntos, funciones como valores, fallos que puedes capturar, módulos que cargas por nombre. Como el lenguaje es pequeño, los programas siguen siendo legibles; como las herramientas son honestas, los problemas afloran donde ocurren.</p>
 
     <p>Todo el lenguaje cabe en este libro. Ese es el punto.</p>
   </section>
 
   <div class="colophon">
-    <p>El Lenguaje de Programación Snow &middot; Versión 0.1 &middot; Edición en español</p>
+    <p>El Lenguaje de Programación Blizzard &middot; Versión 0.1 &middot; Edición en español</p>
     <p>Código abierto bajo la licencia MIT &middot; Escrito en Go por <code>JDVA0</code></p>
   </div>
 

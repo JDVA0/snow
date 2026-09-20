@@ -3,10 +3,10 @@ const path = require('path');
 const fs = require('fs');
 
 function activate(context) {
-    console.log('Snow extension is now active!');
+    console.log('Blizzard extension is now active!');
 
-    // Register Snow language
-    const snowLanguageConfig = vscode.languages.registerLanguageConfiguration('snow', {
+    // Register Blizzard language
+    const blizzardLanguageConfig = vscode.languages.registerLanguageConfiguration('blizzard', {
         comments: {
             lineComment: '#'
         },
@@ -30,13 +30,13 @@ function activate(context) {
             ["'", "'"]
         ]
     });
-    context.subscriptions.push(snowLanguageConfig);
+    context.subscriptions.push(blizzardLanguageConfig);
 
-    console.log('Snow language configuration registered');
+    console.log('Blizzard language configuration registered');
 }
 
 function deactivate() {
-    console.log('Snow extension deactivated');
+    console.log('Blizzard extension deactivated');
 }
 
 module.exports = {

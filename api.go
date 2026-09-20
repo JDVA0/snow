@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-// Resp is an API response value built by the snow.api helpers.
+// Resp is an API response value built by the blizzard.api helpers.
 type Resp struct {
 	Status  int
 	CType   string
@@ -18,7 +18,7 @@ type Resp struct {
 	Headers map[string]string
 }
 
-// APIServer holds the state of the snow.api HTTP server.
+// APIServer holds the state of the blizzard.api HTTP server.
 type APIServer struct {
 	i           *Interp
 	mu          sync.Mutex
@@ -174,7 +174,7 @@ func apiCORS(i *Interp, args []Val) ([]Val, error) {
 		if !ok {
 			return nil, nil
 		}
-		if meth, ok := req.Get("method"); ok && SnowStr(meth) == "OPTIONS" {
+		if meth, ok := req.Get("method"); ok && BlizzardStr(meth) == "OPTIONS" {
 			res := &Resp{
 				Status: http.StatusNoContent,
 				Headers: map[string]string{
@@ -209,7 +209,7 @@ func apiServe(i *Interp, args []Val) ([]Val, error) {
 	}
 	s := i.api
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", s.port), Handler: http.HandlerFunc(s.handle)}
-	fmt.Fprintf(i.out, "\033[36;1m❄ snow\033[0m listening on \033[4mhttp://0.0.0.0:%d\033[0m\n", s.port)
+	fmt.Fprintf(i.out, "\033[36;1m❄ blizzard\033[0m listening on \033[4mhttp://0.0.0.0:%d\033[0m\n", s.port)
 	return nil, srv.ListenAndServe()
 }
 
@@ -225,7 +225,7 @@ func apiResponse(i *Interp, args []Val) ([]Val, error) {
 	if err != nil {
 		return nil, err
 	}
-	body := SnowStr(args[2])
+	body := BlizzardStr(args[2])
 	res := &Resp{Status: int(status), CType: string(ct), Body: body}
 	if len(args) >= 4 {
 		if hd, ok := args[3].(*Dict); ok {
@@ -268,7 +268,7 @@ func apiText(i *Interp, args []Val) ([]Val, error) {
 			status = int(st)
 		}
 	}
-	res := &Resp{Status: status, CType: "text/plain; charset=utf-8", Body: SnowStr(args[0])}
+	res := &Resp{Status: status, CType: "text/plain; charset=utf-8", Body: BlizzardStr(args[0])}
 	if len(args) >= 3 {
 		if hd, ok := args[2].(*Dict); ok {
 			res.Headers = dictToHeaders(hd)
@@ -287,7 +287,7 @@ func apiHTML(i *Interp, args []Val) ([]Val, error) {
 			status = int(st)
 		}
 	}
-	res := &Resp{Status: status, CType: "text/html; charset=utf-8", Body: SnowStr(args[0])}
+	res := &Resp{Status: status, CType: "text/html; charset=utf-8", Body: BlizzardStr(args[0])}
 	if len(args) >= 3 {
 		if hd, ok := args[2].(*Dict); ok {
 			res.Headers = dictToHeaders(hd)
@@ -329,7 +329,7 @@ func apiStatusResp(i *Interp, args []Val) ([]Val, error) {
 	}
 	body := ""
 	if len(args) >= 2 {
-		body = SnowStr(args[1])
+		body = BlizzardStr(args[1])
 	}
 	res := &Resp{Status: int(st), CType: "text/plain; charset=utf-8", Body: body}
 	return []Val{res}, nil
@@ -339,7 +339,7 @@ func dictToHeaders(d *Dict) map[string]string {
 	h := make(map[string]string, len(d.keys))
 	for _, k := range d.keys {
 		if v, ok := d.Get(k); ok {
-			h[k] = SnowStr(v)
+			h[k] = BlizzardStr(v)
 		}
 	}
 	return h

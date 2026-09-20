@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"bufio"
@@ -55,7 +55,7 @@ func cliColorFn(code string) Native {
 		if err := want(args, "color", 1); err != nil {
 			return nil, err
 		}
-		s := SnowStr(args[0])
+		s := BlizzardStr(args[0])
 		return []Val{Str(code + s + "\033[0m")}, nil
 	}
 }
@@ -92,7 +92,7 @@ func cliColor(i *Interp, args []Val) ([]Val, error) {
 	if err != nil {
 		return nil, err
 	}
-	text := SnowStr(args[1])
+	text := BlizzardStr(args[1])
 	code, ok := ansiMap[strings.ToLower(string(name))]
 	if !ok {
 		code = "\033[0m"
@@ -103,7 +103,7 @@ func cliColor(i *Interp, args []Val) ([]Val, error) {
 func cliInfo(i *Interp, args []Val) ([]Val, error) {
 	parts := make([]string, len(args))
 	for k, a := range args {
-		parts[k] = SnowStr(a)
+		parts[k] = BlizzardStr(a)
 	}
 	fmt.Fprintf(i.out, "\033[36;1m[INFO]\033[0m %s\n", strings.Join(parts, " "))
 	return []Val{}, nil
@@ -112,7 +112,7 @@ func cliInfo(i *Interp, args []Val) ([]Val, error) {
 func cliSuccess(i *Interp, args []Val) ([]Val, error) {
 	parts := make([]string, len(args))
 	for k, a := range args {
-		parts[k] = SnowStr(a)
+		parts[k] = BlizzardStr(a)
 	}
 	fmt.Fprintf(i.out, "\033[32;1m[OK]\033[0m %s\n", strings.Join(parts, " "))
 	return []Val{}, nil
@@ -121,7 +121,7 @@ func cliSuccess(i *Interp, args []Val) ([]Val, error) {
 func cliOk(i *Interp, args []Val) ([]Val, error) {
 	parts := make([]string, len(args))
 	for k, a := range args {
-		parts[k] = SnowStr(a)
+		parts[k] = BlizzardStr(a)
 	}
 	fmt.Fprintf(i.out, "\033[32m%s\033[0m\n", strings.Join(parts, " "))
 	return []Val{}, nil
@@ -130,7 +130,7 @@ func cliOk(i *Interp, args []Val) ([]Val, error) {
 func cliWarn(i *Interp, args []Val) ([]Val, error) {
 	parts := make([]string, len(args))
 	for k, a := range args {
-		parts[k] = SnowStr(a)
+		parts[k] = BlizzardStr(a)
 	}
 	fmt.Fprintf(i.out, "\033[33;1m[WARN]\033[0m %s\n", strings.Join(parts, " "))
 	return []Val{}, nil
@@ -139,7 +139,7 @@ func cliWarn(i *Interp, args []Val) ([]Val, error) {
 func cliError(i *Interp, args []Val) ([]Val, error) {
 	parts := make([]string, len(args))
 	for k, a := range args {
-		parts[k] = SnowStr(a)
+		parts[k] = BlizzardStr(a)
 	}
 	fmt.Fprintf(i.errOut, "\033[31;1m[ERROR]\033[0m %s\n", strings.Join(parts, " "))
 	return []Val{}, nil
@@ -149,10 +149,10 @@ func cliAsk(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("cli.ask expects a prompt string")
 	}
-	prompt := SnowStr(args[0])
+	prompt := BlizzardStr(args[0])
 	defaultVal := ""
 	if len(args) >= 2 {
-		defaultVal = SnowStr(args[1])
+		defaultVal = BlizzardStr(args[1])
 	}
 	if defaultVal != "" {
 		fmt.Fprintf(i.out, "%s [%s]: ", prompt, defaultVal)
@@ -179,7 +179,7 @@ func cliConfirm(i *Interp, args []Val) ([]Val, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("cli.confirm expects a prompt string")
 	}
-	prompt := SnowStr(args[0])
+	prompt := BlizzardStr(args[0])
 	defaultYes := false
 	if len(args) >= 2 {
 		defaultYes = Truthy(args[1])
@@ -211,7 +211,7 @@ func cliDivider(i *Interp, args []Val) ([]Val, error) {
 	title := ""
 	width := 50
 	if len(args) >= 1 {
-		title = SnowStr(args[0])
+		title = BlizzardStr(args[0])
 	}
 	if len(args) >= 2 {
 		if n, ok := args[1].(Int); ok && int(n) > 10 {
@@ -241,10 +241,10 @@ func cliBox(i *Interp, args []Val) ([]Val, error) {
 	title := ""
 	content := ""
 	if len(args) == 1 {
-		content = SnowStr(args[0])
+		content = BlizzardStr(args[0])
 	} else {
-		title = SnowStr(args[0])
-		content = SnowStr(args[1])
+		title = BlizzardStr(args[0])
+		content = BlizzardStr(args[1])
 	}
 
 	lines := strings.Split(content, "\n")
@@ -326,7 +326,7 @@ func cliTable(i *Interp, args []Val) ([]Val, error) {
 
 	headers := make([]string, numCols)
 	for c, h := range rawHeaders {
-		s := SnowStr(h)
+		s := BlizzardStr(h)
 		headers[c] = s
 		w := stringWidth(s)
 		if w > colWidths[c] {
@@ -343,7 +343,7 @@ func cliTable(i *Interp, args []Val) ([]Val, error) {
 		rowStrs := make([]string, numCols)
 		for c := 0; c < numCols; c++ {
 			if c < len(rowList) {
-				rowStrs[c] = SnowStr(rowList[c])
+				rowStrs[c] = BlizzardStr(rowList[c])
 			} else {
 				rowStrs[c] = ""
 			}
@@ -436,14 +436,14 @@ func cliParse(i *Interp, args []Val) ([]Val, error) {
 		if l, ok := args[0].(List); ok {
 			rawArgs = make([]string, len(l))
 			for k, v := range l {
-				rawArgs[k] = SnowStr(v)
+				rawArgs[k] = BlizzardStr(v)
 			}
 		}
 	}
 	if len(args) >= 2 {
 		if boolList, ok := args[1].(List); ok {
 			for _, bf := range boolList {
-				boolFlags[SnowStr(bf)] = true
+				boolFlags[BlizzardStr(bf)] = true
 			}
 		} else if boolDict, ok := args[1].(*Dict); ok {
 			for _, k := range boolDict.keys {

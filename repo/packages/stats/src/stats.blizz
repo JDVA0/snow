@@ -1,0 +1,34 @@
+# Official Blizzard library: basic descriptive statistics
+
+fn total(values) {
+    let sum = 0;
+    for value in values {
+        sum += value;
+    }
+    return sum;
+}
+
+fn mean(values) {
+    if (len(values) == 0) {
+        return nil;
+    }
+    return total(values) / len(values);
+}
+
+fn minimum(values) {
+    if (len(values) == 0) {
+        return nil;
+    }
+    return min(values);
+}
+
+fn maximum(values) {
+    if (len(values) == 0) {
+        return nil;
+    }
+    return max(values);
+}
+
+fn summary(values) {
+    return {count: len(values), total: total(values), mean: mean(values), min: minimum(values), max: maximum(values)};
+}

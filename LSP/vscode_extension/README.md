@@ -1,15 +1,17 @@
-# Snow Language for VS Code
+# Blizzard Language for VS Code
 
-This extension adds Snow syntax highlighting, the Snowflake file icon, and a
-bundled LSP client for completion and diagnostics in `.snow` files.
+This extension adds Blizzard syntax highlighting, the Blizzard file icon, and a
+bundled LSP client for completion and diagnostics in `.blizz` files.
 
 ## Features
 
-- TextMate syntax highlighting and Snow language configuration.
-- Snowflake icon association for `.snow` files.
+- TextMate syntax highlighting and Blizzard language configuration.
+- Blizzard icon association for `.blizz` files.
 - Diagnostics for parser and static-analysis errors.
 - Completion for keywords, built-ins, constants, modules, and module members.
 - `http.` completion for `get`, `post`, `put`, `delete`, `patch`, and `request`.
+- String-method completion after a string value, for example `"blizzard".upper()`.
+- Highlighting for spread/rest syntax: `...items` and `fn collect(...rest):`.
 
 ## Build and install
 
@@ -17,7 +19,7 @@ Build the LSP binary first:
 
 ```bash
 cd ../
-go build -o snow-lsp ./server
+go build -o blizzard-lsp ./server
 ```
 
 Then build and install the VSIX:
@@ -27,7 +29,7 @@ cd vscode_extension
 pnpm install
 pnpm run compile
 npx @vscode/vsce package --no-dependencies
-code --install-extension snow-0.1.0.vsix --force
+code --install-extension blizzard-0.2.0.vsix --force
 ```
 
 The final package bundles `vscode-languageclient` and does not include
@@ -38,12 +40,12 @@ run before publishing a new package.
 
 ```json
 {
-  "snow.lsp.enabled": true,
-  "snow.lsp.path": ""
+  "blizzard.lsp.enabled": true,
+  "blizzard.lsp.path": ""
 }
 ```
 
-An empty path uses `LSP/snow-lsp` relative to the first workspace folder. Set an
+An empty path uses `LSP/blizzard-lsp` relative to the first workspace folder. Set an
 absolute path when the binary is stored elsewhere. The extension verifies that
 the configured path is a regular file before starting the language server.
 
@@ -51,23 +53,23 @@ the configured path is a regular file before starting the language server.
 
 ### LSP Server Not Starting
 
-- Verify the path to `snow-lsp` is correct in settings.
-- Check that `snow-lsp` has execute permissions: `chmod +x snow-lsp`.
+- Verify the path to `blizzard-lsp` is correct in settings.
+- Check that `blizzard-lsp` has execute permissions: `chmod +x blizzard-lsp`.
 - Check VS Code's developer console for error messages.
 
 ### No Autocompletion
 
 - Verify the LSP server is running.
-- Check that the file has a `.snow` extension.
+- Check that the file has a `.blizz` extension.
 - Try manual trigger with `Ctrl+Space`.
-- Check VS Code's Output panel for the `Snow LSP` channel.
+- Check VS Code's Output panel for the `Blizzard LSP` channel.
 
 If completion shows only generic items, the extension is usually launching an
-old LSP binary. Rebuild `LSP/snow-lsp`, reinstall the VSIX, and reload VS Code.
+old LSP binary. Rebuild `LSP/blizzard-lsp`, reinstall the VSIX, and reload VS Code.
 
 ### No Syntax Highlighting
 
-- Ensure the file has a `.snow` extension.
+- Ensure the file has a `.blizz` extension.
 - Reload VS Code after installing the extension.
 - Check that the grammar file is in the correct location.
 

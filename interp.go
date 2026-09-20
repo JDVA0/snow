@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"bufio"
@@ -36,11 +36,12 @@ type ExitError struct{ Code int }
 
 func (e *ExitError) Error() string { return fmt.Sprintf("exit %d", e.Code) }
 
-// Fn is a Snow function value (a closure over its definition env).
+// Fn is a Blizzard function value (a closure over its definition env).
 type Fn struct {
 	Name       string
 	Params     []string
 	ParamTypes []string
+	Rest       bool
 	Ret        string
 	Body       []Op
 	Env        *Env
@@ -48,10 +49,10 @@ type Fn struct {
 	Col        int
 }
 
-// Native is a Go function exposed to Snow.
+// Native is a Go function exposed to Blizzard.
 type Native func(i *Interp, args []Val) ([]Val, error)
 
-// Module is a Snow module namespace.
+// Module is a Blizzard module namespace.
 type Module struct {
 	Name string
 	Dict *Dict
@@ -63,11 +64,11 @@ type errReturn struct{ vals []Val }
 
 func (e *errReturn) Error() string { return "return" }
 
-// errFail is a Snow-level failure. The payload is a normal value
+// errFail is a Blizzard-level failure. The payload is a normal value
 // (usually a string, sometimes a dict) — never a typed exception.
 type errFail struct{ val Val }
 
-func (e *errFail) Error() string { return SnowStr(e.val) }
+func (e *errFail) Error() string { return BlizzardStr(e.val) }
 
 // Env is a variable environment (scope chain).
 type Env struct {
@@ -82,7 +83,7 @@ func NewEnv(parent *Env) *Env {
 	return &Env{parent: parent, vars: map[string]Val{}, types: map[string]string{}, consts: map[string]bool{}}
 }
 
-// Interp is a Snow interpreter (a stack VM).
+// Interp is a Blizzard interpreter (a stack VM).
 type Interp struct {
 	stack     []Val
 	env       *Env
@@ -172,7 +173,7 @@ func (i *Interp) Run(src, name string) error {
 	return i.Exec(ops)
 }
 
-// RunFile loads and runs a Snow file.
+// RunFile loads and runs a Blizzard file.
 func (i *Interp) RunFile(path string) error {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -464,7 +465,7 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 		}
 		i.env.vars[op.Name] = v
 	case OpMakeFn:
-		i.push(&Fn{Name: op.Name, Params: op.Args, ParamTypes: op.ParamTypes, Ret: op.Ret, Body: op.Body, Env: i.env, Line: op.Line, Col: op.Col})
+		i.push(&Fn{Name: op.Name, Params: op.Args, ParamTypes: op.ParamTypes, Rest: op.Rest, Ret: op.Ret, Body: op.Body, Env: i.env, Line: op.Line, Col: op.Col})
 	case OpCall:
 		n := int(op.Num)
 		if len(i.stack) < n {
@@ -474,6 +475,19 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 		for k := n - 1; k >= 0; k-- {
 			args[k], _ = i.pop()
 		}
+		var expanded []Val
+		for k, arg := range args {
+			if k < len(op.Args) && op.Args[k] == "spread" {
+				items, ok := arg.(List)
+				if !ok {
+					return i.opErr(op, fmt.Errorf("spread argument must be a list, got %s", TypeName(arg)))
+				}
+				expanded = append(expanded, items...)
+			} else {
+				expanded = append(expanded, arg)
+			}
+		}
+		args = expanded
 		callee, err := i.pop()
 		if err != nil {
 			return i.opErr(op, err)
@@ -584,24 +598,57 @@ func (i *Interp) execSingleOp(op Op, ops []Op, pc *int) error {
 		if len(i.stack) < n {
 			return i.opErr(op, errors.New("stack underflow building a list"))
 		}
-		l := make(List, n)
+		items := make([]Val, n)
 		for k := n - 1; k >= 0; k-- {
-			l[k], _ = i.pop()
+			items[k], _ = i.pop()
+		}
+		l := make(List, 0, n)
+		for k, item := range items {
+			if k < len(op.Args) && op.Args[k] == "spread" {
+				other, ok := item.(List)
+				if !ok {
+					return i.opErr(op, fmt.Errorf("spread item must be a list, got %s", TypeName(item)))
+				}
+				l = append(l, other...)
+			} else {
+				l = append(l, item)
+			}
 		}
 		i.push(l)
 	case OpMakeDict:
 		n := int(op.Num)
-		if len(i.stack) < 2*n {
+		values := 0
+		for k := 0; k < n; k++ {
+			if k < len(op.Args) && op.Args[k] == "spread" {
+				values++
+			} else {
+				values += 2
+			}
+		}
+		if len(i.stack) < values {
 			return i.opErr(op, errors.New("stack underflow building a dict"))
 		}
 		pairs := make([][2]Val, n)
 		for k := n - 1; k >= 0; k-- {
+			if k < len(op.Args) && op.Args[k] == "spread" {
+				v, _ := i.pop()
+				pairs[k] = [2]Val{Nil, v}
+				continue
+			}
 			v, _ := i.pop()
 			kk, _ := i.pop()
 			pairs[k] = [2]Val{kk, v}
 		}
 		d := NewDict(n)
 		for _, pr := range pairs {
+			if pr[0] == Nil {
+				other, ok := pr[1].(*Dict)
+				if !ok {
+					return i.opErr(op, fmt.Errorf("dict spread item must be a dict, got %s", TypeName(pr[1])))
+				}
+				other.ForEach(func(k string, v Val) { d.Set(k, v) })
+				continue
+			}
 			ks, ok := pr[0].(Str)
 			if !ok {
 				return i.opErr(op, fmt.Errorf("dict key must be a string, got %s", TypeName(pr[0])))
@@ -896,10 +943,20 @@ func (i *Interp) popBool(op Op) (Val, error) {
 func (i *Interp) invoke(callable Val, args []Val) ([]Val, error) {
 	switch f := callable.(type) {
 	case *Fn:
-		if len(args) != len(f.Params) {
+		minArgs := len(f.Params)
+		if f.Rest {
+			minArgs--
+		}
+		if (!f.Rest && len(args) != len(f.Params)) || (f.Rest && len(args) < minArgs) {
+			if f.Rest {
+				return nil, fmt.Errorf("%s expects at least %d argument(s), got %d", f.Name, minArgs, len(args))
+			}
 			return nil, fmt.Errorf("%s expects %d argument(s), got %d", f.Name, len(f.Params), len(args))
 		}
 		for k, p := range f.Params {
+			if f.Rest && k == len(f.Params)-1 {
+				break
+			}
 			if k < len(f.ParamTypes) && f.ParamTypes[k] != "" {
 				if err := checkValType(args[k], f.ParamTypes[k]); err != nil {
 					return nil, fmt.Errorf("parameter '%s': %v", p, err)
@@ -911,6 +968,10 @@ func (i *Interp) invoke(callable Val, args []Val) ([]Val, error) {
 		}
 		env := NewEnv(f.Env)
 		for k, p := range f.Params {
+			if f.Rest && k == len(f.Params)-1 {
+				env.vars[p] = append(List(nil), args[k:]...)
+				continue
+			}
 			env.vars[p] = args[k]
 			if k < len(f.ParamTypes) && f.ParamTypes[k] != "" {
 				env.types[p] = f.ParamTypes[k]
@@ -970,16 +1031,16 @@ func (i *Interp) InvokeSafe(callable Val, args []Val) ([]Val, error) {
 func (i *Interp) useOp(op Op) error {
 	path := op.Args
 	stdMod := ""
-	if len(path) == 2 && path[0] == "snow" {
+	if len(path) == 2 && path[0] == "blizzard" {
 		switch path[1] {
 		case "api", "sys", "fs", "cli", "http", "db", "time", "json", "crypto", "task", "input", "env", "csv":
 			stdMod = path[1]
 		}
 		if stdMod == "" {
 			name := path[1]
-			message := fmt.Sprintf("unknown standard module 'snow.%s'", name)
+			message := fmt.Sprintf("unknown standard module 'blizzard.%s'", name)
 			if suggestion := moduleSuggestion(name); suggestion != "" {
-				message += fmt.Sprintf("; did you mean 'snow.%s'?", suggestion)
+				message += fmt.Sprintf("; did you mean 'blizzard.%s'?", suggestion)
 			}
 			return fmt.Errorf("%s", message)
 		}
@@ -991,7 +1052,7 @@ func (i *Interp) useOp(op Op) error {
 	}
 
 	if stdMod != "" {
-		k := "snow:" + stdMod
+		k := "blizzard:" + stdMod
 		if m, ok := i.modules[k]; ok {
 			i.env.vars[op.Name] = m
 			return nil
@@ -1025,7 +1086,7 @@ func (i *Interp) useOp(op Op) error {
 		case "csv":
 			m = newCSVModule(i, op.Name)
 		default:
-			return fmt.Errorf("unknown standard module snow.%s", stdMod)
+			return fmt.Errorf("unknown standard module blizzard.%s", stdMod)
 		}
 		i.modules[k] = m
 		i.env.vars[op.Name] = m
@@ -1411,7 +1472,7 @@ func indexVal(box, key Val) (Val, error) {
 		}
 		v, has := c.Get(string(ks))
 		if !has {
-			return nil, fmt.Errorf("key not found: %s", SnowStr(ks))
+			return nil, fmt.Errorf("key not found: %s", BlizzardStr(ks))
 		}
 		return v, nil
 	case *Module:
@@ -1421,7 +1482,7 @@ func indexVal(box, key Val) (Val, error) {
 		}
 		v, has := c.Get(string(ks))
 		if !has {
-			return nil, fmt.Errorf("attribute not found: %s", SnowStr(ks))
+			return nil, fmt.Errorf("attribute not found: %s", BlizzardStr(ks))
 		}
 		return v, nil
 	}

@@ -1,6 +1,6 @@
-# <img src="docs/snowflake.svg" width="36" height="36" alt="Snow icon" style="vertical-align: middle;"> Snow 0.1
+# <img src="docs/blizzard.svg" width="36" height="36" alt="Blizzard icon" style="vertical-align: middle;"> Blizzard 0.2
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/JDVA0/snow)](https://goreportcard.com/report/github.com/JDVA0/snow)
+[![Go Report Card](https://goreportcard.com/badge/github.com/JDVA0/blizzard)](https://goreportcard.com/report/github.com/JDVA0/blizzard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [Español](#español) | [English](#english)
@@ -9,7 +9,7 @@
 
 ## Español
 
-Snow es un lenguaje de programación simple, directo y conciso, diseñado específicamente para facilitar la creación de APIs web REST y herramientas de línea de comandos sin dependencias externas.
+Blizzard 0.2 es un lenguaje simple, directo y conciso para crear APIs web REST, herramientas de línea de comandos y automatizaciones.
 
 > Proyecto creado por **JDVA0**.
 > Hecho por diversión y experimentación.
@@ -17,12 +17,98 @@ Snow es un lenguaje de programación simple, directo y conciso, diseñado espec�
 >
 > ⓘ Nota: este proyecto fue desarrollado con asistencia de inteligencia artificial.
 
+> **Proyecto experimental de IA:** Blizzard está construido como una
+> investigación abierta asistida por inteligencia artificial. La sintaxis, la
+> API, el formato de paquetes y la estructura interna pueden cambiar de forma
+> brusca entre versiones. No se recomienda usarlo todavía como dependencia
+> estable en producción; fija una versión y conserva copias de tus fuentes.
+
+### Estado 0.2
+
+La referencia de esta versión está en [docs/blizzard-0.2.md](docs/blizzard-0.2.md).
+El comando `blizzard` y el módulo Go `github.com/JDVA0/blizzard` son la interfaz
+oficial de esta versión.
+
+### Migración Snow → Blizzard
+
+La versión 0.2 cambia oficialmente el nombre del proyecto y de sus artefactos:
+
+| Antes | Ahora |
+|---|---|
+| `Snow` | `Blizzard` |
+| `snowman` | `blizzard` |
+| `.snow` | `.blizz` |
+| `.snowpkg` | `.blizzpkg` |
+| `snow.toml` | `blizzard.toml` |
+| `snow.lock` | `blizzard.lock` |
+| `snow-lsp` | `blizzard-lsp` |
+| `github.com/JDVA0/snow` | `github.com/JDVA0/blizzard` |
+
+Los ejemplos, paquetes, tests, snippets, gramática y documentación del repositorio
+ya usan la nomenclatura nueva. Los proyectos antiguos deben renombrar sus archivos,
+actualizar imports y regenerar su lockfile antes de ejecutar `blizzard run`.
+La sintaxis antigua por indentación sigue leyéndose durante la transición, pero
+los archivos nuevos deben usar `{}`, `let` e `import`.
+
+### Herramientas 0.2
+
+```text
+blizzard fmt [-w] [--modern] archivo.blizz
+blizzard check archivo.blizz
+blizzard test [ruta]
+blizzard run [archivo.blizz]
+blizzard build [archivo.blizz]
+blizzard init nombre
+```
+
+`build` analiza, comprueba y compila sin ejecutar el programa. Los diagnósticos
+estructurados usan códigos estables: `B001` sintaxis, `B002` nombre indefinido,
+`B003` módulo ausente, `B004` tipos y `B005` runtime.
+
+### Roadmap experimental
+
+- Separar progresivamente lexer, parser, compilador, runtime y biblioteca estándar en paquetes internos reales.
+- Retirar gradualmente la sintaxis heredada por indentación después de una fase de migración.
+- Añadir inferencia estática más profunda sin convertir Blizzard en un lenguaje de tipos obligatorios.
+- Formalizar resolución semántica de versiones, checksums obligatorios y caché global del gestor de paquetes.
+- Ejecutar compatibilidad continua en Linux, macOS y Windows.
+- Ampliar fuzzing de lexer/parser y publicar la extensión `blizzard-language` 0.2.0.
+
+El gestor ya admite restricciones básicas (`1.2.3`, `^1.2.3`, `~1.2.3`, `>=1.2.3`)
+y el lockfile conserva SHA-256. La caché global y la validación estricta de
+checksums quedan activadas progresivamente para no romper instalaciones 0.2.
+
 ### Características
 
-- **Sintaxis limpia por indentación:** Bloques definidos con 4 espacios, sin llaves `{}` ni puntos y comas `;`.
-- **Servidor HTTP integrado (`using api`):** Rutas GET, POST, PUT, DELETE, PATCH, soporte JSON nativo, CORS y middlewares en pocas líneas.
-- **Cliente HTTP integrado (`using http`):** Peticiones GET, POST, PUT, DELETE a APIs externas con parseo JSON automático sin depender de curl.
-- **Base de datos clave-valor embebida (`using db`):** Almacén JSON estructurado y persistente en disco con escritura atómica.
+### Sintaxis moderna
+
+Blizzard acepta una sintaxis basada en bloques con llaves e inferencia de tipos:
+
+```blizzard
+import json;
+
+let port = 8080;
+
+fn greet(name) {
+    if (name != "") {
+        print(json.stringify(name));
+    } else {
+        print("anonymous");
+    }
+}
+
+greet("Ada");
+```
+
+Las declaraciones usan `let` o `const`, los módulos se cargan con `import` y no
+se necesitan anotaciones de tipo. La forma anterior con `:` e indentación sigue
+siendo aceptada durante la migración de proyectos existentes; `blizzard fmt`
+conserva el estilo de entrada y formatea los archivos modernos con llaves.
+
+- **Sintaxis por bloques:** La sintaxis moderna usa `{}` y `;`; la sintaxis por indentación permanece disponible durante la migración.
+- **Servidor HTTP integrado (`import api`):** Rutas GET, POST, PUT, DELETE, PATCH, soporte JSON nativo, CORS y middlewares en pocas líneas.
+- **Cliente HTTP integrado (`import http`):** Peticiones GET, POST, PUT, DELETE a APIs externas con parseo JSON automático sin depender de curl.
+- **Base de datos clave-valor embebida (`import db`):** Almacén JSON estructurado y persistente en disco con escritura atómica.
 - **Interpolación F-Strings y Operador Elvis (`??`):** `f"Hola {usuario}"`, cadenas multilínea con `"""` y valor por defecto para nulos.
 - **Encadenado seguro (`?.`, `?[]`):** `data?.user?.profile?.name` recorre JSON anidado sin lanzar error y `??=` asigna solo si la variable es `nil`.
 - **Cortes (`[i:j]`):** `lista[1:3]`, `texto[:2]`, índices negativos y slicing seguro `d?.a?.b?[1:]`.
@@ -30,18 +116,18 @@ Snow es un lenguaje de programación simple, directo y conciso, diseñado espec�
 - **`for k, v in dict`:** Itera claves, valores o pares de diccionarios y listas en una sola línea.
 - **`not in` y literales en base 2/8/16:** `if x not in lista`, `0b1010`, `0o17`, `0xFF`.
 - **Stack traces:** Los errores no capturados muestran la pila de llamadas con archivo, línea y columna.
-- **Linting:** `snowman check archivo.snow` detecta nombres no definidos, variables sin usar, código inalcanzable y módulos desconocidos sin ejecutar el programa.
-- **Acceso a sistema y archivos (`using sys`, `using fs`):** Ejecución de comandos del sistema (`sys.sh`), lectura de entorno, control de procesos y operaciones de archivos.
-- **Herramientas de consola (`using cli`):** Análisis de banderas/argumentos, tablas alineadas y cajas de texto formateadas.
-- **Entorno y CSV (`using env`, `using csv`):** Variables de entorno, archivos `.env`, parseo y escritura de CSV.
+- **Linting:** `blizzard check archivo.blizz` detecta nombres no definidos, variables sin usar, código inalcanzable y módulos desconocidos sin ejecutar el programa.
+- **Acceso a sistema y archivos (`import sys`, `import fs`):** Ejecución de comandos del sistema (`sys.sh`), lectura de entorno, control de procesos y operaciones de archivos.
+- **Herramientas de consola (`import cli`):** Análisis de banderas/argumentos, tablas alineadas y cajas de texto formateadas.
+- **Entorno y CSV (`import env`, `import csv`):** Variables de entorno, archivos `.env`, parseo y escritura de CSV.
 - **Errores como valores:** `try` / `catch` y `fail(valor)`. Sin clases ni jerarquías. `nil` es ausencia, no un error.
-- **Listas tipadas:** `nombres: str[] = ["Julian", "Ana"]` valida elementos en tiempo de ejecución. También en funciones: `fn sumar(a: int, b: int) -> int:`.
-- **Formato:** `snowman fmt [-w] archivo.snow` reindenta el código con 4 espacios.
-- **REPL interactivo avanzado:** Historial persistente en `~/.snow_history`, comandos (`help`, `.exit`, `.history`) y colores por tipo de dato.
+- **Inferencia:** `let nombres = ["Julian", "Ana"]` y `fn sumar(a, b) { ... }` evitan anotaciones en el código nuevo.
+- **Formato:** `blizzard fmt [-w] archivo.blizz` normaliza la sintaxis moderna con llaves y conserva archivos heredados.
+- **REPL interactivo avanzado:** Historial persistente en `~/.blizz_history`, comandos (`help`, `.exit`, `.history`) y colores por tipo de dato.
 - **Visibilidad de módulos (`pub` / `priv`):** Encapsulación por archivo. `pub` exporta, `priv` oculta del `import`, sin modificador = `pub` por defecto.
 - **Tipos graduales:** Las anotaciones son opcionales. `age: int = 18`, `names: str[] = ["Ada"]` y las firmas de funciones se validan en ejecución sin restringir el código no anotado.
-- **Paquetes locales:** Un proyecto con `snow.toml` y `src/` puede importar sus módulos por nombre: `import mi_app.utils`.
-- **Pruebas de scripts:** `snowman test` ejecuta todos los archivos `*_test.snow` y reporta cada resultado.
+- **Paquetes locales:** Un proyecto con `blizzard.toml` y `src/` puede importar sus módulos por nombre: `import mi_app.utils`.
+- **Pruebas de scripts:** `blizzard test` ejecuta todos los archivos `*_test.blizz` y reporta cada resultado.
 - **Filtro `where` en `for`:** `for x in lista where cond:` filtra elementos directamente sin un `if` anidado.
 - **Gestión automática de recursos (`with`):** `with abrir_recurso() as r:` libera el recurso (llama `r.close()`) automáticamente al salir del bloque.
 - **Composición:** Los bloques `with`, filtros `where` y `import` de módulos con `pub/priv` funcionan juntos de forma natural.
@@ -53,7 +139,7 @@ Snow es un lenguaje de programación simple, directo y conciso, diseñado espec�
 - **Expresión ternaria:** `estado = "open" if activo else "closed"` devuelve uno de dos valores sin un bloque `if`.
 - **`enumerate()` y `zip()`:** `enumerate(lista)` produce pares índice-valor y `zip(a, b)` combina dos listas hasta la más corta.
 - **Colecciones y números:** `first` y `last` funcionan con listas y strings; `take`, `drop`, `sum`, `any`, `all`, `clamp` y `2 ** 3` cubren operaciones frecuentes.
-- **`snowman update`:** actualiza los paquetes bloqueados desde el índice oficial.
+- **`blizzard update`:** actualiza los paquetes bloqueados desde el índice oficial.
 
 ```python
 const LIMIT = 2
@@ -68,47 +154,47 @@ label = "ready" if len(pairs) == LIMIT else "empty"
 
 #### Módulo en Go
 ```bash
-go get github.com/JDVA0/snow
+go get github.com/JDVA0/blizzard
 ```
 
-#### Compilar el binario `snowman`
+#### Compilar el binario `blizzard`
 ```bash
-git clone https://github.com/JDVA0/snow.git
-cd snow
-go build -o snowman ./cmd/snowman
-sudo mv snowman /usr/local/bin/
+git clone https://github.com/JDVA0/blizzard.git
+cd blizzard
+go build -o blizzard ./cmd/blizzard
+sudo mv blizzard /usr/local/bin/
 ```
 
 #### LSP y extensión de VS Code
 
-Snow incluye un servidor LSP con diagnósticos de sintaxis y análisis estático,
+Blizzard incluye un servidor LSP con diagnósticos de sintaxis y análisis estático,
 autocompletado de palabras clave, funciones y módulos. También reconoce los
 miembros de módulos: después de `using http`, escribir `http.` sugiere
 `get`, `post`, `put`, `delete`, `patch` y `request`.
 
 ```bash
 cd LSP
-go build -o snow-lsp ./server
+go build -o blizzard-lsp ./server
 cd vscode_extension
 pnpm install
 pnpm run compile
 npx @vscode/vsce package --no-dependencies
-code --install-extension snow-0.1.0.vsix --force
+code --install-extension blizzard-0.1.0.vsix --force
 ```
 
-La extensión usa `LSP/snow-lsp` relativo al workspace por defecto. Se puede
-configurar otra ruta con `snow.lsp.path` y desactivar el cliente con
-`snow.lsp.enabled`. La documentación completa está en [LSP/README.md](LSP/README.md)
+La extensión usa `LSP/blizzard-lsp` relativo al workspace por defecto. Se puede
+configurar otra ruta con `blizzard.lsp.path` y desactivar el cliente con
+`blizzard.lsp.enabled`. La documentación completa está en [LSP/README.md](LSP/README.md)
 y [LSP/USAGE.md](LSP/USAGE.md).
 
-### Ejemplo rápido: Servidor API (`api.snow`)
+### Ejemplo rápido: Servidor API (`api.blizz`)
 
 ```python
 using api
 
 api.cors()
 
-api.get("/", fn(req): api.text("Servidor Snow activo"))
+api.get("/", fn(req): api.text("Servidor Blizzard activo"))
 
 fn ver_usuario(req):
     return api.json({id: req.params.id, activo: true})
@@ -125,12 +211,12 @@ api.serve(8080)
 
 Ejecutar:
 ```bash
-snowman api.snow
+blizzard api.blizz
 ```
 
 ### Modo interactivo (REPL)
 ```bash
-snowman repl
+blizzard repl
 ```
 
 ### Sentencia `match` (comparación por casos)
@@ -155,7 +241,7 @@ match command:
 
 Ejecutar:
 ```bash
-snowman app.snow
+blizzard app.blizz
 ```
 
 ### Destructuring y acceso seguro
@@ -174,10 +260,10 @@ display_name = person?.name ?? "anonymous"
 
 ### Visibilidad `pub` / `priv` en módulos
 
-Snow tiene encapsulación por archivo. Todos los símbolos (funciones y variables) son **`pub` (exportados) por defecto**. Usa `priv` para ocultarlos de otros archivos que hagan `import`.
+Blizzard tiene encapsulación por archivo. Todos los símbolos (funciones y variables) son **`pub` (exportados) por defecto**. Usa `priv` para ocultarlos de otros archivos que hagan `import`.
 
 ```python
-# ========= math_utils.snow =========
+# ========= math_utils.blizz =========
 pub VERSION = "1.0.0"
 priv _SAL = "no-exportado"   # oculto fuera del archivo
 
@@ -195,7 +281,7 @@ priv fn _helper(a, b):        # oculta
 Importar y usar desde otro archivo. Los símbolos se acceden con **sintaxis punto** `modulo.simbolo`:
 
 ```python
-# ========= main.snow =========
+# ========= main.blizz =========
 import math_utils as m
 
 print(m.VERSION)        # 1.0.0   (pub, funciona)
@@ -212,7 +298,7 @@ Comportamiento clave:
 - **Al acceder a `foo.no_existe`** se lanza un error en runtime: `attribute not found: no_existe` (no es `nil`).
 - **`priv` es encapsulación, no seguridad**: el valor sigue existiendo en memoria del submódulo; solo no se exporta.
 
-Ejemplos completos: `examples/math_utils.snow`, `examples/string_utils.snow` y `examples/modules_demo.snow`. Este último prueba imports con y sin alias, y comprueba que los símbolos privados no se exportan.
+Ejemplos completos: `examples/math_utils.blizz`, `examples/string_utils.blizz` y `examples/modules_demo.blizz`. Este último prueba imports con y sin alias, y comprueba que los símbolos privados no se exportan.
 
 ### Diagnósticos, tipos graduales y paquetes
 
@@ -223,29 +309,29 @@ Las anotaciones de tipo son opcionales; una variable sin anotación conserva com
 ```python
 age: int = 18
 name: str = "Ada"
-tags: str[] = ["snow", "cli"]
+tags: str[] = ["blizzard", "cli"]
 ```
 
-Para organizar un proyecto local, crea `snow.toml` en la raíz:
+Para organizar un proyecto local, crea `blizzard.toml` en la raíz:
 
 ```toml
 name = "my_app"
 source = "src" # opcional; src es el valor por defecto
 ```
 
-Con `src/utils.snow`, un script puede importarlo desde cualquier subdirectorio del proyecto:
+Con `src/utils.blizz`, un script puede importarlo desde cualquier subdirectorio del proyecto:
 
 ```python
 import my_app.utils
-print(utils.slugify("Hello Snow"))
+print(utils.slugify("Hello Blizzard"))
 ```
 
-Los tests de Snow son scripts que terminan sin error. Usa `assert(condicion, [mensaje])` para marcar expectativas, guárdalos con el sufijo `_test.snow` y ejecútalos con:
+Los tests de Blizzard son scripts que terminan sin error. Usa `assert(condicion, [mensaje])` para marcar expectativas, guárdalos con el sufijo `_test.blizz` y ejecútalos con:
 
 ```bash
-snowman test
-snowman test tests unit/math_test.snow
-snowman test --filter math
+blizzard test
+blizzard test tests unit/math_test.blizz
+blizzard test --filter math
 ```
 
 Los imports relativos explícitos eliminan ambigüedad entre módulos locales y paquetes:
@@ -255,40 +341,40 @@ import ./utils.slug
 import ../shared.validators
 ```
 
-Snow detecta ciclos de importación y muestra el módulo que se estaba cargando.
+Blizzard detecta ciclos de importación y muestra el módulo que se estaba cargando.
 
-### Gestor de paquetes `snowman`
+### Gestor de paquetes `blizzard`
 
-`snowman get` descarga las bibliotecas oficiales desde el repositorio Snow en GitHub. Las dependencias por ruta siguen disponibles con `add`; `get-local` está reservado para desarrollar bibliotecas desde una carpeta `repo/` local.
+`blizzard get` descarga las bibliotecas oficiales desde el repositorio Blizzard en GitHub. Las dependencias por ruta siguen disponibles con `add`; `get-local` está reservado para desarrollar bibliotecas desde una carpeta `repo/` local.
 
 ```bash
-snowman init my_app
-snowman run
-snowman run --env .env
-snowman install
-snowman add text_tools ../text_tools
-snowman list
-snowman remove text_tools
-snowman get snow/text.snow
-snowman get snow/math.snow
-snowman get snow/arrays.snow@0.1.0
-snowman get-local snow/text.snow
-snowman search pagination
-snowman index
-snowman update
+blizzard init my_app
+blizzard run
+blizzard run --env .env
+blizzard install
+blizzard add text_tools ../text_tools
+blizzard list
+blizzard remove text_tools
+blizzard get blizzard/text.blizz
+blizzard get blizzard/math.blizz
+blizzard get blizzard/arrays.blizz@0.1.0
+blizzard get-local blizzard/text.blizz
+blizzard search pagination
+blizzard index
+blizzard update
 ```
 
-`get` instala la biblioteca en `packages/snow/src/`, registra `dep.snow = "packages/snow"` y genera un lockfile reproducible con la versión, el origen y el checksum SHA-256. Usa `@0.1.0` para una versión exacta. `update` reinstala las bibliotecas fijadas en el lockfile.
+`get` instala la biblioteca en `packages/blizzard/src/`, registra `dep.blizz = "packages/blizzard"` y genera un lockfile reproducible con la versión, el origen y el checksum SHA-256. Usa `@0.1.0` para una versión exacta. `update` reinstala las bibliotecas fijadas en el lockfile.
 
-`snowman install` reinstala exactamente las versiones de `snow.lock`. `snowman run` ejecuta `src/main.snow` automáticamente cuando encuentra `snow.toml`; `snowman run --env .env` carga variables del archivo antes de iniciar el programa.
+`blizzard install` reinstala exactamente las versiones de `blizzard.lock`. `blizzard run` ejecuta `src/main.blizz` automáticamente cuando encuentra `blizzard.toml`; `blizzard run --env .env` carga variables del archivo antes de iniciar el programa.
 
-Las bibliotecas oficiales viven ordenadas en `repo/packages/<nombre>/`, con su código en `src/` y metadatos en `package.toml`. `snowman index` genera `repo/index.toml`. El catálogo oficial incluye 18 bibliotecas, entre ellas `sets` y `paths`. Consulta una biblioteca instalada con `snowman info snow/text.snow`.
+Las bibliotecas oficiales viven ordenadas en `repo/packages/<nombre>/`, con su código en `src/` y metadatos en `package.toml`. `blizzard index` genera `repo/index.toml`. El catálogo oficial incluye 18 bibliotecas, entre ellas `sets` y `paths`. Consulta una biblioteca instalada con `blizzard info blizzard/text.blizz`.
 
-El proyecto [PkgsExamples](/PkgsExamples) contiene una integración completa: sus paquetes están instalados en `PkgsExamples/packages/snow/` y `PkgsExamples/src/main.snow` importa y ejecuta las cuatro bibliotecas oficiales.
+El proyecto [PkgsExamples](/PkgsExamples) contiene una integración completa: sus paquetes están instalados en `PkgsExamples/packages/blizzard/` y `PkgsExamples/src/main.blizz` importa y ejecuta las cuatro bibliotecas oficiales.
 
-Al finalizar, Snowman imprime el paquete y la versión instalada. Comprueba además el resultado con `snowman list` y revisando `packages/snow/src/`.
+Al finalizar, Blizzard imprime el paquete y la versión instalada. Comprueba además el resultado con `blizzard list` y revisando `packages/blizzard/src/`.
 
-Para desarrollo local usa `snowman get-local` y configura `SNOW_REPO` apuntando a la carpeta `repo/`.
+Para desarrollo local usa `blizzard get-local` y configura `BLIZZARD_REPO` apuntando a la carpeta `repo/`.
 
 ---
 
@@ -333,13 +419,13 @@ for u in db.all() where u.active and u.age > 21:
     print(u.name)
 ```
 
-Ejemplo completo: `examples/where_demo.snow`.
+Ejemplo completo: `examples/where_demo.blizz`.
 
 ---
 
 ### Gestión automática de recursos `with`
 
-Asegura que un recurso se "limpie" (cierre) automáticamente al salir del bloque. Snow busca un atributo `close` (tipo `fn` o `native`) sobre el valor y lo invoca sin argumentos.
+Asegura que un recurso se "limpie" (cierre) automáticamente al salir del bloque. Blizzard busca un atributo `close` (tipo `fn` o `native`) sobre el valor y lo invoca sin argumentos.
 
 ```python
 with fs.open("data.txt") as file:
@@ -366,7 +452,7 @@ with make_conn("postgres://localhost") as db:
 print(db.open)                            # false
 ```
 
-Ejemplo completo: `examples/with_demo.snow`.
+Ejemplo completo: `examples/with_demo.blizz`.
 
 ---
 
@@ -385,19 +471,19 @@ with db.open("users.db") as db:
     print("Suma activos: " + str(total))
 ```
 
-Ejemplo completo y ejecutable: `examples/combined_demo.snow`.
+Ejemplo completo y ejecutable: `examples/combined_demo.blizz`.
 
 ---
 
 ### Documentación completa
 
-Visita la documentación bilingüe en [https://jdva0.github.io/snow/](https://jdva0.github.io/snow/) o consulta los archivos en la carpeta `docs/`.
+Visita la documentación bilingüe en [https://jdva0.github.io/blizzard/](https://jdva0.github.io/blizzard/) o consulta los archivos en la carpeta `docs/`.
 
 ---
 
 ## English
 
-Snow is a simple, straightforward, and concise programming language designed to make creating REST web APIs and command-line tools fast and effortless, with zero external dependencies.
+Blizzard is a simple, straightforward, and concise programming language designed to make creating REST web APIs and command-line tools fast and effortless, with zero external dependencies.
 
 > Project created by **JDVA0**.
 > Built for fun and experimentation.
@@ -418,48 +504,48 @@ Snow is a simple, straightforward, and concise programming language designed to 
 - **`for k, v in dict`:** Iterate keys, values or pairs of dicts and lists in one line.
 - **`not in` and base-2/8/16 literals:** `if x not in list`, `0b1010`, `0o17`, `0xFF`.
 - **Stack traces:** Uncaught errors print the call stack with file, line and column.
-- **Linting:** `snowman check file.snow` flags undefined names, unused variables, unreachable code and unknown modules without running the program.
+- **Linting:** `blizzard check file.blizz` flags undefined names, unused variables, unreachable code and unknown modules without running the program.
 - **System and file access (`using sys`, `using fs`):** Run shell commands (`sys.sh`), manage environment variables, inspect processes, and handle disk files directly.
 - **CLI toolkit (`using cli`):** Command-line flag parsing, structured text tables, and framed display boxes.
 - **Environment and CSV (`using env`, `using csv`):** Environment variables, `.env` files, CSV parse and write.
 - **Errors as values:** `try` / `catch` and `fail(value)`. No classes or hierarchies. `nil` is absence, not an error.
 - **Typed lists:** `names: str[] = ["Julian", "Ana"]` validates elements at runtime. Also on functions: `fn add(a: int, b: int) -> int:`.
-- **Formatter:** `snowman fmt [-w] file.snow` reprints source with 4-space indentation.
-- **Enhanced REPL:** Persistent command history in `~/.snow_history`, built-in navigation (`help`, `.exit`, `.history`), and colorized output.
+- **Formatter:** `blizzard fmt [-w] file.blizz` reprints source with 4-space indentation.
+- **Enhanced REPL:** Persistent command history in `~/.blizz_history`, built-in navigation (`help`, `.exit`, `.history`), and colorized output.
 - **Module visibility (`pub` / `priv`):** File-level encapsulation. `pub` exports symbols for `import`, `priv` hides them; no modifier = `pub` by default.
 - **Gradual types:** Optional annotations such as `age: int = 18` and `names: str[] = ["Ada"]` are checked at runtime while unannotated code remains dynamic.
-- **Local packages:** A project with `snow.toml` and `src/` can import its modules by package name: `import my_app.utils`.
-- **Script tests:** `snowman test` runs every `*_test.snow` file and reports each result.
+- **Local packages:** A project with `blizzard.toml` and `src/` can import its modules by package name: `import my_app.utils`.
+- **Script tests:** `blizzard test` runs every `*_test.blizz` file and reports each result.
 - **`where` filter inside `for`:** `for x in list where cond:` filters elements inline without a nested `if`.
 - **Automatic resource management (`with`):** `with open_resource() as r:` calls `r.close()` automatically at block end (cleanup guaranteed, even if block returns).
 - **Composable:** `with` blocks, `where` filters and `pub`/`priv` modules work together seamlessly out of the box.
 - **Recent language features:** `const` immutable bindings, `always` cleanup blocks after `try`/`catch`, ternary expressions (`value if condition else other_value`), `enumerate()` / `zip()` list helpers, collection helpers, and the `**` power operator.
-- **Package updates:** `snowman update` refreshes locked packages from the official registry.
-- **CLI colors:** Snowman colors errors, package status, and diagnostics in interactive terminals. Set `NO_COLOR=1` for plain output in scripts and CI.
+- **Package updates:** `blizzard update` refreshes locked packages from the official registry.
+- **CLI colors:** Blizzard colors errors, package status, and diagnostics in interactive terminals. Set `NO_COLOR=1` for plain output in scripts and CI.
 
 ### Installation
 
 #### Go Module
 ```bash
-go get github.com/JDVA0/snow
+go get github.com/JDVA0/blizzard
 ```
 
-#### Build the `snowman` binary
+#### Build the `blizzard` binary
 ```bash
-git clone https://github.com/JDVA0/snow.git
-cd snow
-go build -o snowman ./cmd/snowman
-sudo mv snowman /usr/local/bin/
+git clone https://github.com/JDVA0/blizzard.git
+cd blizzard
+go build -o blizzard ./cmd/blizzard
+sudo mv blizzard /usr/local/bin/
 ```
 
-### Quick Example: API Server (`api.snow`)
+### Quick Example: API Server (`api.blizz`)
 
 ```python
 using api
 
 api.cors()
 
-api.get("/", fn(req): api.text("Snow server active"))
+api.get("/", fn(req): api.text("Blizzard server active"))
 
 fn get_user(req):
     return api.json({id: req.params.id, active: true})
@@ -476,12 +562,12 @@ api.serve(8080)
 
 Run:
 ```bash
-snowman api.snow
+blizzard api.blizz
 ```
 
 ### Interactive REPL
 ```bash
-snowman repl
+blizzard repl
 ```
 
 ### `match` statement (case comparison)
@@ -506,15 +592,15 @@ match command:
 
 Run:
 ```bash
-snowman app.snow
+blizzard app.blizz
 ```
 
 ### Module visibility: `pub` / `priv`
 
-Snow has file-level encapsulation. Every symbol (functions and variables) is **`pub` (exported) by default**. Use `priv` to hide symbols from external `import`s.
+Blizzard has file-level encapsulation. Every symbol (functions and variables) is **`pub` (exported) by default**. Use `priv` to hide symbols from external `import`s.
 
 ```python
-# ========= math_utils.snow =========
+# ========= math_utils.blizz =========
 pub VERSION = "1.0.0"
 priv _SECRET = "not exported"
 
@@ -532,7 +618,7 @@ priv fn _helper(a, b):        # hidden from other modules
 Import and use from another file with **dot-access syntax** `module.symbol`:
 
 ```python
-# ========= main.snow =========
+# ========= main.blizz =========
 import math_utils as m
 
 print(m.VERSION)        # 1.0.0   (pub, works)
@@ -549,7 +635,7 @@ Key behavior:
 - **Accessing `foo.does_not_exist`** throws a runtime error: `attribute not found: does_not_exist` (it doesn't silently become `nil`).
 - **`priv` = encapsulation, not security**: the value still lives in the sub-interpreter memory; it's just not reachable via the module surface.
 
-Complete examples: `examples/math_utils.snow`, `examples/string_utils.snow`, and `examples/modules_demo.snow`. The last one tests aliased and unaliased imports, and verifies that private symbols are not exported.
+Complete examples: `examples/math_utils.blizz`, `examples/string_utils.blizz`, and `examples/modules_demo.blizz`. The last one tests aliased and unaliased imports, and verifies that private symbols are not exported.
 
 ### Diagnostics, gradual types, and packages
 
@@ -560,29 +646,29 @@ Type annotations are optional; unannotated variables stay dynamic:
 ```python
 age: int = 18
 name: str = "Ada"
-tags: str[] = ["snow", "cli"]
+tags: str[] = ["blizzard", "cli"]
 ```
 
-To organize a local package, add `snow.toml` at the project root:
+To organize a local package, add `blizzard.toml` at the project root:
 
 ```toml
 name = "my_app"
 source = "src" # optional; src is the default
 ```
 
-With `src/utils.snow`, any script under the project can use:
+With `src/utils.blizz`, any script under the project can use:
 
 ```python
 import my_app.utils
-print(utils.slugify("Hello Snow"))
+print(utils.slugify("Hello Blizzard"))
 ```
 
-Snow tests are scripts that complete without an error. Use `assert(condition, [message])` for expectations, name them with `_test.snow`, and run:
+Blizzard tests are scripts that complete without an error. Use `assert(condition, [message])` for expectations, name them with `_test.blizz`, and run:
 
 ```bash
-snowman test
-snowman test tests unit/math_test.snow
-snowman test --filter math
+blizzard test
+blizzard test tests unit/math_test.blizz
+blizzard test --filter math
 ```
 
 Explicit relative imports remove ambiguity between local modules and packages:
@@ -592,35 +678,35 @@ import ./utils.slug
 import ../shared.validators
 ```
 
-Snow detects import cycles and reports the module that was being loaded.
+Blizzard detects import cycles and reports the module that was being loaded.
 
-### `snowman` package manager
+### `blizzard` package manager
 
-`snowman get` downloads official libraries from Snow's GitHub repository. Path dependencies remain available through `add`; `get-local` is reserved for developing libraries from a local `repo/` directory.
+`blizzard get` downloads official libraries from Blizzard's GitHub repository. Path dependencies remain available through `add`; `get-local` is reserved for developing libraries from a local `repo/` directory.
 
 ```bash
-snowman init my_app
-snowman add text_tools ../text_tools
-snowman list
-snowman remove text_tools
-snowman get snow/text.snow
-snowman get snow/math.snow
-snowman get snow/arrays.snow@0.1.0
-snowman get-local snow/text.snow
-snowman search pagination
-snowman index
-snowman update
+blizzard init my_app
+blizzard add text_tools ../text_tools
+blizzard list
+blizzard remove text_tools
+blizzard get blizzard/text.blizz
+blizzard get blizzard/math.blizz
+blizzard get blizzard/arrays.blizz@0.1.0
+blizzard get-local blizzard/text.blizz
+blizzard search pagination
+blizzard index
+blizzard update
 ```
 
-`get` installs the library in `packages/snow/src/`, writes `dep.snow = "packages/snow"`, and creates a reproducible lockfile with version, source, and SHA-256 checksum. Use `@0.1.0` for an exact version. `update` manages locked packages.
+`get` installs the library in `packages/blizzard/src/`, writes `dep.blizz = "packages/blizzard"`, and creates a reproducible lockfile with version, source, and SHA-256 checksum. Use `@0.1.0` for an exact version. `update` manages locked packages.
 
-Official libraries are organized in `repo/packages/<name>/`, with source in `src/` and metadata in `package.toml`. The official catalog includes 16 libraries: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template`, and `stats`. Inspect an installed library with `snowman info snow/text.snow`.
+Official libraries are organized in `repo/packages/<name>/`, with source in `src/` and metadata in `package.toml`. The official catalog includes 16 libraries: `text`, `math`, `collections`, `validate`, `arrays`, `dict`, `strings`, `numbers`, `query`, `csvutil`, `pagination`, `result`, `guards`, `ids`, `template`, and `stats`. Inspect an installed library with `blizzard info blizzard/text.blizz`.
 
-[PkgsExamples](/PkgsExamples) is a complete integration project: its packages live in `PkgsExamples/packages/snow/`, and `PkgsExamples/src/main.snow` imports and runs all four official libraries.
+[PkgsExamples](/PkgsExamples) is a complete integration project: its packages live in `PkgsExamples/packages/blizzard/`, and `PkgsExamples/src/main.blizz` imports and runs all four official libraries.
 
-When it finishes, Snowman prints the installed package and version. You can verify the result with `snowman list` and by inspecting `packages/snow/src/`.
+When it finishes, Blizzard prints the installed package and version. You can verify the result with `blizzard list` and by inspecting `packages/blizzard/src/`.
 
-For local development use `snowman get-local` and set `SNOW_REPO` to the `repo/` directory.
+For local development use `blizzard get-local` and set `BLIZZARD_REPO` to the `repo/` directory.
 
 ---
 
@@ -649,13 +735,13 @@ for u in db.all() where u.active and u.age > 21:
     print(u.name)
 ```
 
-Full example: `examples/where_demo.snow`.
+Full example: `examples/where_demo.blizz`.
 
 ---
 
 ### Automatic resource management with `with`
 
-Guarantees a resource is cleaned up (closed) automatically when the block exits. Snow looks for a `close` attribute (of type `fn` or `native`) on the value and invokes it with no arguments.
+Guarantees a resource is cleaned up (closed) automatically when the block exits. Blizzard looks for a `close` attribute (of type `fn` or `native`) on the value and invokes it with no arguments.
 
 ```python
 with fs.open("data.txt") as file:
@@ -682,7 +768,7 @@ with make_conn("postgres://localhost") as db:
 print(db.open)                            # false
 ```
 
-Full example: `examples/with_demo.snow`.
+Full example: `examples/with_demo.blizz`.
 
 ---
 
@@ -701,13 +787,13 @@ with db.open("users.db") as db:
     print("Active sum: " + str(total))
 ```
 
-Full runnable example: `examples/combined_demo.snow`.
+Full runnable example: `examples/combined_demo.blizz`.
 
 ---
 
 ### Full Documentation
 
-Read the complete bilingual documentation at [https://jdva0.github.io/snow/](https://jdva0.github.io/snow/) or explore the `docs/` directory.
+Read the complete bilingual documentation at [https://jdva0.github.io/blizzard/](https://jdva0.github.io/blizzard/) or explore the `docs/` directory.
 
 ---
 

@@ -1,0 +1,20 @@
+# Test file for Blizzard autocompletion in Helix
+import api;
+
+api.cors();
+
+api.get("/", fn(req) { return api.text("Servidor Blizzard activo"); });
+
+fn ver_usuario(req) {
+    return api.json({id: req.params.id, activo: true});
+}
+
+api.get("/usuarios/:id", ver_usuario);
+
+fn crear(req) {
+    return api.json({recibido: req.json}, 201);
+}
+
+api.post("/datos", crear);
+
+api.serve(8080);

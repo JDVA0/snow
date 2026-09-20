@@ -1,4 +1,4 @@
-package snow
+package blizzard
 
 import (
 	"crypto/hmac"

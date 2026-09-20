@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/JDVA0/snow/lsp/analyzer"
+	"github.com/JDVA0/blizzard/lsp/analyzer"
 )
 
 func TestDocumentParsing(t *testing.T) {
-	// Test that the analyzer can parse Snow code
+	// Test that the analyzer can parse Blizzard code
 	anlzr := analyzer.NewAnalyzer()
 
-	// Valid Snow code
+	// Valid Blizzard code
 	validCode := `const PORT = 8080
 print("Hello, World!")`
 
-	result, err := anlzr.Parse(validCode, "test.snow")
+	result, err := anlzr.Parse(validCode, "test.blizz")
 	if err != nil {
 		t.Fatalf("Failed to parse valid code: %v", err)
 	}
@@ -24,11 +24,11 @@ print("Hello, World!")`
 		t.Error("Expected program to be non-nil")
 	}
 
-	// Invalid Snow code
+	// Invalid Blizzard code
 	invalidCode := `const PORT = 8080
 print("Hello, World!"` // Missing closing quote
 
-	result, err = anlzr.Parse(invalidCode, "test.snow")
+	result, err = anlzr.Parse(invalidCode, "test.blizz")
 	if err != nil {
 		t.Fatalf("Failed to parse invalid code: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestDiagnosticsConversion(t *testing.T) {
 	code := `x = 10
 print(y)` // y is undefined
 
-	result, err := anlzr.Parse(code, "test.snow")
+	result, err := anlzr.Parse(code, "test.blizz")
 	if err != nil {
 		t.Fatalf("Failed to parse code: %v", err)
 	}
@@ -66,7 +66,7 @@ print(y)` // y is undefined
 
 func TestDiagnosticsKeepURIPositions(t *testing.T) {
 	anlzr := analyzer.NewAnalyzer()
-	result, err := anlzr.Parse("fn broken(:\n    missing_name\n", "file:///tmp/errors.snow")
+	result, err := anlzr.Parse("fn broken(:\n    missing_name\n", "file:///tmp/errors.blizz")
 	if err != nil {
 		t.Fatalf("Failed to parse invalid code: %v", err)
 	}

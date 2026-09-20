@@ -1,0 +1,16 @@
+{
+  "iconDefinitions": {
+    "blizzard-icon": {
+      "iconPath": "./blizzard.svg"
+    }
+  },
+  "fileExtensions": {
+    "blizz": "blizzard-icon"
+  },
+  "fileNames": {
+    "*.blizz": "blizzard-icon"
+  },
+  "languageIds": {
+    "blizzard": "blizzard-icon"
+  }
+}
