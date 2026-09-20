@@ -137,6 +137,39 @@ func Repl(i *Interp) {
 	replFallback(i)
 }
 
+// missingBlockAtEnd reports whether a parse error is a missing indented block
+// whose header ':' is the last thing typed. In that case (for, if, fn, ...:)
+// the REPL keeps reading so the user can enter the body on the next lines
+// instead of discarding the buffer with an error.
+func missingBlockAtEnd(e *Errat, buf string) bool {
+	if e == nil || e.Err == nil || !strings.Contains(e.Err.Error(), "expected an indented block") {
+		return false
+	}
+	trimmed := strings.TrimRight(buf, " \t\r\n")
+	return strings.HasSuffix(trimmed, ":")
+}
+
+// autoIndent returns the indentation a new line should get when it continues a
+// block: one level (4 spaces) deeper than the line that just ended with ':',
+// so nested blocks (a 'for' inside a 'fn') are indented correctly.
+func autoIndent(buf string) string {
+	if strings.TrimRight(buf, " \t\r\n") == "" {
+		return ""
+	}
+	prevTrimmed := strings.TrimRight(buf, " \t\r\n")
+	if !strings.HasSuffix(prevTrimmed, ":") {
+		return ""
+	}
+	lead := 0
+	for _, l := range strings.Split(buf, "\n") {
+		if strings.TrimRight(l, " \t\r") == "" {
+			continue
+		}
+		lead = len(l) - len(strings.TrimLeft(l, " \t"))
+	}
+	return strings.Repeat(" ", lead+4)
+}
+
 func replTerminal(i *Interp, fd int) {
 	oldState, err := term.MakeRaw(fd)
 	if err != nil {
@@ -269,13 +302,10 @@ func replTerminal(i *Interp, fd int) {
 			}
 		}
 
-		// Auto-indent helper: if the previous statement ended with ':' (a new block)
-		// and the user provided code without leading indentation, auto-indent with 4 spaces.
-		if buf != "" {
-			prevTrimmed := strings.TrimRight(buf, " \t\r\n")
-			if strings.HasSuffix(prevTrimmed, ":") && line != "" && !strings.HasPrefix(line, " ") && !strings.HasPrefix(line, "\t") {
-				line = "    " + line
-			}
+		// Auto-indent helper: a line that continues a block header ('...:')
+		// gets one indentation level beyond the header's own indent.
+		if ind := autoIndent(buf); ind != "" && line != "" && !strings.HasPrefix(line, " ") && !strings.HasPrefix(line, "\t") {
+			line = ind + line
 		}
 
 		buf += line + "\n"
@@ -283,10 +313,10 @@ func replTerminal(i *Interp, fd int) {
 		prog, err := Parse(buf, "<repl>")
 		if err != nil {
 			var e *Errat
-			if errors.As(err, &e) && errors.Is(e.Err, ErrIncomplete) {
+			if errors.As(err, &e) && (errors.Is(e.Err, ErrIncomplete) || missingBlockAtEnd(e, buf)) {
 				continue
 			}
-			fmt.Fprintf(i.errOut, "%s%s%s\n", ansiRed, err, ansiReset)
+			fmt.Fprintf(i.errOut, "%s%s%s\n", ansiRed, FormatDiagnostic(err, buf), ansiReset)
 			buf = ""
 			continue
 		}
@@ -296,12 +326,12 @@ func replTerminal(i *Interp, fd int) {
 
 		ops, err := CompileShow(prog)
 		if err != nil {
-			fmt.Fprintf(i.errOut, "%s%s%s\n", ansiRed, err, ansiReset)
+			fmt.Fprintf(i.errOut, "%s%s%s\n", ansiRed, FormatDiagnostic(err, buf), ansiReset)
 			buf = ""
 			continue
 		}
 		if err := i.Exec(ops); err != nil {
-			fmt.Fprintf(i.errOut, "%s%s%s\n", ansiRed, err, ansiReset)
+			fmt.Fprintf(i.errOut, "%s%s%s\n", ansiRed, FormatDiagnostic(err, buf), ansiReset)
 			buf = ""
 			continue
 		}
@@ -348,21 +378,18 @@ func replFallback(i *Interp) {
 				continue
 			}
 		}
-		if buf != "" {
-			prevTrimmed := strings.TrimRight(buf, " \t\r\n")
-			if strings.HasSuffix(prevTrimmed, ":") && trimmed != "" && !strings.HasPrefix(line, " ") && !strings.HasPrefix(line, "\t") {
-				line = "    " + line
-			}
+		if ind := autoIndent(buf); ind != "" && trimmed != "" && !strings.HasPrefix(line, " ") && !strings.HasPrefix(line, "\t") {
+			line = ind + line
 		}
 		buf += line
 
 		prog, err := Parse(buf, "<repl>")
 		if err != nil {
 			var e *Errat
-			if errors.As(err, &e) && errors.Is(e.Err, ErrIncomplete) {
+			if errors.As(err, &e) && (errors.Is(e.Err, ErrIncomplete) || missingBlockAtEnd(e, buf)) {
 				continue
 			}
-			fmt.Fprintln(i.errOut, err)
+			fmt.Fprintln(i.errOut, FormatDiagnostic(err, buf))
 			buf = ""
 			continue
 		}
@@ -372,12 +399,12 @@ func replFallback(i *Interp) {
 
 		ops, err := CompileShow(prog)
 		if err != nil {
-			fmt.Fprintln(i.errOut, err)
+			fmt.Fprintln(i.errOut, FormatDiagnostic(err, buf))
 			buf = ""
 			continue
 		}
 		if err := i.Exec(ops); err != nil {
-			fmt.Fprintln(i.errOut, err)
+			fmt.Fprintln(i.errOut, FormatDiagnostic(err, buf))
 			buf = ""
 			continue
 		}

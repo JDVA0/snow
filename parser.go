@@ -858,11 +858,12 @@ func (p *parser) parseFn() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := p.expectColon(); err != nil {
+	colon, err := p.expectColon()
+	if err != nil {
 		return nil, err
 	}
 	p.fnN++
-	body, err := p.parseSuite()
+	body, err := p.parseSuite(colon, "function")
 	p.fnN--
 	if err != nil {
 		return nil, err
@@ -956,7 +957,10 @@ func (p *parser) expectColon() (Tok, error) {
 }
 
 // parseSuite parses the block that follows the ':' of a compound statement.
-func (p *parser) parseSuite() ([]Stmt, error) {
+// colon is the header's ':' token and ctx the statement kind, so a missing
+// block is reported at the point where the block must begin (never on a
+// dangling dedent at the end of input).
+func (p *parser) parseSuite(colon Tok, ctx string) ([]Stmt, error) {
 	k := p.peek()
 	if k.Kind == tNewline {
 		p.next()
@@ -968,7 +972,7 @@ func (p *parser) parseSuite() ([]Stmt, error) {
 		if k.Kind == tEOF {
 			return nil, &Errat{p.name, k.Line, k.Col, ErrIncomplete}
 		}
-		return nil, p.errf(k, "expected an indented block")
+		return nil, p.errf(colon, "expected an indented block after the '%s' statement; the next line must be indented", ctx)
 	}
 	s, err := p.parseStmt()
 	if err != nil {
@@ -1014,10 +1018,11 @@ func (p *parser) parseIf() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := p.expectColon(); err != nil {
+	c, err := p.expectColon()
+	if err != nil {
 		return nil, err
 	}
-	body, err := p.parseSuite()
+	body, err := p.parseSuite(c, "if")
 	if err != nil {
 		return nil, err
 	}
@@ -1030,10 +1035,11 @@ func (p *parser) parseIf() (Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
-		if _, err := p.expectColon(); err != nil {
+		cc, err := p.expectColon()
+		if err != nil {
 			return nil, err
 		}
-		b, err := p.parseSuite()
+		b, err := p.parseSuite(cc, "elif")
 		if err != nil {
 			return nil, err
 		}
@@ -1042,10 +1048,11 @@ func (p *parser) parseIf() (Stmt, error) {
 	}
 	if p.peek().Kind == tIdent && p.peek().Text == "else" {
 		p.next()
-		if _, err := p.expectColon(); err != nil {
+		cc, err := p.expectColon()
+		if err != nil {
 			return nil, err
 		}
-		if els, err = p.parseSuite(); err != nil {
+		if els, err = p.parseSuite(cc, "else"); err != nil {
 			return nil, err
 		}
 	}
@@ -1083,11 +1090,12 @@ func (p *parser) parseFor() (Stmt, error) {
 			return nil, err
 		}
 	}
-	if _, err := p.expectColon(); err != nil {
+	colon, err := p.expectColon()
+	if err != nil {
 		return nil, err
 	}
 	p.loopN++
-	body, err := p.parseSuite()
+	body, err := p.parseSuite(colon, "for")
 	p.loopN--
 	if err != nil {
 		return nil, err
@@ -1101,11 +1109,12 @@ func (p *parser) parseWhile() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := p.expectColon(); err != nil {
+	colon, err := p.expectColon()
+	if err != nil {
 		return nil, err
 	}
 	p.loopN++
-	body, err := p.parseSuite()
+	body, err := p.parseSuite(colon, "while")
 	p.loopN--
 	if err != nil {
 		return nil, err
@@ -1198,10 +1207,11 @@ func (p *parser) parseMatch() (Stmt, error) {
 					seenWildcard = true
 				}
 			}
-			if _, err := p.expectColon(); err != nil {
+			c, err := p.expectColon()
+			if err != nil {
 				return nil, err
 			}
-			body, err := p.parseSuite()
+			body, err := p.parseSuite(c, "case")
 			if err != nil {
 				return nil, err
 			}
@@ -1215,10 +1225,11 @@ func (p *parser) parseMatch() (Stmt, error) {
 
 func (p *parser) parseTry() (Stmt, error) {
 	st := p.next() // consume 'try'
-	if _, err := p.expectColon(); err != nil {
+	colon, err := p.expectColon()
+	if err != nil {
 		return nil, err
 	}
-	tryBody, err := p.parseSuite()
+	tryBody, err := p.parseSuite(colon, "try")
 	if err != nil {
 		return nil, err
 	}
@@ -1231,20 +1242,22 @@ func (p *parser) parseTry() (Stmt, error) {
 		return nil, p.errf(p.peek(), "expected a name after 'catch'")
 	}
 	catchVar := p.next().Text
-	if _, err := p.expectColon(); err != nil {
+	colon, err = p.expectColon()
+	if err != nil {
 		return nil, err
 	}
-	catchBody, err := p.parseSuite()
+	catchBody, err := p.parseSuite(colon, "catch")
 	if err != nil {
 		return nil, err
 	}
 	var always []Stmt
 	if p.peek().Kind == tIdent && p.peek().Text == "always" {
 		p.next()
-		if _, err := p.expectColon(); err != nil {
+		colon, err = p.expectColon()
+		if err != nil {
 			return nil, err
 		}
-		always, err = p.parseSuite()
+		always, err = p.parseSuite(colon, "always")
 		if err != nil {
 			return nil, err
 		}
@@ -1266,10 +1279,11 @@ func (p *parser) parseWith() (Stmt, error) {
 		}
 		name = p.next().Text
 	}
-	if _, err := p.expectColon(); err != nil {
+	colon, err := p.expectColon()
+	if err != nil {
 		return nil, err
 	}
-	body, err := p.parseSuite()
+	body, err := p.parseSuite(colon, "with")
 	if err != nil {
 		return nil, err
 	}
@@ -1745,7 +1759,8 @@ func (p *parser) parsePrimary() (Expr, error) {
 			if err != nil {
 				return nil, err
 			}
-			if _, err := p.expectColon(); err != nil {
+			colon, err := p.expectColon()
+			if err != nil {
 				return nil, err
 			}
 			if p.peek().Kind != tNewline {
@@ -1757,7 +1772,7 @@ func (p *parser) parsePrimary() (Expr, error) {
 				return &FnExpr{Pos: Pos{k.Line, k.Col}, Params: params, ParamTypes: ptypes, Ret: ret, Body: body}, nil
 			}
 			p.fnN++
-			body, err := p.parseSuite()
+			body, err := p.parseSuite(colon, "function")
 			p.fnN--
 			if err != nil {
 				return nil, err

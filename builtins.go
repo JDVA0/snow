@@ -973,7 +973,7 @@ func bAssert(i *Interp, args []Val) ([]Val, error) {
 	if Truthy(args[0]) {
 		return []Val{}, nil
 	}
-	msg := "assertion failed"
+	msg := "assertion failed: condition evaluated to false"
 	if len(args) == 2 {
 		msg = SnowStr(args[1])
 	}

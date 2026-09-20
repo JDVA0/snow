@@ -2,6 +2,7 @@ package snow
 
 import (
 	"bytes"
+	"errors"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -1443,12 +1444,80 @@ func TestFormatDiagnostic(t *testing.T) {
 	}
 }
 
+func TestAssertDiagnosticPointsAtCall(t *testing.T) {
+	src := "fn main():\n    assert(1 == 2)\n\nmain()\n"
+	err := New().Run(src, "assert.snow")
+	got := FormatDiagnostic(err, src)
+	if !strings.Contains(got, "assert.snow:2:5:") || !strings.Contains(got, "assertion failed: condition evaluated to false") {
+		t.Fatalf("unexpected assert diagnostic:\n%s", got)
+	}
+}
+
 func TestAssert(t *testing.T) {
 	check(t, `assert(1 + 1 == 2)
 print("ok")
 `, "ok")
 	if _, err := run(t, `assert(false, "expected failure")`); err == nil || !strings.Contains(err.Error(), "expected failure") {
 		t.Fatalf("assert should report its message, got %v", err)
+	}
+}
+
+func TestMissingBlockErrorPointsAtColon(t *testing.T) {
+	src := "fn main():\n    for i in [1, 2]:\nx = 1\n"
+	err := New().Run(src, "block.snow")
+	if err == nil {
+		t.Fatal("expected a missing block error")
+	}
+	msg := err.Error()
+	if !strings.Contains(msg, "expected an indented block after the 'for' statement") {
+		t.Fatalf("expected contextual block error, got %v", err)
+	}
+	if !strings.Contains(msg, "block.snow:2:") {
+		t.Fatalf("expected error to point at the 'for' header, got %v", err)
+	}
+}
+
+func TestMissingBlockErrorAtEnd(t *testing.T) {
+	src := "fn main():\n    for i in [1, 2]:\n"
+	prog, err := Parse(src, "<repl>")
+	if err == nil {
+		t.Fatal("expected a missing-block error at end of header")
+	}
+	var e *Errat
+	if !errors.As(err, &e) || !missingBlockAtEnd(e, src) {
+		t.Fatalf("expected a block header the REPL keeps reading, got %v", err)
+	}
+	if prog != nil {
+		t.Fatal("Parse should not return a program on error")
+	}
+	mustRun(t, `fn main():
+    for i in [1, 2]:
+        print(i)
+
+main()
+`)
+}
+
+func TestMissingBlockAtEndHelper(t *testing.T) {
+	_, err := Parse("fn f():\n    for i in [1, 2]:\n", "<repl>")
+	var e *Errat
+	if !errors.As(err, &e) {
+		t.Fatalf("expected positioned error, got %v", err)
+	}
+	if !missingBlockAtEnd(e, "fn f():\n    for i in [1, 2]:\n") {
+		t.Fatal("missingBlockAtEnd should report true when buffer ends with a header colon")
+	}
+	if missingBlockAtEnd(e, "fn f():\n    for i in [1, 2]:\n    print(i)\n") {
+		t.Fatal("missingBlockAtEnd should be false once the body is present")
+	}
+}
+
+func TestFormatDiagnosticBlankLineFallback(t *testing.T) {
+	src := "    for i in [1, 2]:\n\n"
+	err := New().Run(src, "blank.snow")
+	got := FormatDiagnostic(err, src)
+	if !strings.Contains(got, "for i in [1, 2]:") || !strings.Contains(got, "^") {
+		t.Fatalf("diagnostic should render the previous line with a caret:\n%s", got)
 	}
 }
 

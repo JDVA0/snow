@@ -135,9 +135,15 @@ func Tokenize(src, name string) ([]Tok, error) {
 			}
 		}
 
+		startLine := i + 1
 		lineToks, err := tokenizeLine(lines, &i, content, lead, name, &depth)
 		if err != nil {
 			return nil, err
+		}
+		for n := range lineToks {
+			if lineToks[n].Line == startLine {
+				lineToks[n].Col += lead
+			}
 		}
 		toks = append(toks, lineToks...)
 		if depth == 0 && len(lineToks) > 0 {
@@ -179,7 +185,7 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 					if err != nil {
 						return nil, err
 					}
-					toks = append(toks, Tok{Kind: tFStr, Parts: parts, Line: ln, Col: i + 1 + lead})
+					toks = append(toks, Tok{Kind: tFStr, Parts: parts, Line: ln, Col: i + 1})
 					i = tripleStart + 3 + closeIdx + 3
 					continue
 				}
@@ -249,7 +255,7 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 			if err != nil {
 				return nil, err
 			}
-			toks = append(toks, Tok{Kind: tFStr, Parts: parts, Line: ln, Col: i + 1 + lead})
+			toks = append(toks, Tok{Kind: tFStr, Parts: parts, Line: ln, Col: i + 1})
 			i = j + 1
 
 		case c == '"' || c == '\'':
@@ -260,7 +266,7 @@ func tokenizeLine(lines []string, lineIdx *int, s string, lead int, name string,
 				rest := s[i+3:]
 				closeIdx := strings.Index(rest, quote3)
 				if closeIdx >= 0 {
-					toks = append(toks, Tok{Kind: tStr, Text: rest[:closeIdx], Line: ln, Col: i + 1 + lead})
+					toks = append(toks, Tok{Kind: tStr, Text: rest[:closeIdx], Line: ln, Col: i + 1})
 					i = i + 3 + closeIdx + 3
 					continue
 				}

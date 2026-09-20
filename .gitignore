@@ -44,3 +44,4 @@ node_modules/
 .vscode/
 .trae/
 *.txt
+*.db
